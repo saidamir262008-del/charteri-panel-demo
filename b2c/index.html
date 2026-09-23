@@ -1,0 +1,1103 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Charteri — авиабилеты из Узбекистана</title>
+<meta name="description" content="Демонстрация пассажирского приложения Charteri: поиск рейсов, оплата Payme, Uzum или картой и электронный билет с QR-кодом.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F6F4EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0C0E13" media="(prefers-color-scheme: dark)">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CHARTERI.UZ">
+<meta property="og:title" content="Charteri — авиабилеты из Узбекистана">
+<meta property="og:description" content="Демонстрация пассажирского приложения: поиск рейсов, оплата Payme, Uzum или картой, электронный билет с QR-кодом.">
+<meta property="og:url" content="https://saidamir262008-del.github.io/charteri-panel-demo/b2c/">
+<meta property="og:locale" content="ru_RU">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Unbounded:wght@800&display=swap">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%232F6FE0'/><path fill='%23fff' d='M20 16.2v-1.6l-7-4.4V5.1a1.3 1.3 0 0 0-2.6 0v5.1l-7 4.4v1.6l7-2.2v4.3l-1.7 1.3v1.3L12 20l3.3.9v-1.3L13.6 18.3V14z'/></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<style>
+/* Токены — брендбук Charteri и src/theme/tokens.ts мобильного приложения. */
+:root{
+  --blue:#2F6FE0; --navy:#16275C; --paper:#F6F4EF; --surface:#FFFFFF;
+  --sunken:#EFEBE3; --sky:#E7EFFC; --ink:#191B20; --muted:#5C6270; --faint:#8A8F9C;
+  --line:#E4E0D6; --mint:#12996A; --mint-bg:#DDF2E8; --coral:#E14B4B; --coral-bg:#FCE9E9;
+  --warn:#9A6206; --warn-bg:#FCF0DC;
+  --hero-a:#3F7DF0; --hero-b:#1E3577; --cta-a:#3D82F6; --cta-b:#2565E0;
+  --pass-top:#16275C; --backdrop:#E6E2D8;
+  --shadow:0 1px 2px rgba(22,39,92,.05),0 12px 30px -18px rgba(22,39,92,.28);
+  --card-border:transparent;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --blue:#6D9BF2; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
+  --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
+  --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
+  --warn:#E0A94B; --warn-bg:#2A2113;
+  --hero-a:#24427C; --hero-b:#132650; --pass-top:#132650; --backdrop:#050608;
+  --shadow:none; --card-border:#2B3240;
+}}
+:root[data-theme="dark"]{
+  --blue:#6D9BF2; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
+  --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
+  --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
+  --warn:#E0A94B; --warn-bg:#2A2113;
+  --hero-a:#24427C; --hero-b:#132650; --pass-top:#132650; --backdrop:#050608;
+  --shadow:none; --card-border:#2B3240;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--backdrop);color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums}
+h1,h2,h3{margin:0;line-height:1.2;text-wrap:balance;color:var(--navy)}
+p{margin:0}
+
+/* ---- каркас: приложение, а не сайт ---- */
+.stage{min-height:100dvh;display:flex;justify-content:center}
+.device{position:relative;width:100%;max-width:440px;height:100dvh;background:var(--paper);display:flex;flex-direction:column;overflow:hidden}
+@media (min-width:560px){
+  .stage{align-items:center;padding-block:24px}
+  .device{height:min(900px,calc(100dvh - 48px));border-radius:34px;
+    box-shadow:0 40px 90px -30px rgba(22,39,92,.45),0 0 0 1px var(--line)}
+}
+.scroll{flex:1;overflow-y:auto;overscroll-behavior:contain}
+.pad{padding-inline:18px}
+.stack{display:flex;flex-direction:column;gap:14px}
+
+/* ---- шапка вложенных экранов ---- */
+.bar{position:sticky;top:0;z-index:5;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:6px;
+  padding:12px 12px;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(12px)}
+.bar h1{font-size:16px;font-weight:700;text-align:center;color:var(--ink)}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:var(--blue)}
+.iconbtn:hover{background:var(--sunken)}
+.iconbtn svg{width:22px;height:22px}
+
+/* ---- типографика элементов ---- */
+.lbl{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.center{text-align:center}
+.sec{font-size:17px;font-weight:700;color:var(--ink);margin-bottom:10px}
+
+/* ---- кнопки ---- */
+.cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,var(--cta-a),var(--cta-b));color:#fff;font-weight:700;font-size:17px;
+  box-shadow:0 10px 24px -12px rgba(37,101,224,.8);text-align:center}
+.cta:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.solid{display:flex;align-items:center;justify-content:center;width:100%;height:48px;border-radius:14px;background:var(--blue);color:#fff;font-weight:700}
+.ghost{display:flex;align-items:center;justify-content:center;width:100%;height:48px;border-radius:14px;border:1px solid var(--line);color:var(--blue);font-weight:600;background:var(--surface)}
+.link{color:var(--blue);font-weight:600;font-size:14.5px;text-align:center;padding:8px}
+.danger{color:var(--coral)}
+
+/* ---- поля ---- */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+input,select,textarea{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--line);border-radius:12px;padding:11px 12px;width:100%;min-width:0;min-height:46px}
+textarea{min-height:96px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
+.upper{text-transform:uppercase}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.err{background:var(--coral-bg);color:var(--coral);border-radius:12px;padding:10px 12px;font-size:13.5px;font-weight:500}
+.ok{background:var(--mint-bg);color:var(--mint);border-radius:12px;padding:10px 12px;font-size:13.5px;font-weight:500}
+
+.card{background:var(--surface);border-radius:22px;box-shadow:var(--shadow);border:1px solid var(--card-border);padding:16px}
+
+/* ---- сегменты ---- */
+.seg{display:flex;background:var(--sunken);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;height:36px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);text-align:center;white-space:nowrap;padding-inline:6px}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+/* ---- герой ---- */
+.hero{background:linear-gradient(160deg,var(--hero-a),var(--hero-b));color:#fff;padding:18px 20px 70px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;right:-60px;top:-40px;width:220px;height:220px;border-radius:50%;
+  border:1px dashed rgba(255,255,255,.18)}
+.wordmark{font-family:"Unbounded","IBM Plex Sans",sans-serif;font-weight:800;letter-spacing:.4px;font-size:17px;color:#fff}
+.wordmark b{color:#9CC0FF;font-weight:800}
+.hero-top{display:flex;justify-content:space-between;align-items:center;gap:10px;position:relative;z-index:1}
+.badge-demo{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:1.2px;
+  padding:4px 8px;border-radius:7px;background:rgba(255,255,255,.14);color:#fff}
+.greet{margin-top:22px;font-size:14px;color:rgba(255,255,255,.75);font-weight:500;position:relative;z-index:1}
+.greet-q{font-size:30px;font-weight:700;color:#fff;letter-spacing:-.6px;margin-top:2px;position:relative;z-index:1}
+.lift{margin-top:-50px;position:relative;z-index:2}
+
+/* ---- откуда / куда ---- */
+.odpair{position:relative;border:1px solid var(--line);border-radius:16px}
+.odrow{display:grid;grid-template-columns:52px 1fr;align-items:center;column-gap:10px;width:100%;padding:12px 60px 12px 14px;text-align:left}
+.odrow + .odrow{border-top:1px solid var(--line)}
+.odrow .iata{grid-row:span 2;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:21px;color:var(--navy);letter-spacing:.5px}
+.odrow .l{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+.odrow .c{font-weight:600;font-size:15.5px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.swap{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:40px;height:40px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--line);color:var(--blue);display:grid;place-items:center}
+.swap svg{width:20px;height:20px}
+
+/* ---- пассажиры (степперы) ---- */
+.steps{display:flex;flex-direction:column}
+.steprow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-block:9px}
+.steprow + .steprow{border-top:1px solid var(--line)}
+.steprow b{font-weight:600;display:block}
+.steprow small{color:var(--muted);font-size:12.5px}
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);display:grid;place-items:center;color:var(--blue);font-size:19px;font-weight:600}
+.stepper button:disabled{opacity:.35;cursor:not-allowed}
+.stepper span{min-width:18px;text-align:center;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:16px}
+
+/* ---- табло популярных направлений ---- */
+.board{background:var(--surface);border-radius:20px;box-shadow:var(--shadow);border:1px solid var(--card-border);overflow:hidden}
+.brow{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;width:100%;padding:13px 16px;text-align:left}
+.brow + .brow{border-top:1px dashed var(--line)}
+.brow:hover{background:var(--sunken)}
+.brow .codes{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:14px;color:var(--navy);letter-spacing:.4px}
+.brow .codes i{font-style:normal;color:var(--blue);padding-inline:4px}
+.brow .city{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brow .from{font-family:"IBM Plex Mono",monospace;font-size:13.5px;font-weight:600;color:var(--blue);white-space:nowrap}
+
+/* ---- выдача ---- */
+.qhead{display:flex;flex-direction:column;gap:4px;padding:4px 18px 14px}
+.qroute{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:22px;color:var(--navy);letter-spacing:.5px}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 18px 12px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;height:34px;padding-inline:14px;border-radius:999px;border:1px solid var(--line);font-size:13.5px;font-weight:600;color:var(--muted);background:var(--surface);white-space:nowrap}
+.chip[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:var(--paper)}
+.offer{display:flex;flex-direction:column;gap:12px;width:100%;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;padding:15px 16px;box-shadow:var(--shadow);text-align:left}
+.offer:hover{outline:2px solid color-mix(in srgb,var(--blue) 35%,transparent)}
+.o-top{display:flex;align-items:center;gap:10px}
+.cb{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:12.5px;flex:none}
+.o-car{display:flex;flex-direction:column;min-width:0;flex:1}
+.o-car b{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.o-car small{color:var(--faint);font-size:12px;font-family:"IBM Plex Mono",monospace}
+.best{font-family:"IBM Plex Mono",monospace;font-size:10.5px;font-weight:600;letter-spacing:1px;padding:4px 8px;border-radius:7px;background:var(--mint-bg);color:var(--mint)}
+.o-mid{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
+.tm{display:flex;flex-direction:column}
+.tm b{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:21px;color:var(--navy);line-height:1.1}
+.tm b sup{font-size:11px;color:var(--coral);margin-left:2px}
+.tm span{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--muted)}
+.tm.r{text-align:right}
+.track{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.track .d{font-size:12px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.track .ln{position:relative;width:100%;height:2px;background:repeating-linear-gradient(90deg,var(--line) 0 6px,transparent 6px 10px)}
+.track .ln svg{position:absolute;left:50%;top:50%;width:16px;height:16px;transform:translate(-50%,-50%) rotate(90deg);fill:var(--blue);background:var(--surface);border-radius:50%}
+.track .s{font-size:12px;font-weight:600}
+.s-direct{color:var(--mint)}
+.s-stop{color:var(--coral)}
+.o-bot{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:11px}
+.o-bot .meta{font-size:12.5px;color:var(--muted);display:flex;flex-direction:column}
+.o-bot .left{color:var(--coral);font-weight:600}
+.price{text-align:right;display:flex;flex-direction:column}
+.price b{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:19px;color:var(--navy);white-space:nowrap}
+.price small{font-size:11.5px;color:var(--faint)}
+.note-leg{margin:0 18px 12px;padding:11px 13px;border-radius:12px;background:var(--sky);color:var(--navy);font-size:13.5px;font-weight:600}
+
+/* ---- скелет загрузки ---- */
+.skel{height:152px;border-radius:20px;background:linear-gradient(90deg,var(--sunken) 0,var(--surface) 50%,var(--sunken) 100%);background-size:200% 100%;animation:shimmer 1.2s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.searching{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;padding:0 18px 12px}
+.spin{width:18px;height:18px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--blue);animation:spin .8s linear infinite;flex:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---- маршрут рейса (детали, билет) ---- */
+.leg{display:flex;flex-direction:column;gap:14px}
+.leg-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.route{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
+.route .end{display:flex;flex-direction:column}
+.route .end.r{text-align:right}
+.route .code{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:28px;color:var(--navy);letter-spacing:.5px;line-height:1}
+.route .city{font-size:13px;color:var(--muted);margin-top:4px}
+.route .time{font-family:"IBM Plex Mono",monospace;font-size:15px;font-weight:600;color:var(--ink);margin-top:2px}
+.rows{display:flex;flex-direction:column}
+.rows > div{display:flex;justify-content:space-between;gap:12px;padding-block:9px;font-size:14.5px}
+.rows > div + div{border-top:1px solid var(--line)}
+.rows .k{color:var(--muted)}
+.rows .v{font-weight:600;text-align:right}
+.rows .v.mono{font-weight:600}
+.rows .tot{font-size:17px}
+.rows .tot .v{font-family:"IBM Plex Mono",monospace;color:var(--navy);font-size:20px}
+
+/* ---- пассажиры (формы) ---- */
+.pcard{display:flex;flex-direction:column;gap:12px}
+.pcard-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pcard-h b{font-size:16px;color:var(--navy)}
+.tchips{display:flex;flex-wrap:wrap;gap:7px}
+.tchip{height:32px;padding-inline:12px;border-radius:999px;background:var(--sky);color:var(--navy);font-weight:600;font-size:13px}
+.tchip[aria-pressed="true"]{background:var(--blue);color:#fff}
+.check{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--ink)}
+.check input{width:20px;height:20px;min-height:0;accent-color:var(--blue)}
+.secure{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--muted)}
+.secure svg{width:17px;height:17px;flex:none;margin-top:1px;color:var(--mint)}
+
+/* ---- проверка цены и оплата ---- */
+.pcheck{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;font-size:14px;font-weight:600}
+.pcheck.wait{background:var(--sunken);color:var(--muted)}
+.pcheck.good{background:var(--mint-bg);color:var(--mint)}
+.pcheck svg{width:18px;height:18px}
+.changed{background:var(--warn-bg);border-radius:16px;padding:15px;display:flex;flex-direction:column;gap:10px;color:var(--ink)}
+.changed h3{color:var(--warn);font-size:16px}
+.changed .rows > div + div{border-color:color-mix(in srgb,var(--warn) 25%,transparent)}
+.strike{text-decoration:line-through;color:var(--muted)}
+.methods{display:flex;flex-direction:column;gap:8px}
+.method{display:flex;align-items:center;gap:12px;width:100%;padding:13px 14px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);font-weight:600}
+.method[aria-pressed="true"]{border-color:var(--blue);background:color-mix(in srgb,var(--blue) 7%,var(--surface))}
+.method .dot{width:12px;height:12px;border-radius:50%;flex:none}
+.method .rad{margin-left:auto;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none}
+.method[aria-pressed="true"] .rad{border:6px solid var(--blue)}
+.demo-note{font-size:12.5px;color:var(--faint);text-align:center}
+
+/* ---- успех ---- */
+.success{display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding:56px 24px 24px}
+.checkmark{width:96px;height:96px;animation:pop .7s cubic-bezier(.34,1.56,.64,1) both}
+.checkmark circle{fill:none;stroke:var(--blue);stroke-width:4;stroke-dasharray:283;stroke-dashoffset:283;animation:draw .7s ease-out forwards}
+.checkmark path{fill:none;stroke:var(--blue);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:70;stroke-dashoffset:70;animation:draw .45s .55s cubic-bezier(.34,1.56,.64,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes pop{from{transform:scale(.6)}to{transform:scale(1)}}
+.success h1{font-size:26px;margin-top:8px}
+.refbox{display:flex;flex-direction:column;gap:2px;padding:12px 22px;border-radius:14px;background:var(--sky);margin-block:6px}
+.refbox b{font-family:"IBM Plex Mono",monospace;font-size:20px;letter-spacing:1.5px;color:var(--navy)}
+
+/* ---- посадочный талон ---- */
+.pass{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);border:1px solid var(--card-border);overflow:hidden}
+.pass-top{background:var(--pass-top);color:#fff;display:flex;align-items:center;gap:10px;padding:13px 16px}
+.pass-top .n{flex:1;font-weight:600;font-size:14.5px}
+.pass-top .f{font-family:"IBM Plex Mono",monospace;font-size:13px;color:#9CC0FF}
+.pass-body{padding:18px 16px 16px;display:flex;flex-direction:column;gap:16px}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}
+.pgrid > div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.pgrid b{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgrid .wide{grid-column:span 2}
+.perf{position:relative;height:0;border-top:2px dashed var(--line);margin-inline:14px}
+.perf::before,.perf::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:var(--paper)}
+.perf::before{left:-26px}.perf::after{right:-26px}
+.pass-qr{display:flex;align-items:center;gap:16px;padding:16px}
+.qr{width:112px;height:112px;background:#fff;border-radius:12px;padding:9px;flex:none;display:grid;place-items:center}
+.qr svg{width:100%;height:100%;display:block}
+.ref{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;letter-spacing:1.5px;color:var(--navy)}
+.reqbanner{display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:16px;background:var(--warn-bg);font-size:13.5px}
+.pill{display:inline-block;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.new{background:var(--warn-bg);color:var(--warn)}
+.pill.soon{background:var(--sky);color:var(--blue)}
+
+/* ---- поездки ---- */
+.pagehead{padding:22px 18px 14px;display:flex;flex-direction:column;gap:3px}
+.pagehead h1{font-size:28px;letter-spacing:-.5px}
+.trip{display:flex;flex-direction:column;gap:10px;width:100%;background:var(--surface);border:1px solid var(--card-border);border-radius:20px;padding:15px 16px;box-shadow:var(--shadow);text-align:left}
+.trip-h{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.trip .codes{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:20px;color:var(--navy);letter-spacing:.5px}
+.trip .codes i{font-style:normal;color:var(--blue);padding-inline:6px;font-size:16px}
+.trip .cities{font-size:13.5px;color:var(--muted)}
+.trip-f{display:flex;justify-content:space-between;gap:10px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:9px}
+.trip.past{opacity:.72}
+.empty{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:40px 24px}
+.empty svg{width:170px;height:100px}
+.empty .plane-fly{animation:fly 4.2s ease-in-out infinite}
+@keyframes fly{0%,100%{transform:translate(0,0)}50%{transform:translate(6px,-5px)}}
+
+/* ---- профиль ---- */
+.who{display:flex;align-items:center;gap:14px}
+.avatar{width:52px;height:52px;border-radius:16px;background:linear-gradient(160deg,var(--hero-a),var(--hero-b));color:#fff;display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.who b{display:block;font-size:17px;color:var(--navy)}
+.setrow{display:flex;flex-direction:column;gap:8px;padding-block:12px}
+.setrow + .setrow,.navrow + .setrow,.setrow + .navrow{border-top:1px solid var(--line)}
+.setrow > span{font-weight:600;font-size:14.5px}
+.navrow{display:flex;align-items:center;justify-content:space-between;width:100%;padding-block:14px;font-weight:600}
+.navrow svg{width:18px;height:18px;color:var(--faint)}
+.navrow .count{margin-left:auto;margin-right:8px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-weight:500}
+
+/* ---- вход ---- */
+.login-hero{background:linear-gradient(160deg,var(--hero-a),var(--hero-b));color:#fff;padding:18px 20px 88px;position:relative;overflow:hidden}
+.login-hero .tag{margin-top:26px;font-size:24px;font-weight:700;letter-spacing:-.4px;line-height:1.25;max-width:17ch;position:relative;z-index:1}
+.miniboard{margin-top:20px;border-radius:14px;background:rgba(6,14,40,.28);padding:6px 12px;position:relative;z-index:1}
+.miniboard div{display:grid;grid-template-columns:62px 1fr auto;gap:10px;padding-block:6px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:rgba(255,255,255,.88)}
+.miniboard div + div{border-top:1px dashed rgba(255,255,255,.16)}
+.miniboard .st{color:#8FE3BF}
+.langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:10px;padding:3px}
+.langs button{height:28px;padding-inline:9px;border-radius:7px;font-size:12.5px;font-weight:600;color:rgba(255,255,255,.8)}
+.langs button[aria-pressed="true"]{background:#fff;color:#16275C}
+.otp{font-family:"IBM Plex Mono",monospace;font-size:30px;letter-spacing:14px;text-align:center;padding-block:14px}
+
+/* ---- список аэропортов ---- */
+.aplist{display:flex;flex-direction:column}
+.aprow{display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;width:100%;padding:12px 18px;text-align:left}
+.aprow + .aprow{border-top:1px solid var(--line)}
+.aprow:hover{background:var(--sunken)}
+.aprow .code{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--blue)}
+.aprow b{font-weight:600;display:block}
+.aprow small{color:var(--muted);font-size:12.5px}
+
+/* ---- таббар, тост, оверлей ---- */
+.tabbar{display:flex;border-top:1px solid var(--line);background:color-mix(in srgb,var(--surface) 90%,transparent);backdrop-filter:blur(14px);
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding-block:5px;border-radius:12px;color:var(--faint);font-size:11px;font-weight:600;text-align:center}
+.tabbar button svg{width:24px;height:24px}
+.tabbar button[aria-current="true"]{color:var(--blue)}
+.toast{position:absolute;left:16px;right:16px;bottom:86px;z-index:30;background:var(--ink);color:var(--paper);
+  border-radius:14px;padding:12px 14px;font-size:14px;font-weight:500;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);animation:rise .3s ease-out both}
+.overlay{position:absolute;inset:0;z-index:40;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 86%,transparent);backdrop-filter:blur(6px)}
+.overlay .box{display:flex;flex-direction:column;align-items:center;gap:14px;font-weight:600;color:var(--ink)}
+.overlay .spin{width:40px;height:40px;border-width:3px}
+
+/* ---- движение: брендбук, «появление карточки» ---- */
+.rise{animation:rise .42s ease-out both;animation-delay:calc(var(--i,0) * 55ms)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="device" id="device">
+    <div class="scroll" id="scroll"><div id="screen"></div></div>
+    <nav class="tabbar" id="tabbar" hidden></nav>
+    <div id="toastHost"></div>
+    <div id="overlayHost"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =========================================================================
+   Данные приложения. Строки, маршруты, перевозчики и аэропорты вставлены
+   генератором прямо из исходников charteri-mobile — не перепечатаны.
+   ========================================================================= */
+const I18N = {"brand": {"uz": "Charteri", "ru": "Charteri", "en": "Charteri"}, "tagline": {"uz": "O'zbekistondan parvozlar — bir joyda", "ru": "Авиабилеты из Узбекистана — в одном месте", "en": "Flights from Uzbekistan — in one place"}, "tab_search": {"uz": "Qidiruv", "ru": "Поиск", "en": "Search"}, "tab_trips": {"uz": "Sayohatlar", "ru": "Поездки", "en": "Trips"}, "tab_profile": {"uz": "Profil", "ru": "Профиль", "en": "Profile"}, "login_title": {"uz": "Telefon raqamingiz", "ru": "Ваш номер телефона", "en": "Your phone number"}, "login_sub": {"uz": "Kirish uchun SMS-kod yuboramiz", "ru": "Отправим SMS-код для входа", "en": "We'll text you a code to sign in"}, "login_cta": {"uz": "Kodni olish", "ru": "Получить код", "en": "Get code"}, "login_guest": {"uz": "Mehmon sifatida davom etish", "ru": "Продолжить как гость", "en": "Continue as guest"}, "otp_title": {"uz": "Kodni kiriting", "ru": "Введите код", "en": "Enter the code"}, "otp_sub": {"uz": "raqamiga yuborildi", "ru": "отправлен на номер", "en": "sent to"}, "otp_hint": {"uz": "Demo: istalgan 4 raqam", "ru": "Демо: любые 4 цифры", "en": "Demo: any 4 digits"}, "otp_hint_live": {"uz": "SMS orqali yuborilgan 6 xonali kod", "ru": "6-значный код из SMS", "en": "6-digit code from SMS"}, "otp_cta": {"uz": "Tasdiqlash", "ru": "Подтвердить", "en": "Verify"}, "otp_resend": {"uz": "Kodni qayta yuborish", "ru": "Отправить код снова", "en": "Resend code"}, "from": {"uz": "Qayerdan", "ru": "Откуда", "en": "From"}, "to": {"uz": "Qayerga", "ru": "Куда", "en": "To"}, "depart": {"uz": "Ketish", "ru": "Туда", "en": "Depart"}, "return_": {"uz": "Qaytish", "ru": "Обратно", "en": "Return"}, "oneway": {"uz": "Bir tomonlama", "ru": "В одну сторону", "en": "One-way"}, "roundtrip": {"uz": "Borish-kelish", "ru": "Туда-обратно", "en": "Round-trip"}, "passengers": {"uz": "Yo‘lovchilar", "ru": "Пассажиры", "en": "Passengers"}, "adults": {"uz": "Kattalar", "ru": "Взрослые", "en": "Adults"}, "children": {"uz": "Bolalar", "ru": "Дети", "en": "Children"}, "infants": {"uz": "Chaqaloqlar", "ru": "Младенцы", "en": "Infants"}, "cabin_class": {"uz": "Sinf", "ru": "Класс", "en": "Class"}, "economy": {"uz": "Ekonom", "ru": "Эконом", "en": "Economy"}, "business": {"uz": "Biznes", "ru": "Бизнес", "en": "Business"}, "search_cta": {"uz": "Parvozlarni qidirish", "ru": "Найти рейсы", "en": "Search flights"}, "popular_routes": {"uz": "Ommabop yo‘nalishlar", "ru": "Популярные направления", "en": "Popular routes"}, "select_city": {"uz": "Shaharni tanlang", "ru": "Выберите город", "en": "Select a city"}, "search_city_ph": {"uz": "Shahar yoki IATA kodi", "ru": "Город или IATA-код", "en": "City or IATA code"}, "done": {"uz": "Tayyor", "ru": "Готово", "en": "Done"}, "results_title": {"uz": "Topilgan parvozlar", "ru": "Найденные рейсы", "en": "Flights found"}, "searching_providers": {"uz": "Ta’minotchilar so‘ralmoqda…", "ru": "Опрашиваем поставщиков…", "en": "Querying providers…"}, "sort": {"uz": "Saralash", "ru": "Сортировка", "en": "Sort"}, "sort_cheapest": {"uz": "Arzon", "ru": "Дешевле", "en": "Cheapest"}, "sort_fastest": {"uz": "Tez", "ru": "Быстрее", "en": "Fastest"}, "sort_early": {"uz": "Erta", "ru": "Раньше", "en": "Earliest"}, "filter_direct": {"uz": "To‘g‘ridan-to‘g‘ri", "ru": "Без пересадок", "en": "Direct"}, "direct": {"uz": "To‘g‘ridan-to‘g‘ri", "ru": "Прямой", "en": "Direct"}, "one_stop": {"uz": "1 to‘xtash", "ru": "1 пересадка", "en": "1 stop"}, "no_results": {"uz": "Bu filtrlar bo‘yicha parvoz yo‘q", "ru": "Нет рейсов по этим фильтрам", "en": "No flights match these filters"}, "select_flight": {"uz": "Tanlash", "ru": "Выбрать", "en": "Select"}, "flight_details": {"uz": "Parvoz tafsilotlari", "ru": "Детали рейса", "en": "Flight details"}, "baggage": {"uz": "Bagaj", "ru": "Багаж", "en": "Baggage"}, "baggage_inc": {"uz": "20 kg kiritilgan", "ru": "20 кг включено", "en": "20 kg included"}, "carryon": {"uz": "Qo‘l yuki 7 kg", "ru": "Ручная кладь 7 кг", "en": "Carry-on 7 kg"}, "duration": {"uz": "Davomiyligi", "ru": "В пути", "en": "Duration"}, "aircraft": {"uz": "Samolyot", "ru": "Самолёт", "en": "Aircraft"}, "continue_": {"uz": "Davom etish", "ru": "Продолжить", "en": "Continue"}, "total": {"uz": "Jami", "ru": "Итого", "en": "Total"}, "per_passenger": {"uz": "yo‘lovchi uchun", "ru": "за пассажира", "en": "per passenger"}, "passenger_details": {"uz": "Yo‘lovchi ma’lumotlari", "ru": "Данные пассажира", "en": "Passenger details"}, "passenger_n": {"uz": "Yo‘lovchi", "ru": "Пассажир", "en": "Passenger"}, "scan_passport": {"uz": "Pasportni skanerlash", "ru": "Сканировать паспорт", "en": "Scan passport"}, "scanning": {"uz": "Skanerlanmoqda…", "ru": "Сканируем…", "en": "Scanning…"}, "given_name": {"uz": "Ism", "ru": "Имя", "en": "Given name"}, "surname": {"uz": "Familiya", "ru": "Фамилия", "en": "Surname"}, "passport_no": {"uz": "Pasport raqami", "ru": "Номер паспорта", "en": "Passport number"}, "dob": {"uz": "Tug‘ilgan sana", "ru": "Дата рождения", "en": "Date of birth"}, "expiry": {"uz": "Amal qilish muddati", "ru": "Срок действия", "en": "Expiry date"}, "citizenship": {"uz": "Fuqarolik", "ru": "Гражданство", "en": "Citizenship"}, "contact_phone": {"uz": "Aloqa telefoni", "ru": "Контактный телефон", "en": "Contact phone"}, "to_review": {"uz": "To‘lovga o‘tish", "ru": "К оплате", "en": "Go to payment"}, "secure_note": {"uz": "Pasport ma’lumotlari qurilmangizda xavfsiz saqlanadi", "ru": "Паспортные данные хранятся безопасно на вашем устройстве", "en": "Passport data is stored securely on your device"}, "review_title": {"uz": "Buyurtmani tasdiqlash", "ru": "Подтверждение заказа", "en": "Review & pay"}, "verifying_price": {"uz": "Narx tekshirilmoqda…", "ru": "Проверяем цену…", "en": "Verifying price…"}, "price_confirmed": {"uz": "Narx tasdiqlandi", "ru": "Цена подтверждена", "en": "Price confirmed"}, "price_changed_title": {"uz": "Narx o‘zgardi", "ru": "Цена изменилась", "en": "Price changed"}, "price_changed_body": {"uz": "Ta’minotchi narxi yangilandi. Davom etishdan oldin tasdiqlang.", "ru": "Поставщик обновил цену. Подтвердите перед оплатой.", "en": "The provider updated the fare. Please confirm before paying."}, "old_price": {"uz": "Eski narx", "ru": "Старая цена", "en": "Old price"}, "new_price": {"uz": "Yangi narx", "ru": "Новая цена", "en": "New price"}, "accept_new_price": {"uz": "Yangi narxni qabul qilish", "ru": "Принять новую цену", "en": "Accept new price"}, "pay_now": {"uz": "To‘lash", "ru": "Оплатить", "en": "Pay"}, "pay_method": {"uz": "To‘lov usuli", "ru": "Способ оплаты", "en": "Payment method"}, "processing": {"uz": "To‘lov amalga oshirilmoqda…", "ru": "Проводим оплату…", "en": "Processing payment…"}, "itinerary": {"uz": "Marshrut", "ru": "Маршрут", "en": "Itinerary"}, "pay_demo_note": {"uz": "Demo — haqiqiy pul yechilmaydi", "ru": "Демо — реальные деньги не списываются", "en": "Demo — no real money is charged"}, "pay_unavailable_title": {"uz": "To‘lov usuli mavjud emas", "ru": "Способ оплаты недоступен", "en": "Payment method unavailable"}, "pay_unavailable_body": {"uz": "Hozircha faqat Uzum orqali to‘lash mumkin. Boshqa usullar tez orada qo‘shiladi.", "ru": "Пока оплата возможна только через Uzum. Другие способы появятся позже.", "en": "Only Uzum payment is available right now. Other methods are coming soon."}, "pay_confirming_title": {"uz": "To‘lov tekshirilmoqda", "ru": "Проверяем оплату", "en": "Confirming your payment"}, "pay_confirming_body": {"uz": "Uzum to‘lovni tasdiqlagach, chiptangiz kuchga kiradi. Bu odatda bir necha daqiqa oladi.", "ru": "Билет станет действительным, как только Uzum подтвердит оплату. Обычно это занимает несколько минут.", "en": "Your ticket becomes valid as soon as Uzum confirms the payment. This usually takes a few minutes."}, "booking_confirmed": {"uz": "Bron tasdiqlandi!", "ru": "Бронь подтверждена!", "en": "Booking confirmed!"}, "ticket_ready": {"uz": "Chiptangiz tayyor", "ru": "Ваш билет готов", "en": "Your ticket is ready"}, "view_ticket": {"uz": "Chiptani ko‘rish", "ru": "Открыть билет", "en": "View ticket"}, "eticket": {"uz": "Elektron chipta", "ru": "Электронный билет", "en": "E-ticket"}, "booking_ref": {"uz": "Bron kodi", "ru": "Код брони", "en": "Booking ref"}, "offline_note": {"uz": "Bu chipta internetsiz ham ochiladi", "ru": "Этот билет открывается без интернета", "en": "This ticket opens without internet"}, "passenger": {"uz": "Yo‘lovchi", "ru": "Пассажир", "en": "Passenger"}, "gate": {"uz": "Chiqish", "ru": "Выход", "en": "Gate"}, "seat": {"uz": "O‘rindiq", "ru": "Место", "en": "Seat"}, "boarding": {"uz": "Qo‘nish", "ru": "Посадка", "en": "Boarding"}, "trips_empty_title": {"uz": "Hali sayohatlar yo‘q", "ru": "Пока нет поездок", "en": "No trips yet"}, "trips_empty_body": {"uz": "Bron qilingan chiptalaringiz shu yerda saqlanadi", "ru": "Ваши забронированные билеты появятся здесь", "en": "Your booked tickets will live here"}, "trips_start": {"uz": "Parvoz qidirish", "ru": "Найти рейс", "en": "Find a flight"}, "upcoming": {"uz": "Yaqin parvozlar", "ru": "Ближайшие", "en": "Upcoming"}, "bookings": {"uz": "Bronlar", "ru": "Бронирования", "en": "Bookings"}, "scan_camera": {"uz": "Kamera", "ru": "Камера", "en": "Camera"}, "scan_library": {"uz": "Galereya", "ru": "Галерея", "en": "Photo library"}, "scan_permission": {"uz": "Ruxsat berilmadi", "ru": "Доступ не предоставлен", "en": "Permission denied"}, "scan_failed": {"uz": "Pasport aniqlanmadi", "ru": "Паспорт не распознан", "en": "Could not read passport"}, "cancel": {"uz": "Bekor qilish", "ru": "Отмена", "en": "Cancel"}, "wallet_balance": {"uz": "Hisob balansi", "ru": "Баланс кошелька", "en": "Wallet balance"}, "appearance": {"uz": "Ko'rinish", "ru": "Оформление", "en": "Appearance"}, "theme_light": {"uz": "Yorug‘", "ru": "Светлая", "en": "Light"}, "theme_dark": {"uz": "Tungi", "ru": "Тёмная", "en": "Dark"}, "profile_guest": {"uz": "Mehmon", "ru": "Гость", "en": "Guest"}, "language": {"uz": "Til", "ru": "Язык", "en": "Language"}, "currency": {"uz": "Valyuta", "ru": "Валюта", "en": "Currency"}, "saved_travellers": {"uz": "Saqlangan yo‘lovchilar", "ru": "Сохранённые пассажиры", "en": "Saved travellers"}, "price_alerts": {"uz": "Narx bildirishnomalari", "ru": "Оповещения о ценах", "en": "Price alerts"}, "delete_account": {"uz": "Hisobni o‘chirish", "ru": "Удалить аккаунт", "en": "Delete account"}, "sign_out": {"uz": "Chiqish", "ru": "Выйти", "en": "Sign out"}, "demo_badge": {"uz": "DEMO", "ru": "ДЕМО", "en": "DEMO"}, "stops_1": {"uz": "to‘xtash", "ru": "пересадка", "en": "stop"}, "h": {"uz": "s", "ru": "ч", "en": "h"}, "m": {"uz": "d", "ru": "м", "en": "m"}, "best": {"uz": "TOP", "ru": "ТОП", "en": "BEST"}, "greet_morning": {"uz": "Xayrli tong", "ru": "Доброе утро", "en": "Good morning"}, "greet_day": {"uz": "Xayrli kun", "ru": "Добрый день", "en": "Good afternoon"}, "greet_evening": {"uz": "Xayrli kech", "ru": "Добрый вечер", "en": "Good evening"}, "greet_sub": {"uz": "Qayerga uchamiz?", "ru": "Куда летим?", "en": "Where are we flying?"}, "paid_title": {"uz": "To‘landi!", "ru": "Оплачено!", "en": "Paid!"}, "paid_sub": {"uz": "Chipta rasmiylashtirilmoqda…", "ru": "Оформляем билет…", "en": "Issuing your ticket…"}, "dep_today": {"uz": "Bugun", "ru": "Сегодня", "en": "Today"}, "dep_tomorrow": {"uz": "Ertaga", "ru": "Завтра", "en": "Tomorrow"}, "dep_in": {"uz": "kundan keyin", "ru": "дн. до вылета", "en": "days to go"}, "share_ticket": {"uz": "Chiptani ulashish", "ru": "Поделиться билетом", "en": "Share ticket"}, "share_failed": {"uz": "Ulashib bo‘lmadi", "ru": "Не удалось поделиться", "en": "Could not share"}, "no_results_body": {"uz": "Boshqa sana yoki yo‘nalishni sinab ko‘ring", "ru": "Попробуйте другие даты или направление", "en": "Try different dates or another route"}, "edit_search": {"uz": "Qidiruvni o‘zgartirish", "ru": "Изменить поиск", "en": "Edit search"}, "trips_sub": {"uz": "Chiptalar va bronlar", "ru": "Ваши билеты и брони", "en": "Your tickets and bookings"}, "leg_out": {"uz": "Borish reysi", "ru": "Рейс туда", "en": "Outbound flight"}, "leg_back": {"uz": "Qaytish reysi", "ru": "Рейс обратно", "en": "Return flight"}, "change": {"uz": "O‘zgartirish", "ru": "Изменить", "en": "Change"}, "pay_cancelled": {"uz": "To‘lov bekor qilindi", "ru": "Оплата отменена", "en": "Payment cancelled"}, "gender": {"uz": "Jins", "ru": "Пол", "en": "Gender"}, "popular_cities": {"uz": "Ommabop shaharlar", "ru": "Популярные города", "en": "Popular cities"}, "all_cities": {"uz": "Barcha shaharlar", "ru": "Все города", "en": "All cities"}, "no_city": {"uz": "Shahar topilmadi", "ru": "Город не найден", "en": "No city found"}, "price_from": {"uz": "dan", "ru": "от", "en": "from"}, "explore": {"uz": "Yo‘nalishlar", "ru": "Куда полететь", "en": "Where to fly"}, "past_trips": {"uz": "O‘tgan parvozlar", "ru": "Прошедшие", "en": "Past trips"}, "agency_bookings": {"uz": "Agentlik bronlari", "ru": "Брони агентства", "en": "Agency bookings"}, "trip_sync_pending": {"uz": "Qurilmada", "ru": "На устройстве", "en": "On device"}, "remove_trip_title": {"uz": "Sayohat o‘chirilsinmi?", "ru": "Удалить поездку?", "en": "Remove this trip?"}, "remove_trip_body": {"uz": "Chipta faqat shu qurilmadan o‘chadi. Bronning o‘zi bekor qilinmaydi.", "ru": "Билет удалится только с этого устройства. Сама бронь не отменяется.", "en": "The ticket is removed from this device only. The booking itself is not cancelled."}, "remove": {"uz": "O‘chirish", "ru": "Удалить", "en": "Remove"}, "select_traveller": {"uz": "Yo‘lovchini tanlang", "ru": "Выберите пассажира", "en": "Select a traveller"}, "add_traveller": {"uz": "Yo‘lovchi qo‘shish", "ru": "Добавить пассажира", "en": "Add traveller"}, "edit_traveller": {"uz": "Ma’lumotlarni tahrirlash", "ru": "Изменить данные", "en": "Edit details"}, "save_traveller": {"uz": "Yo‘lovchini saqlash", "ru": "Сохранить пассажира", "en": "Save traveller"}, "traveller_saved": {"uz": "Saqlandi", "ru": "Сохранён", "en": "Saved"}, "travellers_empty_title": {"uz": "Saqlangan yo‘lovchilar yo‘q", "ru": "Пока никого не сохранено", "en": "No saved travellers yet"}, "travellers_empty_body": {"uz": "Bir marta saqlang — keyingi bronlarda ma’lumotlar bir tegishda to‘ladi", "ru": "Сохраните пассажира один раз — в следующий раз данные подставятся одним касанием", "en": "Save a traveller once and their details fill in with one tap next time"}, "delete_traveller_title": {"uz": "Yo‘lovchi o‘chirilsinmi?", "ru": "Удалить пассажира?", "en": "Delete this traveller?"}, "delete_traveller_body": {"uz": "Uning pasport ma’lumotlari shu qurilmadan o‘chadi.", "ru": "Его паспортные данные будут удалены с этого устройства.", "en": "Their passport details will be deleted from this device."}, "travellers_limit": {"uz": "Ro‘yxat to‘ldi", "ru": "Список заполнен", "en": "List is full"}, "travellers_limit_body": {"uz": "Ko‘pi bilan 40 ta yo‘lovchi saqlanadi. Yangisini qo‘shish uchun birortasini o‘chiring.", "ru": "Можно хранить не больше 40 пассажиров. Удалите одного, чтобы добавить нового.", "en": "You can keep up to 40 travellers. Delete one to add another."}, "notif_reminders_on": {"uz": "Parvozdan 24 va 3 soat oldin eslatamiz", "ru": "Напомним за 24 и за 3 часа до вылета", "en": "We'll remind you 24 h and 3 h before departure"}, "notif_reminders_off": {"uz": "Bildirishnomalar o‘chiq — eslatma kelmaydi. iPhone sozlamalaridan yoqing.", "ru": "Уведомления выключены — напоминаний не будет. Включить можно в настройках iPhone.", "en": "Notifications are off — no reminders will arrive. Turn them on in iPhone Settings."}, "notif_booked_body": {"uz": "Chipta «Sayohatlar» bo‘limida saqlandi", "ru": "Билет сохранён в разделе «Поездки»", "en": "Your ticket is saved under Trips"}, "notif_t24_title": {"uz": "Parvoz ertaga", "ru": "Вылет завтра", "en": "Your flight is tomorrow"}, "notif_t24_body": {"uz": "Hujjatlarni tekshiring va onlayn ro‘yxatdan o‘ting", "ru": "Проверьте документы и пройдите онлайн-регистрацию", "en": "Check your documents and do online check-in"}, "notif_t3_title": {"uz": "3 soatdan keyin parvoz", "ru": "Вылет через 3 часа", "en": "Your flight leaves in 3 hours"}, "notif_t3_body": {"uz": "Aeroportga yo‘lga chiqing — ro‘yxatdan o‘tish tez orada yopiladi", "ru": "Пора выезжать в аэропорт — регистрация скоро закроется", "en": "Time to head to the airport — check-in closes soon"}, "request_change": {"uz": "O‘zgartirish yoki bekor qilish", "ru": "Изменить или отменить", "en": "Change or cancel"}, "req_title": {"uz": "So‘rov", "ru": "Заявка", "en": "Request"}, "req_kind_label": {"uz": "Nima qilish kerak?", "ru": "Что нужно сделать?", "en": "What do you need?"}, "req_kind_cancel": {"uz": "Bronni bekor qilish", "ru": "Отменить бронь", "en": "Cancel booking"}, "req_kind_change_date": {"uz": "Sanani o‘zgartirish", "ru": "Перенести дату", "en": "Change the date"}, "req_kind_change_passenger": {"uz": "Yo‘lovchini o‘zgartirish", "ru": "Изменить пассажира", "en": "Change passenger"}, "req_kind_other": {"uz": "Boshqa", "ru": "Другое", "en": "Other"}, "req_note": {"uz": "Izoh", "ru": "Комментарий", "en": "Comment"}, "req_note_ph": {"uz": "Nimani o‘zgartirish kerak?", "ru": "Что именно нужно изменить?", "en": "What exactly should change?"}, "req_submit": {"uz": "So‘rov qoldirish", "ru": "Оставить заявку", "en": "Submit request"}, "req_status_new": {"uz": "Yuborildi", "ru": "Отправлена", "en": "Sent"}, "req_status_in_progress": {"uz": "Ko‘rib chiqilmoqda", "ru": "В работе", "en": "In progress"}, "req_status_resolved": {"uz": "Hal qilindi", "ru": "Решена", "en": "Resolved"}, "req_status_rejected": {"uz": "Rad etildi", "ru": "Отклонена", "en": "Declined"}, "req_status_local": {"uz": "Shu qurilmada saqlandi", "ru": "Сохранено на устройстве", "en": "Saved on this device"}, "req_local_note": {"uz": "So‘rov hali bizga yetib bormadi — u shu qurilmada turibdi. Tezroq ko‘rib chiqilishi uchun biz bilan bog‘laning.", "ru": "Заявка ещё не ушла к нам — она хранится на этом устройстве. Свяжитесь с нами, чтобы её взяли в работу.", "en": "The request has not reached us yet — it is stored on this device. Contact us so someone picks it up."}, "req_contact_ops": {"uz": "Biz bilan bog‘lanish", "ru": "Связаться с нами", "en": "Contact us"}};
+const EXTRA = {"phone_label": {"ru": "Номер телефона", "uz": "Telefon raqami", "en": "Phone number"}, "demo_banner": {"ru": "Демонстрация на тестовых данных", "uz": "Test ma’lumotlaridagi namoyish", "en": "Demo on test data"}, "err_phone": {"ru": "Введите номер в формате +998 XX XXX XX XX", "uz": "Raqamni +998 XX XXX XX XX formatida kiriting", "en": "Enter a number as +998 XX XXX XX XX"}, "err_code": {"ru": "Введите четыре цифры", "uz": "To‘rtta raqam kiriting", "en": "Enter four digits"}, "code_resent": {"ru": "Код отправлен ещё раз", "uz": "Kod qayta yuborildi", "en": "Code sent again"}, "err_same_city": {"ru": "Города вылета и прилёта совпадают", "uz": "Uchish va qo‘nish shaharlari bir xil", "en": "Departure and arrival cities are the same"}, "err_date_past": {"ru": "Дата вылета уже прошла", "uz": "Uchish sanasi o‘tib ketgan", "en": "The departure date has passed"}, "err_return": {"ru": "Обратный рейс раньше вылета", "uz": "Qaytish sanasi uchishdan oldin", "en": "Return is before departure"}, "max_pax": {"ru": "Не больше 9 пассажиров в одном заказе", "uz": "Bitta buyurtmada ko‘pi bilan 9 yo‘lovchi", "en": "Up to 9 passengers per booking"}, "infants_rule": {"ru": "Младенцев не больше, чем взрослых", "uz": "Chaqaloqlar kattalardan ko‘p bo‘lmasligi kerak", "en": "No more infants than adults"}, "age_adult": {"ru": "от 12 лет", "uz": "12 yoshdan", "en": "12+ years"}, "age_child": {"ru": "2–11 лет", "uz": "2–11 yosh", "en": "2–11 years"}, "age_infant": {"ru": "до 2 лет, без места", "uz": "2 yoshgacha, o‘rindiqsiz", "en": "under 2, on lap"}, "pax_adult": {"ru": "Взрослый", "uz": "Katta", "en": "Adult"}, "pax_child": {"ru": "Ребёнок", "uz": "Bola", "en": "Child"}, "pax_infant": {"ru": "Младенец", "uz": "Chaqaloq", "en": "Infant"}, "infant_fare": {"ru": "Младенец, 10% тарифа", "uz": "Chaqaloq, tarifning 10%", "en": "Infant, 10% of fare"}, "kg": {"ru": "кг", "uz": "kg", "en": "kg"}, "cur_uzs": {"ru": "сум", "uz": "so‘m", "en": "UZS"}, "via": {"ru": "через {c}", "uz": "{c} orqali", "en": "via {c}"}, "seats_left": {"ru": "Осталось мест: {n}", "uz": "Qolgan o‘rinlar: {n}", "en": "{n} seats left"}, "choose_return": {"ru": "Теперь выберите обратный рейс", "uz": "Endi qaytish reysini tanlang", "en": "Now pick your return flight"}, "err_name": {"ru": "Имя и фамилия — латиницей, как в паспорте", "uz": "Ism va familiya — pasportdagidek lotin harflarida", "en": "Name in Latin letters, exactly as in the passport"}, "err_passport": {"ru": "Номер паспорта — от 5 до 9 латинских букв и цифр", "uz": "Pasport raqami — 5 dan 9 gacha lotin harf va raqam", "en": "Passport number: 5 to 9 Latin letters and digits"}, "err_gender": {"ru": "Укажите пол", "uz": "Jinsini tanlang", "en": "Select gender"}, "err_dob": {"ru": "Укажите дату рождения", "uz": "Tug‘ilgan sanani kiriting", "en": "Enter the date of birth"}, "err_expiry": {"ru": "Паспорт истекает раньше, чем закончится поездка", "uz": "Pasport muddati safar tugashidan oldin tugaydi", "en": "The passport expires before the trip ends"}, "err_contact": {"ru": "Укажите контактный телефон в формате +998", "uz": "Aloqa telefonini +998 formatida kiriting", "en": "Enter a contact phone starting with +998"}, "gender_m": {"ru": "Мужской", "uz": "Erkak", "en": "Male"}, "gender_f": {"ru": "Женский", "uz": "Ayol", "en": "Female"}, "theme_system": {"ru": "Авто", "uz": "Avto", "en": "Auto"}, "reset_demo": {"ru": "Сбросить демо", "uz": "Demoni qayta boshlash", "en": "Reset demo"}, "reset_confirm": {"ru": "Вернуть демонстрацию к исходным данным?", "uz": "Namoyish boshlang‘ich holatga qaytarilsinmi?", "en": "Reset the demo to its starting data?"}, "back": {"ru": "Назад", "uz": "Orqaga", "en": "Back"}, "price_diff": {"ru": "Разница", "uz": "Farq", "en": "Difference"}, "removed": {"ru": "Удалено", "uz": "O‘chirildi", "en": "Removed"}};
+const ROUTES = {
+  'TAS-AYT': { carrier: 'Uzbekistan Airways', flightNo: 'HY-3223', plane: 'Boeing 787-8', depTime: '09:40', arrTime: '13:10', ecoPrice: 345, busPrice: 580, durationMin: 330 },
+  'AYT-TAS': { carrier: 'Uzbekistan Airways', flightNo: 'HY-3224', plane: 'Boeing 787-8', depTime: '14:40', arrTime: '21:10', ecoPrice: 320, busPrice: 560, durationMin: 330 },
+  'TAS-DXB': { carrier: 'Centrum Air', flightNo: 'C4-771', plane: 'Airbus A320neo', depTime: '18:40', arrTime: '21:15', ecoPrice: 285, busPrice: 490, durationMin: 215 },
+  'DXB-TAS': { carrier: 'Centrum Air', flightNo: 'C4-772', plane: 'Airbus A320neo', depTime: '22:45', arrTime: '03:20', ecoPrice: 270, busPrice: 510, durationMin: 215 },
+  'TAS-SHJ': { carrier: 'Air Arabia', flightNo: 'G9-252', plane: 'Airbus A320-200', depTime: '04:30', arrTime: '07:10', ecoPrice: 265, busPrice: 460, durationMin: 220 },
+  'SHJ-TAS': { carrier: 'Air Arabia', flightNo: 'G9-253', plane: 'Airbus A320-200', depTime: '08:10', arrTime: '12:50', ecoPrice: 250, busPrice: 470, durationMin: 220 },
+  'TAS-IST': { carrier: 'Uzbekistan Airways', flightNo: 'HY-271', plane: 'Boeing 787-8', depTime: '11:20', arrTime: '15:40', ecoPrice: 315, busPrice: 510, durationMin: 320 },
+  'IST-TAS': { carrier: 'Uzbekistan Airways', flightNo: 'HY-272', plane: 'Boeing 787-8', depTime: '17:10', arrTime: '23:30', ecoPrice: 310, busPrice: 530, durationMin: 320 },
+  'TAS-JED': { carrier: 'Centrum Air', flightNo: 'C4-601', plane: 'Airbus A321neo', depTime: '02:15', arrTime: '05:45', ecoPrice: 410, busPrice: 640, durationMin: 330 },
+  'JED-TAS': { carrier: 'Centrum Air', flightNo: 'C4-602', plane: 'Airbus A321neo', depTime: '07:15', arrTime: '14:45', ecoPrice: 395, busPrice: 660, durationMin: 330 },
+  'TAS-SSH': { carrier: 'Uzbekistan Airways', flightNo: 'HY-353', plane: 'Boeing 767-300', depTime: '08:30', arrTime: '12:10', ecoPrice: 320, busPrice: 560, durationMin: 340 },
+  'SSH-TAS': { carrier: 'Uzbekistan Airways', flightNo: 'HY-354', plane: 'Boeing 767-300', depTime: '13:40', arrTime: '21:20', ecoPrice: 315, busPrice: 550, durationMin: 340 },
+  'TAS-CXR': { carrier: 'Uzbekistan Airways', flightNo: 'HY-561', plane: 'Boeing 787-8', depTime: '23:40', arrTime: '08:15', ecoPrice: 495, busPrice: 840, durationMin: 460 },
+  'CXR-TAS': { carrier: 'Uzbekistan Airways', flightNo: 'HY-562', plane: 'Boeing 787-8', depTime: '09:45', arrTime: '16:20', ecoPrice: 480, busPrice: 820, durationMin: 460 },
+  'TAS-HKT': { carrier: 'Qanot Sharq', flightNo: 'HH-703', plane: 'Airbus A321neo', depTime: '22:30', arrTime: '07:15', ecoPrice: 520, busPrice: 890, durationMin: 465 },
+  'HKT-TAS': { carrier: 'Qanot Sharq', flightNo: 'HH-704', plane: 'Airbus A321neo', depTime: '08:45', arrTime: '15:30', ecoPrice: 505, busPrice: 875, durationMin: 465 },
+  'TAS-DAD': { carrier: 'Centrum Air', flightNo: 'C4-885', plane: 'Airbus A321neo', depTime: '21:00', arrTime: '05:30', ecoPrice: 485, busPrice: 820, durationMin: 450 },
+  'DAD-TAS': { carrier: 'Centrum Air', flightNo: 'C4-886', plane: 'Airbus A321neo', depTime: '07:00', arrTime: '13:30', ecoPrice: 475, busPrice: 810, durationMin: 450 },
+};
+const CARRIERS = [
+  { name: 'Uzbekistan Airways', code: 'HY' },
+  { name: 'Centrum Air', code: 'C4' },
+  { name: 'Qanot Sharq', code: 'HH' },
+  { name: 'Air Arabia', code: 'G9' },
+  { name: 'flydubai', code: 'FZ' },
+  { name: 'Turkish Airlines', code: 'TK' },
+];
+const PLANES = ['Airbus A320neo', 'Airbus A321neo', 'Boeing 737 MAX', 'Boeing 787-8'];
+const AIRPORTS = [{"iata": "TAS", "city": {"uz": "Toshkent", "ru": "Ташкент", "en": "Tashkent"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 100}, {"iata": "SKD", "city": {"uz": "Samarqand", "ru": "Самарканд", "en": "Samarkand"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 40}, {"iata": "BHK", "city": {"uz": "Buxoro", "ru": "Бухара", "en": "Bukhara"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 30}, {"iata": "UGC", "city": {"uz": "Urganch", "ru": "Ургенч", "en": "Urgench"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 20}, {"iata": "FEG", "city": {"uz": "Farg'ona", "ru": "Фергана", "en": "Fergana"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 18}, {"iata": "NMA", "city": {"uz": "Namangan", "ru": "Наманган", "en": "Namangan"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 16}, {"iata": "AZN", "city": {"uz": "Andijon", "ru": "Андижан", "en": "Andijan"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 14}, {"iata": "NCU", "city": {"uz": "Nukus", "ru": "Нукус", "en": "Nukus"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 12}, {"iata": "TMJ", "city": {"uz": "Termiz", "ru": "Термез", "en": "Termez"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 8}, {"iata": "KSQ", "city": {"uz": "Qarshi", "ru": "Карши", "en": "Karshi"}, "country": {"uz": "O'zbekiston", "ru": "Узбекистан", "en": "Uzbekistan"}, "popular": 6}, {"iata": "IST", "city": {"uz": "Istanbul", "ru": "Стамбул", "en": "Istanbul"}, "country": {"uz": "Turkiya", "ru": "Турция", "en": "Turkey"}, "popular": 95}, {"iata": "DXB", "city": {"uz": "Dubay", "ru": "Дубай", "en": "Dubai"}, "country": {"uz": "BAA", "ru": "ОАЭ", "en": "UAE"}, "popular": 94}, {"iata": "AYT", "city": {"uz": "Antaliya", "ru": "Анталия", "en": "Antalya"}, "country": {"uz": "Turkiya", "ru": "Турция", "en": "Turkey"}, "popular": 90}, {"iata": "SHJ", "city": {"uz": "Sharja", "ru": "Шарджа", "en": "Sharjah"}, "country": {"uz": "BAA", "ru": "ОАЭ", "en": "UAE"}, "popular": 80}, {"iata": "JED", "city": {"uz": "Jidda", "ru": "Джидда", "en": "Jeddah"}, "country": {"uz": "Saudiya Arabistoni", "ru": "Саудовская Аравия", "en": "Saudi Arabia"}, "popular": 78}, {"iata": "SSH", "city": {"uz": "Sharm ash-Shayx", "ru": "Шарм-эль-Шейх", "en": "Sharm El Sheikh"}, "country": {"uz": "Misr", "ru": "Египет", "en": "Egypt"}, "popular": 70}, {"iata": "CXR", "city": {"uz": "Nyachang", "ru": "Нячанг", "en": "Nha Trang"}, "country": {"uz": "Vyetnam", "ru": "Вьетнам", "en": "Vietnam"}, "popular": 65}, {"iata": "HKT", "city": {"uz": "Phuket", "ru": "Пхукет", "en": "Phuket"}, "country": {"uz": "Tailand", "ru": "Таиланд", "en": "Thailand"}, "popular": 64}, {"iata": "DAD", "city": {"uz": "Danang", "ru": "Дананг", "en": "Da Nang"}, "country": {"uz": "Vyetnam", "ru": "Вьетнам", "en": "Vietnam"}, "popular": 60}, {"iata": "DME", "city": {"uz": "Moskva", "ru": "Москва", "en": "Moscow"}, "country": {"uz": "Rossiya", "ru": "Россия", "en": "Russia"}, "popular": 88}, {"iata": "LED", "city": {"uz": "Sankt-Peterburg", "ru": "Санкт-Петербург", "en": "St. Petersburg"}, "country": {"uz": "Rossiya", "ru": "Россия", "en": "Russia"}, "popular": 55}, {"iata": "ICN", "city": {"uz": "Seul", "ru": "Сеул", "en": "Seoul"}, "country": {"uz": "Janubiy Koreya", "ru": "Южная Корея", "en": "South Korea"}, "popular": 52}, {"iata": "BKK", "city": {"uz": "Bangkok", "ru": "Бангкок", "en": "Bangkok"}, "country": {"uz": "Tailand", "ru": "Таиланд", "en": "Thailand"}, "popular": 50}, {"iata": "DEL", "city": {"uz": "Dehli", "ru": "Дели", "en": "Delhi"}, "country": {"uz": "Hindiston", "ru": "Индия", "en": "India"}, "popular": 48}, {"iata": "IKA", "city": {"uz": "Tehron", "ru": "Тегеран", "en": "Tehran"}, "country": {"uz": "Eron", "ru": "Иран", "en": "Iran"}, "popular": 40}, {"iata": "FRA", "city": {"uz": "Frankfurt", "ru": "Франкфурт", "en": "Frankfurt"}, "country": {"uz": "Germaniya", "ru": "Германия", "en": "Germany"}, "popular": 42}, {"iata": "KUL", "city": {"uz": "Kuala-Lumpur", "ru": "Куала-Лумпур", "en": "Kuala Lumpur"}, "country": {"uz": "Malayziya", "ru": "Малайзия", "en": "Malaysia"}, "popular": 38}, {"iata": "PEK", "city": {"uz": "Pekin", "ru": "Пекин", "en": "Beijing"}, "country": {"uz": "Xitoy", "ru": "Китай", "en": "China"}, "popular": 44}, {"iata": "ALA", "city": {"uz": "Almati", "ru": "Алматы", "en": "Almaty"}, "country": {"uz": "Qozog'iston", "ru": "Казахстан", "en": "Kazakhstan"}, "popular": 46}];
+const CARRIER_BRANDS = {
+  HY:{bg:"#16357F",fg:"#FFFFFF"}, FZ:{bg:"#EE7623",fg:"#0B1730"}, TK:{bg:"#C90822",fg:"#FFFFFF"},
+  HH:{bg:"#0E8F6E",fg:"#FFFFFF"}, C4:{bg:"#1C7FC2",fg:"#FFFFFF"}, G9:{bg:"#E4002B",fg:"#FFFFFF"}
+};
+const USD_TO_UZS = 12650;
+const PROVIDERS = ["aqua","kompas","easy","prestige"];
+const LS = "charteri.b2c.demo.v1";
+
+/* =========================================================================
+   Поисковый движок — перенесён 1:1 из src/data/flights.ts.
+   Детерминированный: тот же маршрут и дата дают те же рейсы, что в приложении.
+   ========================================================================= */
+function seedFrom(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619);} return h>>>0; }
+function mulberry32(seed){ let a=seed; return ()=>{ a|=0; a=(a+0x6d2b79f5)|0; let t=Math.imul(a^(a>>>15),1|a); t=(t+Math.imul(t^(t>>>7),61|t))^t; return ((t^(t>>>14))>>>0)/4294967296; }; }
+function addMinutes(hhmm,mins){ const [h,m]=hhmm.split(":").map(Number); const total=(h*60+m+mins+1440*3)%1440; return String(Math.floor(total/60)).padStart(2,"0")+":"+String(total%60).padStart(2,"0"); }
+function baseSeed(from,to){
+  const key=`${from}-${to}`; if(ROUTES[key]) return ROUTES[key];
+  const rnd=mulberry32(seedFrom(key));
+  const eco=180+Math.floor(rnd()*420), durationMin=150+Math.floor(rnd()*420), depH=5+Math.floor(rnd()*16);
+  const c=CARRIERS[Math.floor(rnd()*CARRIERS.length)];
+  const depTime=`${String(depH).padStart(2,"0")}:${["00","15","30","45"][Math.floor(rnd()*4)]}`;
+  return { carrier:c.name, flightNo:`${c.code}-${100+Math.floor(rnd()*899)}`, plane:PLANES[Math.floor(rnd()*PLANES.length)],
+    depTime, arrTime:addMinutes(depTime,durationMin), ecoPrice:eco, busPrice:eco+220+Math.floor(rnd()*260), durationMin };
+}
+function generateOffers({from,to,date,cabin}){
+  const seed=baseSeed(from,to), rnd=mulberry32(seedFrom(`${from}-${to}-${date}-${cabin}`));
+  const count=4+Math.floor(rnd()*4), offers=[];
+  for(let i=0;i<count;i++){
+    const isBase=i===0;
+    const carrier=isBase?{name:seed.carrier,code:seed.flightNo.split("-")[0]}:CARRIERS[Math.floor(rnd()*CARRIERS.length)];
+    const stops=isBase?0:(rnd()<0.55?0:1);
+    const extra=stops===1?120+Math.floor(rnd()*150):0;
+    const durationMin=seed.durationMin+extra+Math.floor((rnd()-0.5)*40);
+    const depTime=isBase?seed.depTime:addMinutes(seed.depTime,Math.floor((rnd()-0.5)*600));
+    const arrTime=addMinutes(depTime,durationMin);
+    const rawBase=cabin==="business"?seed.busPrice:seed.ecoPrice;
+    const jitter=isBase?0:Math.floor((rnd()-0.35)*(cabin==="business"?160:90));
+    const stopDiscount=stops===1?-Math.floor(rawBase*0.08):0;
+    const rawUSD=Math.max(90,rawBase+jitter+stopDiscount);
+    const priceUSD=Math.round(rawUSD*1.1);               // +10% наценка, как на сервере
+    const stopCities=["DXB","IST","DME","SHJ","ALA"];
+    offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
+      carrier:carrier.name, carrierCode:carrier.code,
+      flightNo:isBase?seed.flightNo:`${carrier.code}-${100+Math.floor(rnd()*899)}`,
+      aircraft:isBase?seed.plane:PLANES[Math.floor(rnd()*PLANES.length)],
+      from, to, date, depTime, arrTime, durationMin, stops,
+      stopCity:stops===1?stopCities[Math.floor(rnd()*stopCities.length)]:undefined,
+      cabin, priceUSD, priceUZS:Math.round((priceUSD*USD_TO_UZS)/1000)*1000,
+      baggageKg:cabin==="business"?30:20, seatsLeft:1+Math.floor(rnd()*9) });
+  }
+  return offers.sort((a,b)=>a.priceUSD-b.priceUSD);
+}
+/* Код брони — src/app/review.tsx makeRef. */
+function makeRef(seed){
+  const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let h=0;
+  for(let i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0;
+  let out=""; for(let i=0;i<6;i++){ out+=chars[h%chars.length]; h=Math.floor(h/chars.length)+seed.charCodeAt(i%seed.length)*7; }
+  return `CHR-${out}`;
+}
+/* Цена — src/app/offer.tsx: (туда + обратно) × (взрослые + дети) + 10% × младенцы. */
+function totals(out,back,q){
+  const uU=out.priceUZS+(back?back.priceUZS:0), uD=out.priceUSD+(back?back.priceUSD:0), paying=q.adults+q.children;
+  return { uzs:uU*paying+Math.round(uU*0.1)*q.infants, usd:uD*paying+Math.round(uD*0.1)*q.infants, unitUZS:uU, unitUSD:uD };
+}
+const seatFor = o => `${10+(o.durationMin%20)}${"ABCDEF"[o.priceUSD%6]}`;
+const gateFor = o => `${"AB"[o.priceUSD%2]}${5+(o.durationMin%15)}`;
+
+/* =========================================================================
+   Даты — только локальный календарь. toISOString() в Ташкенте (UTC+5)
+   сдвинул бы полночь на предыдущий день.
+   ========================================================================= */
+const ymd = d => d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const parseYMD = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d); };
+const addDays = (s,n) => { const d=parseYMD(s); d.setDate(d.getDate()+n); return ymd(d); };
+const TODAY = ymd(new Date());
+const daysUntil = s => Math.round((parseYMD(s)-parseYMD(TODAY))/864e5);
+
+/* =========================================================================
+   Состояние
+   ========================================================================= */
+let U = { signedIn:false, guest:false, phone:"" };             // сессия — не сохраняется
+let Q = { from:"TAS", to:"IST", type:"oneway", depart:addDays(TODAY,14), ret:addDays(TODAY,21),
+          adults:1, children:0, infants:0, cabin:"economy" };
+let SEL = { out:null, back:null };
+let PAX = [], CONTACT = "";
+let R = { sort:"cheapest", direct:false };
+let PRICE = { state:"idle" };
+let PAY = { method:"payme" };
+let REQ = { kind:"change_date", note:"" };
+let stack = [{ s:"login", p:{} }];
+const LOADED = new Set();
+let P;
+
+function seed(keep){
+  const up=addDays(TODAY,9), past=addDays(TODAY,-40);
+  const q1={ from:"TAS",to:"IST",type:"oneway",depart:up,ret:null,adults:1,children:0,infants:0,cabin:"economy" };
+  const q2={ from:"TAS",to:"DXB",type:"oneway",depart:past,ret:null,adults:1,children:0,infants:0,cabin:"economy" };
+  const aziz={ id:"tr1", surname:"KARIMOV", given:"AZIZ", passport:"FA1234567", gender:"M", dob:"1988-04-12", expiry:"2031-06-30", cit:"UZB" };
+  const o1=generateOffers({from:"TAS",to:"IST",date:up,cabin:"economy"})[0];
+  const o2=generateOffers({from:"TAS",to:"DXB",date:past,cabin:"economy"})[0];
+  return { v:1, lang:keep?.lang||"ru", cur:keep?.cur||"UZS", theme:keep?.theme||"system", travellers:[aziz],
+    trips:[ mkTrip(o1,null,q1,[aziz],"payme",Date.now()-3*864e5), mkTrip(o2,null,q2,[aziz],"uzum",Date.now()-47*864e5) ] };
+}
+function mkTrip(out,back,q,pax,method,createdAt){
+  return { id:"T"+createdAt.toString(36)+Math.floor(Math.random()*1e5).toString(36),
+    ref:makeRef(out.id+q.depart), out, back, q:{...q}, pax:pax.map(x=>({...x})),
+    paid:totals(out,back,q), method, createdAt, req:null };
+}
+function load(){ try{ const r=JSON.parse(localStorage.getItem(LS)); if(r&&r.v===1) return r; }catch(e){} return seed(); }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(P)); }catch(e){} }
+
+/* =========================================================================
+   Язык, деньги, даты
+   ========================================================================= */
+const LOC = { ru:"ru-RU", uz:"uz-Latn-UZ", en:"en-GB" };
+function t(k){ const e=I18N[k]||EXTRA[k]; if(!e) return k; return e[P.lang] ?? e.ru; }
+function tf(k,v){ let s=t(k); for(const a in v) s=s.split("{"+a+"}").join(v[a]); return s; }
+const NB = " ";                                 // брендбук: узкий неразрывный пробел в ценах
+const grp = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, NB);
+const money = (uzs,usd) => P.cur==="USD" ? "$"+grp(usd) : grp(uzs)+NB+t("cur_uzs");
+const priceFrom = x => P.lang==="uz" ? `${x} ${t("price_from")}` : `${t("price_from")} ${x}`;
+function fdate(s,o={day:"numeric",month:"short"}){ try{ return parseYMD(s).toLocaleDateString(LOC[P.lang],o); }catch(e){ return s; } }
+const fdateLong = s => fdate(s,{weekday:"short",day:"numeric",month:"long"});
+const dur = m => Math.floor(m/60)+t("h")+" "+String(m%60).padStart(2,"0")+t("m");
+const cityName = iata => { const a=AIRPORTS.find(x=>x.iata===iata); return a?a.city[P.lang]:iata; };
+const esc = s => String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const nextDay = o => { const [h,m]=o.depTime.split(":").map(Number); return Math.floor((h*60+m+o.durationMin)/1440); };
+const minus40 = hhmm => addMinutes(hhmm,-40);
+function greet(){ const h=new Date().getHours(); return t(h<12?"greet_morning":h<18?"greet_day":"greet_evening"); }
+const brand = code => CARRIER_BRANDS[code] || { bg:"var(--navy)", fg:"var(--paper)" };
+const title = s => s ? s.charAt(0)+s.slice(1).toLowerCase() : "";
+const prettyPhone = v => { const d=String(v).replace(/\D/g,"").replace(/^998/,""); return d.length===9?`+998 ${d.slice(0,2)} ${d.slice(2,5)} ${d.slice(5,7)} ${d.slice(7)}`:v; };
+const validPhone = v => /^998\d{9}$/.test(String(v).replace(/\D/g,""));
+
+/* =========================================================================
+   Иконки
+   ========================================================================= */
+const PLANE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>';
+const I = {
+  back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  chev:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>',
+  trips:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3.5" y="7.5" width="17" height="12" rx="2.5"/><path d="M9 7.5V5.5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5.5v2M3.5 12.5h17"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.4-3.6 4.2-5.4 7.5-5.4s6.1 1.8 7.5 5.4"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4v16M4 8l4-4 4 4M16 20V4M20 16l-4 4-4-4"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.5"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/></svg>',
+  ok:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>'
+};
+
+/* =========================================================================
+   Навигация
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const TABS = ["search","trips","profile"];
+const cur = () => stack[stack.length-1];
+function go(s,p={}){ stack.push({s,p}); draw(true); }
+function back(){ if(stack.length>1){ stack.pop(); draw(true); } }
+function root(s,p={}){ stack=[{s,p}]; draw(true); }
+function applyTheme(){ const r=document.documentElement; if(P.theme==="system") r.removeAttribute("data-theme"); else r.setAttribute("data-theme",P.theme); r.lang=P.lang; }
+function draw(top){
+  applyTheme();
+  const {s,p}=cur();
+  $("#screen").innerHTML = SCREENS[s](p);
+  const isTab = TABS.includes(s);
+  $("#tabbar").hidden = !isTab;
+  if(isTab) $("#tabbar").innerHTML = TABS.map(k=>`<button type="button" data-act="tab" data-v="${k}" aria-current="${s===k}">${I[k==="search"?"search":k==="trips"?"trips":"user"]}<span>${t("tab_"+k)}</span></button>`).join("");
+  if(top) $("#scroll").scrollTop = 0;
+  AFTER[s]?.(p);
+}
+const header = ttl => `<header class="bar"><button type="button" class="iconbtn" data-act="back" aria-label="${esc(t("back"))}">${I.back}</button><h1>${esc(ttl)}</h1><span></span></header>`;
+function toast(msg){ const h=$("#toastHost"); h.innerHTML=`<div class="toast" role="status">${esc(msg)}</div>`; clearTimeout(toast._t); toast._t=setTimeout(()=>h.innerHTML="",2400); }
+function overlay(msg){ $("#overlayHost").innerHTML = msg ? `<div class="overlay"><div class="box"><span class="spin"></span>${esc(msg)}</div></div>` : ""; }
+const langSwitch = () => `<div class="langs" role="group">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k,l])=>`<button type="button" data-act="lang" data-v="${k}" aria-pressed="${P.lang===k}">${l}</button>`).join("")}</div>`;
+
+/* =========================================================================
+   Экраны
+   ========================================================================= */
+const SCREENS = {};
+
+SCREENS.login = () => {
+  // Табло — базовые рейсы из таблицы маршрутов приложения, а не самые дешёвые предложения.
+  const demo = ["IST","DXB","AYT"].map(c=>{
+    const r=ROUTES["TAS-"+c]; return `<div><span>${r.depTime}</span><span>TAS → ${c}</span><span class="st">${r.flightNo}</span></div>`; }).join("");
+  return `
+  <section class="login-hero">
+    <div class="hero-top"><span class="wordmark">CHARTERI<b>.UZ</b></span>${langSwitch()}</div>
+    <p class="tag">${esc(t("tagline"))}</p>
+    <div class="miniboard" aria-hidden="true">${demo}</div>
+  </section>
+  <div class="pad lift"><div class="card stack rise">
+    <div><h2 style="font-size:21px">${esc(t("login_title"))}</h2><p class="muted small" style="margin-top:3px">${esc(t("login_sub"))}</p></div>
+    <label class="field"><span>${esc(t("phone_label"))}</span><input id="ph" type="tel" inputmode="tel" autocomplete="tel" value="${esc(U.phone||"+998 90 123 45 67")}"></label>
+    <div class="err" id="loginErr" hidden></div>
+    <button type="button" class="cta" data-act="sendCode">${esc(t("login_cta"))}</button>
+    <button type="button" class="link" data-act="guest">${esc(t("login_guest"))}</button>
+  </div>
+  <p class="demo-note" style="margin-top:14px">${esc(t("demo_banner"))}</p></div>`;
+};
+
+SCREENS.otp = () => `${header("")}
+  <div class="pad stack" style="padding-top:10px">
+    <div><h1 style="font-size:26px">${esc(t("otp_title"))}</h1>
+      <p class="muted" style="margin-top:6px">${esc(t("otp_sub"))} <b class="mono" style="color:var(--ink)">${esc(U.phone)}</b></p></div>
+    <input id="otp" class="otp" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="••••" aria-label="${esc(t("otp_title"))}">
+    <p class="small muted center">${esc(t("otp_hint"))}</p>
+    <div class="err" id="otpErr" hidden></div>
+    <button type="button" class="cta" data-act="verify">${esc(t("otp_cta"))}</button>
+    <button type="button" class="link" data-act="resend">${esc(t("otp_resend"))}</button>
+  </div>`;
+
+SCREENS.search = () => {
+  const n=Q.adults+Q.children+Q.infants;
+  const stepper = (k,sub) => {
+    const minus = Q[k] <= (k==="adults"?1:0);
+    const plus = n>=9 || (k==="infants" && Q.infants>=Q.adults);
+    return `<div class="steprow"><div><b>${esc(t(k))}</b><small>${esc(t(sub))}</small></div>
+      <div class="stepper"><button type="button" data-act="step" data-k="${k}" data-d="-1" ${minus?"disabled":""} aria-label="−">−</button>
+      <span>${Q[k]}</span><button type="button" data-act="step" data-k="${k}" data-d="1" ${plus?"disabled":""} aria-label="+">+</button></div></div>`;
+  };
+  const pop = ["IST","DXB","AYT","JED","SSH","HKT"].map((c,i)=>{
+    const o=generateOffers({from:"TAS",to:c,date:Q.depart,cabin:"economy"})[0];
+    return `<button type="button" class="brow rise" style="--i:${i}" data-act="popular" data-v="${c}">
+      <span class="codes">TAS<i>→</i>${c}</span><span class="city">${esc(cityName(c))}</span>
+      <span class="from">${priceFrom(money(o.priceUZS,o.priceUSD))}</span></button>`;
+  }).join("");
+  return `
+  <section class="hero">
+    <div class="hero-top"><span class="wordmark">CHARTERI<b>.UZ</b></span><span class="badge-demo">${esc(t("demo_badge"))}</span></div>
+    <p class="greet">${esc(greet())}${U.guest?"":`, ${esc(title(P.travellers[0]?.given||""))}`}</p>
+    <h1 class="greet-q">${esc(t("greet_sub"))}</h1>
+  </section>
+  <div class="pad lift stack">
+    <div class="card stack rise">
+      <div class="seg" role="group">
+        <button type="button" data-act="type" data-v="oneway" aria-pressed="${Q.type==="oneway"}">${esc(t("oneway"))}</button>
+        <button type="button" data-act="type" data-v="roundtrip" aria-pressed="${Q.type==="roundtrip"}">${esc(t("roundtrip"))}</button>
+      </div>
+      <div class="odpair">
+        <button type="button" class="odrow" data-act="pick" data-v="from"><span class="iata">${Q.from}</span><span class="l">${esc(t("from"))}</span><span class="c">${esc(cityName(Q.from))}</span></button>
+        <button type="button" class="odrow" data-act="pick" data-v="to"><span class="iata">${Q.to}</span><span class="l">${esc(t("to"))}</span><span class="c">${esc(cityName(Q.to))}</span></button>
+        <button type="button" class="swap" data-act="swap" aria-label="⇅">${I.swap}</button>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>${esc(t("depart"))}</span><input type="date" data-bind="depart" value="${Q.depart}" min="${TODAY}"></label>
+        ${Q.type==="roundtrip"
+          ? `<label class="field"><span>${esc(t("return_"))}</span><input type="date" data-bind="ret" value="${Q.ret}" min="${Q.depart}"></label>`
+          : `<div class="field"><span>${esc(t("cabin_class"))}</span><div class="seg" role="group" style="min-height:46px;align-items:stretch">
+              <button type="button" data-act="cabin" data-v="economy" aria-pressed="${Q.cabin==="economy"}">${esc(t("economy"))}</button>
+              <button type="button" data-act="cabin" data-v="business" aria-pressed="${Q.cabin==="business"}">${esc(t("business"))}</button></div></div>`}
+      </div>
+      ${Q.type==="roundtrip" ? `<div class="seg" role="group">
+          <button type="button" data-act="cabin" data-v="economy" aria-pressed="${Q.cabin==="economy"}">${esc(t("economy"))}</button>
+          <button type="button" data-act="cabin" data-v="business" aria-pressed="${Q.cabin==="business"}">${esc(t("business"))}</button></div>` : ""}
+      <div class="steps">${stepper("adults","age_adult")}${stepper("children","age_child")}${stepper("infants","age_infant")}</div>
+      <div class="err" id="searchErr" hidden></div>
+      <button type="button" class="cta" data-act="search">${esc(t("search_cta"))}</button>
+    </div>
+    <section style="margin-top:8px"><h2 class="sec">${esc(t("popular_routes"))}</h2><div class="board">${pop}</div></section>
+  </div>`;
+};
+
+function airportList(q){
+  q=q.trim().toLowerCase();
+  const other = cur().p.field==="from" ? Q.to : Q.from;
+  const list = AIRPORTS.filter(a=>a.iata!==other && (!q || a.iata.toLowerCase().includes(q) ||
+    ["ru","uz","en"].some(l=>a.city[l].toLowerCase().includes(q) || a.country[l].toLowerCase().includes(q))))
+    .sort((a,b)=>b.popular-a.popular);
+  if(!list.length) return `<p class="muted center" style="padding:30px">${esc(t("no_city"))}</p>`;
+  return list.map(a=>`<button type="button" class="aprow" data-act="setAirport" data-v="${a.iata}"><span class="code">${a.iata}</span><span><b>${esc(a.city[P.lang])}</b><small>${esc(a.country[P.lang])}</small></span></button>`).join("");
+}
+SCREENS.airport = p => `${header(t("select_city"))}
+  <div class="pad" style="padding-bottom:6px"><input id="apq" type="search" placeholder="${esc(t("search_city_ph"))}" autocomplete="off" aria-label="${esc(t("search_city_ph"))}"></div>
+  <div class="aplist" id="aplist">${airportList("")}</div>`;
+
+function legParams(leg){ return leg==="back" ? {from:Q.to,to:Q.from,date:Q.ret} : {from:Q.from,to:Q.to,date:Q.depart}; }
+function offersFor(leg){ const lp=legParams(leg); return generateOffers({...lp,cabin:Q.cabin}); }
+const legKey = leg => { const lp=legParams(leg); return `${lp.from}-${lp.to}-${lp.date}-${Q.cabin}`; };
+
+function offerCard(o,i,bestId){
+  const b=brand(o.carrierCode), nd=nextDay(o);
+  return `<button type="button" class="offer rise" style="--i:${i}" data-act="chooseOffer" data-v="${o.id}">
+    <div class="o-top"><span class="cb" style="background:${b.bg};color:${b.fg}">${o.carrierCode}</span>
+      <span class="o-car"><b>${esc(o.carrier)}</b><small>${o.flightNo} · ${esc(o.aircraft)}</small></span>
+      ${o.id===bestId?`<span class="best">${esc(t("best"))}</span>`:""}</div>
+    <div class="o-mid">
+      <div class="tm"><b>${o.depTime}</b><span>${o.from}</span></div>
+      <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span>
+        <span class="s ${o.stops?"s-stop":"s-direct"}">${o.stops?esc(t("one_stop"))+" · "+esc(tf("via",{c:o.stopCity})):esc(t("direct"))}</span></div>
+      <div class="tm r"><b>${o.arrTime}${nd?`<sup>+${nd}</sup>`:""}</b><span>${o.to}</span></div>
+    </div>
+    <div class="o-bot"><span class="meta"><span>${esc(t("baggage"))} ${o.baggageKg} ${esc(t("kg"))}</span>
+      ${o.seatsLeft<=3?`<span class="left">${esc(tf("seats_left",{n:o.seatsLeft}))}</span>`:""}</span>
+      <span class="price"><b>${money(o.priceUZS,o.priceUSD)}</b><small>${esc(t("per_passenger"))}</small></span></div>
+  </button>`;
+}
+SCREENS.results = p => {
+  const leg=p.leg||"out", lp=legParams(leg), key=legKey(leg), n=Q.adults+Q.children+Q.infants;
+  const head = `${header(t(leg==="back"?"leg_back":"results_title"))}
+    <div class="qhead"><span class="qroute">${lp.from} → ${lp.to}</span>
+      <span class="muted small">${esc(fdateLong(lp.date))} · ${esc(t("passengers"))}: ${n} · ${esc(t(Q.cabin))}</span>
+      <button type="button" class="link" style="align-self:flex-start;padding:4px 0" data-act="editSearch">${esc(t("edit_search"))}</button></div>`;
+  if(!LOADED.has(key)) return head + `<div class="searching"><span class="spin"></span>${esc(t("searching_providers"))}</div>
+      <div class="pad stack">${[0,1,2].map(()=>`<div class="skel"></div>`).join("")}</div>`;
+  let list=offersFor(leg);
+  const bestId=list[0]?.id;
+  if(R.direct) list=list.filter(o=>!o.stops);
+  if(R.sort==="fastest") list=[...list].sort((a,b)=>a.durationMin-b.durationMin);
+  if(R.sort==="early") list=[...list].sort((a,b)=>a.depTime.localeCompare(b.depTime));
+  const chip=(v,l)=>`<button type="button" class="chip" data-act="sort" data-v="${v}" aria-pressed="${R.sort===v}">${esc(t(l))}</button>`;
+  return head +
+    (leg==="back" ? `<p class="note-leg">${esc(t("choose_return"))}</p>` : "") +
+    `<div class="chips">${chip("cheapest","sort_cheapest")}${chip("fastest","sort_fastest")}${chip("early","sort_early")}
+      <button type="button" class="chip" data-act="direct" aria-pressed="${R.direct}">${esc(t("filter_direct"))}</button></div>
+    <div class="pad stack">${list.length ? list.map((o,i)=>offerCard(o,i,bestId)).join("")
+      : `<div class="empty"><h3>${esc(t("no_results"))}</h3><p class="muted">${esc(t("no_results_body"))}</p></div>`}</div>`;
+};
+
+function legBlock(o,label){
+  const b=brand(o.carrierCode), nd=nextDay(o);
+  return `<div class="card leg rise">
+    <div class="leg-h"><span class="lbl">${esc(label)} · ${esc(fdateLong(o.date))}</span><span class="cb" style="background:${b.bg};color:${b.fg}">${o.carrierCode}</span></div>
+    <div class="route">
+      <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+      <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span>
+        <span class="s ${o.stops?"s-stop":"s-direct"}">${o.stops?esc(tf("via",{c:o.stopCity})):esc(t("direct"))}</span></div>
+      <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd?` <sup style="color:var(--coral)">+${nd}</sup>`:""}</span></div>
+    </div>
+    <div class="rows">
+      <div><span class="k">${esc(o.carrier)}</span><span class="v mono">${o.flightNo}</span></div>
+      <div><span class="k">${esc(t("aircraft"))}</span><span class="v">${esc(o.aircraft)}</span></div>
+      <div><span class="k">${esc(t("baggage"))}</span><span class="v">${o.baggageKg} ${esc(t("kg"))}</span></div>
+      <div><span class="k">${esc(t("carryon"))}</span><span class="v">✓</span></div>
+    </div></div>`;
+}
+function fareRows(out,back){
+  const tt=totals(out,back,Q), rows=[];
+  const line=(label,n,uzs,usd)=>`<div><span class="k">${esc(label)} × ${n}</span><span class="v mono">${money(uzs*n,usd*n)}</span></div>`;
+  if(Q.adults) rows.push(line(t("adults"),Q.adults,tt.unitUZS,tt.unitUSD));
+  if(Q.children) rows.push(line(t("children"),Q.children,tt.unitUZS,tt.unitUSD));
+  if(Q.infants) rows.push(line(t("infant_fare"),Q.infants,Math.round(tt.unitUZS*0.1),Math.round(tt.unitUSD*0.1)));
+  rows.push(`<div class="tot"><span class="k">${esc(t("total"))}</span><span class="v">${money(tt.uzs,tt.usd)}</span></div>`);
+  return `<div class="rows">${rows.join("")}</div>`;
+}
+SCREENS.offer = () => `${header(t("flight_details"))}
+  <div class="pad stack">${legBlock(SEL.out,t("leg_out"))}${SEL.back?legBlock(SEL.back,t("leg_back")):""}
+    <div class="card rise" style="--i:2">${fareRows(SEL.out,SEL.back)}</div>
+    <button type="button" class="cta" data-act="continue">${esc(t("continue_"))}</button></div>`;
+
+function ensurePax(){
+  const types=[...Array(Q.adults).fill("adult"),...Array(Q.children).fill("child"),...Array(Q.infants).fill("infant")];
+  if(PAX.length!==types.length || PAX.some((x,i)=>x.type!==types[i]))
+    PAX=types.map(type=>({type,surname:"",given:"",passport:"",gender:"",dob:"",expiry:"",cit:"UZB",save:false,fromId:null}));
+  if(!CONTACT) CONTACT=U.phone||"";
+}
+SCREENS.passengers = () => {
+  const cits=["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
+  return `${header(t("passenger_details"))}<div class="pad stack">` + PAX.map((x,i)=>`
+    <div class="card pcard rise" style="--i:${i}" id="pc${i}">
+      <div class="pcard-h"><b>${esc(t("passenger"))} ${i+1}</b><span class="muted small">${esc(t("pax_"+x.type))}</span></div>
+      ${P.travellers.length?`<div class="stack" style="gap:7px"><span class="lbl">${esc(t("select_traveller"))}</span><div class="tchips">${
+        P.travellers.map(tr=>`<button type="button" class="tchip" data-act="fillTraveller" data-i="${i}" data-v="${tr.id}" aria-pressed="${x.fromId===tr.id}">${esc(title(tr.given))} ${esc(tr.surname.charAt(0))}.</button>`).join("")}</div></div>`:""}
+      <div class="grid2">
+        <label class="field"><span>${esc(t("surname"))}</span><input class="upper" data-pax="${i}" data-f="surname" value="${esc(x.surname)}" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+        <label class="field"><span>${esc(t("given_name"))}</span><input class="upper" data-pax="${i}" data-f="given" value="${esc(x.given)}" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span>${esc(t("passport_no"))}</span><input class="upper mono" data-pax="${i}" data-f="passport" value="${esc(x.passport)}" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+        <label class="field"><span>${esc(t("citizenship"))}</span><select data-pax="${i}" data-f="cit">${cits.map(c=>`<option ${x.cit===c?"selected":""}>${c}</option>`).join("")}</select></label>
+      </div>
+      <div class="field"><span>${esc(t("gender"))}</span><div class="seg" role="group">
+        <button type="button" data-act="gender" data-i="${i}" data-v="M" aria-pressed="${x.gender==="M"}">${esc(t("gender_m"))}</button>
+        <button type="button" data-act="gender" data-i="${i}" data-v="F" aria-pressed="${x.gender==="F"}">${esc(t("gender_f"))}</button></div></div>
+      <div class="grid2">
+        <label class="field"><span>${esc(t("dob"))}</span><input type="date" data-pax="${i}" data-f="dob" value="${esc(x.dob)}" max="${TODAY}"></label>
+        <label class="field"><span>${esc(t("expiry"))}</span><input type="date" data-pax="${i}" data-f="expiry" value="${esc(x.expiry)}" min="${TODAY}"></label>
+      </div>
+      <label class="check"><input type="checkbox" data-pax="${i}" data-f="save" ${x.save?"checked":""}>${esc(t("save_traveller"))}</label>
+      <div class="err" id="perr${i}" hidden></div>
+    </div>`).join("") + `
+    <div class="card stack rise"><label class="field"><span>${esc(t("contact_phone"))}</span><input id="contact" type="tel" inputmode="tel" value="${esc(CONTACT)}" autocomplete="tel"></label>
+      <div class="err" id="cerr" hidden></div>
+      <p class="secure">${I.lock}<span>${esc(t("secure_note"))}</span></p></div>
+    <button type="button" class="cta" data-act="toReview">${esc(t("to_review"))}</button></div>`;
+};
+
+SCREENS.review = () => {
+  const tt=totals(SEL.out,SEL.back,Q);
+  const legLine=(o,label)=>`<div><span class="k">${esc(label)}<br><span class="small">${esc(fdate(o.date))} · ${o.depTime}</span></span><span class="v mono">${o.from} → ${o.to}<br><span class="small muted">${o.flightNo}</span></span></div>`;
+  let pc;
+  if(PRICE.state==="checking") pc=`<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
+  else if(PRICE.state==="changed") pc=`<div class="changed"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
+      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${money(PRICE.old.uzs,PRICE.old.usd)}</span></div>
+      <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${money(PRICE.neu.uzs,PRICE.neu.usd)}</span></div>
+      <div><span class="k">${esc(t("price_diff"))}</span><span class="v mono" style="color:var(--warn)">+${money(PRICE.neu.uzs-PRICE.old.uzs,PRICE.neu.usd-PRICE.old.usd)}</span></div></div>
+      <button type="button" class="solid" data-act="acceptPrice">${esc(t("accept_new_price"))}</button></div>`;
+  else pc=`<div class="pcheck good">${I.ok}${esc(t("price_confirmed"))}</div>`;
+  const methods=[["payme","Payme","#33CCCC"],["uzum","Uzum","#7C3AED"],["card","Visa / Mastercard","#2F6FE0"]];
+  return `${header(t("review_title"))}<div class="pad stack">
+    <div class="card rise"><span class="lbl">${esc(t("itinerary"))}</span><div class="rows" style="margin-top:6px">${legLine(SEL.out,t("leg_out"))}${SEL.back?legLine(SEL.back,t("leg_back")):""}</div></div>
+    <div class="card rise" style="--i:1"><span class="lbl">${esc(t("passengers"))}</span><div class="rows" style="margin-top:6px">${PAX.map(x=>`<div><span class="k">${esc(x.given)} ${esc(x.surname)}</span><span class="v mono small">${esc(x.passport.slice(0,2))}•••${esc(x.passport.slice(-3))}</span></div>`).join("")}</div></div>
+    ${pc}
+    <div class="card rise" style="--i:2">${fareRows(SEL.out,SEL.back)}</div>
+    <div class="stack" style="gap:8px"><span class="lbl">${esc(t("pay_method"))}</span><div class="methods">${methods.map(([k,l,c])=>`<button type="button" class="method" data-act="method" data-v="${k}" aria-pressed="${PAY.method===k}"><span class="dot" style="background:${c}"></span>${l}<span class="rad"></span></button>`).join("")}</div></div>
+    <button type="button" class="cta" data-act="pay" ${PRICE.state==="ok"?"":"disabled"}>${esc(t("pay_now"))} · ${money(tt.uzs,tt.usd)}</button>
+    <p class="demo-note">${esc(t("pay_demo_note"))}</p></div>`;
+};
+
+SCREENS.success = p => {
+  const tr=P.trips.find(x=>x.id===p.id);
+  return `<div class="success">
+    <svg class="checkmark" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="45"/><path d="M30 52l13 13 27-29"/></svg>
+    <h1>${esc(t("booking_confirmed"))}</h1><p class="muted">${esc(t("ticket_ready"))}</p>
+    <div class="refbox"><span class="lbl">${esc(t("booking_ref"))}</span><b>${tr.ref}</b></div>
+    <p class="small muted">${esc(t("notif_booked_body"))}</p>
+    <div class="stack" style="width:100%;margin-top:10px"><button type="button" class="cta" data-act="openTicketFresh" data-v="${tr.id}">${esc(t("view_ticket"))}</button>
+      <button type="button" class="link" data-act="tab" data-v="trips">${esc(t("tab_trips"))}</button></div></div>`;
+};
+
+function passCard(tr,o,i){
+  const b=brand(o.carrierCode), lead=tr.pax[0], n=tr.pax.length, nd=nextDay(o);
+  return `<article class="pass rise" style="--i:${i}">
+    <div class="pass-top"><span class="cb" style="background:${b.bg};color:${b.fg};box-shadow:0 0 0 1px rgba(255,255,255,.25)">${o.carrierCode}</span>
+      <span class="n">${esc(o.carrier)}</span><span class="f">${o.flightNo}</span></div>
+    <div class="pass-body">
+      <div class="route">
+        <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+        <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span><span class="d">${esc(fdate(o.date))}</span></div>
+        <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd?` <sup style="color:var(--coral)">+${nd}</sup>`:""}</span></div>
+      </div>
+      <div class="pgrid">
+        <div class="wide"><span class="lbl">${esc(t("passenger"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}${n>1?` +${n-1}`:""}</b></div>
+        <div><span class="lbl">${esc(t("cabin_class"))}</span><b>${esc(t(o.cabin))}</b></div>
+        <div><span class="lbl">${esc(t("seat"))}</span><b class="mono">${seatFor(o)}</b></div>
+        <div><span class="lbl">${esc(t("gate"))}</span><b class="mono">${gateFor(o)}</b></div>
+        <div><span class="lbl">${esc(t("boarding"))}</span><b class="mono">${minus40(o.depTime)}</b></div>
+      </div>
+    </div>
+    <div class="perf"></div>
+    <div class="pass-qr"><div class="qr" data-qr="https://charteri.uz/v/${tr.ref}"></div>
+      <div class="stack" style="gap:4px"><span class="lbl">${esc(t("booking_ref"))}</span><span class="ref">${tr.ref}</span>
+      <span class="small muted">${esc(t("offline_note"))}</span></div></div>
+  </article>`;
+}
+const REQ_KINDS = ["change_date","change_passenger","cancel","other"];
+SCREENS.ticket = p => {
+  const tr=P.trips.find(x=>x.id===p.id); if(!tr) return header(t("eticket"));
+  const upcoming = tr.q.depart >= TODAY;
+  return `${header(t("eticket"))}<div class="pad stack">
+    ${tr.req?`<div class="reqbanner"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>${esc(t("req_title"))}: ${esc(t("req_kind_"+tr.req.kind))}</b><span class="pill new">${esc(t("req_status_new"))}</span></div>
+      ${tr.req.note?`<span class="muted">«${esc(tr.req.note)}»</span>`:""}<span class="small muted">${esc(t("req_local_note"))}</span></div>`:""}
+    ${passCard(tr,tr.out,0)}${tr.back?passCard(tr,tr.back,1):""}
+    ${upcoming&&!tr.req?`<button type="button" class="ghost" data-act="request" data-v="${tr.id}">${esc(t("request_change"))}</button>`:""}
+  </div>`;
+};
+
+SCREENS.request = p => {
+  const tr=P.trips.find(x=>x.id===p.id);
+  return `${header(t("req_title"))}<div class="pad stack">
+    <div class="card"><span class="mono" style="font-weight:600;color:var(--navy);font-size:18px">${tr.out.from} → ${tr.out.to}</span>
+      <p class="small muted">${esc(fdateLong(tr.out.date))} · ${tr.out.flightNo} · ${tr.ref}</p></div>
+    <span class="lbl">${esc(t("req_kind_label"))}</span>
+    <div class="methods">${REQ_KINDS.map(k=>`<button type="button" class="method" data-act="reqKind" data-v="${k}" aria-pressed="${REQ.kind===k}">${esc(t("req_kind_"+k))}<span class="rad"></span></button>`).join("")}</div>
+    <label class="field"><span>${esc(t("req_note"))}</span><textarea id="reqNote" placeholder="${esc(t("req_note_ph"))}">${esc(REQ.note)}</textarea></label>
+    <button type="button" class="cta" data-act="submitReq" data-v="${tr.id}">${esc(t("req_submit"))}</button></div>`;
+};
+
+function tripCard(tr,i,past){
+  const d=daysUntil(tr.q.depart);
+  const badge = past ? "" : `<span class="pill soon">${d===0?esc(t("dep_today")):d===1?esc(t("dep_tomorrow")):`${d} ${esc(t("dep_in"))}`}</span>`;
+  return `<button type="button" class="trip rise ${past?"past":""}" style="--i:${i}" data-act="openTicket" data-v="${tr.id}">
+    <div class="trip-h"><span class="codes">${tr.out.from}<i>${tr.back?"⇄":"→"}</i>${tr.out.to}</span>${tr.req?`<span class="pill new">${esc(t("req_status_new"))}</span>`:badge}</div>
+    <span class="cities">${esc(cityName(tr.out.from))} — ${esc(cityName(tr.out.to))}</span>
+    <div class="trip-f"><span>${esc(fdate(tr.out.date,{day:"numeric",month:"long",year:"numeric"}))} · ${tr.out.depTime}</span><span class="mono">${tr.ref}</span></div>
+  </button>`;
+}
+SCREENS.trips = () => {
+  const up=P.trips.filter(x=>x.q.depart>=TODAY).sort((a,b)=>a.q.depart.localeCompare(b.q.depart));
+  const past=P.trips.filter(x=>x.q.depart<TODAY).sort((a,b)=>b.q.depart.localeCompare(a.q.depart));
+  const head=`<div class="pagehead"><h1>${esc(t("tab_trips"))}</h1><p class="muted">${esc(t("trips_sub"))}</p></div>`;
+  if(!P.trips.length) return head + `<div class="empty">
+      <svg viewBox="0 0 170 100" aria-hidden="true"><path d="M10 88 Q85 -8 160 88" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 6"/>
+      <g class="plane-fly" transform="translate(73 18) rotate(35 12 12)" style="fill:var(--blue)">${PLANE.replace('<svg viewBox="0 0 24 24" aria-hidden="true">','').replace("</svg>","")}</g></svg>
+      <h2>${esc(t("trips_empty_title"))}</h2><p class="muted">${esc(t("trips_empty_body"))}</p>
+      <button type="button" class="solid" style="max-width:240px;margin-top:6px" data-act="tab" data-v="search">${esc(t("trips_start"))}</button></div>`;
+  return head + `<div class="pad stack">
+    ${up.length?`<h2 class="sec" style="margin:0">${esc(t("upcoming"))}</h2>${up.map((x,i)=>tripCard(x,i,false)).join("")}`:""}
+    ${past.length?`<h2 class="sec" style="margin:12px 0 0">${esc(t("past_trips"))}</h2>${past.map((x,i)=>tripCard(x,i+up.length,true)).join("")}`:""}
+  </div>`;
+};
+
+SCREENS.profile = () => {
+  const tr=P.travellers[0];
+  const name = U.guest ? t("profile_guest") : tr ? `${title(tr.given)} ${title(tr.surname)}` : prettyPhone(U.phone);
+  const initials = U.guest ? "?" : tr ? tr.given[0]+tr.surname[0] : "C";
+  const seg=(act,opts,val)=>`<div class="seg" role="group">${opts.map(([k,l])=>`<button type="button" data-act="${act}" data-v="${k}" aria-pressed="${val===k}">${esc(l)}</button>`).join("")}</div>`;
+  return `<div class="pagehead"><h1>${esc(t("tab_profile"))}</h1></div><div class="pad stack">
+    <div class="card who rise"><span class="avatar">${esc(initials)}</span><div><b>${esc(name)}</b><span class="mono small muted">${U.guest?"":esc(prettyPhone(U.phone))}</span></div></div>
+    <div class="card rise" style="--i:1;padding-block:4px">
+      <div class="setrow"><span>${esc(t("language"))}</span>${seg("lang",[["uz","O‘zbekcha"],["ru","Русский"],["en","English"]],P.lang)}</div>
+      <div class="setrow"><span>${esc(t("currency"))}</span>${seg("cur",[["UZS","UZS"],["USD","USD"]],P.cur)}</div>
+      <div class="setrow"><span>${esc(t("appearance"))}</span>${seg("theme",[["system",t("theme_system")],["light",t("theme_light")],["dark",t("theme_dark")]],P.theme)}</div>
+      <button type="button" class="navrow" data-act="go" data-v="travellers">${esc(t("saved_travellers"))}<span class="count">${P.travellers.length}</span>${I.chev}</button>
+    </div>
+    <div class="card rise" style="--i:2;padding-block:4px">
+      <button type="button" class="navrow" data-act="reset">${esc(t("reset_demo"))}${I.chev}</button>
+      <button type="button" class="navrow danger" style="border-top:1px solid var(--line)" data-act="signout">${esc(t("sign_out"))}</button>
+    </div>
+    <p class="demo-note">${esc(t("demo_banner"))}</p></div>`;
+};
+
+SCREENS.travellers = () => `${header(t("saved_travellers"))}<div class="pad stack">${
+  P.travellers.length ? P.travellers.map((x,i)=>`<div class="card rise" style="--i:${i};display:flex;align-items:center;gap:12px">
+      <span class="avatar" style="width:44px;height:44px;font-size:15px;border-radius:13px">${esc(x.given[0]+x.surname[0])}</span>
+      <div style="flex:1;min-width:0"><b style="display:block">${esc(x.given)} ${esc(x.surname)}</b>
+        <span class="small muted mono">${esc(x.passport.slice(0,2))}•••${esc(x.passport.slice(-3))} · ${esc(t("expiry"))} ${esc(fdate(x.expiry,{month:"2-digit",year:"numeric"}))}</span></div>
+      <button type="button" class="link danger" data-act="delTraveller" data-v="${x.id}">${esc(t("remove"))}</button></div>`).join("")
+  : `<div class="empty"><h2>${esc(t("travellers_empty_title"))}</h2><p class="muted">${esc(t("travellers_empty_body"))}</p></div>`}</div>`;
+
+/* =========================================================================
+   Действия после отрисовки
+   ========================================================================= */
+const AFTER = {
+  otp: () => $("#otp")?.focus(),
+  results: p => {
+    const key=legKey(p.leg||"out");
+    if(!LOADED.has(key)) setTimeout(()=>{ LOADED.add(key); if(cur().s==="results") draw(false); }, 900);
+  },
+  review: () => {
+    if(PRICE.state!=="checking") return;
+    setTimeout(()=>{
+      if(cur().s!=="review" || PRICE.state!=="checking") return;
+      // Демонстрация экрана «Цена изменилась»: срабатывает на маршруте в Анталию,
+      // чтобы его можно было показать по заказу, а не случайно.
+      if(SEL.out.to==="AYT" && !PRICE.accepted){
+        const old=totals(SEL.out,SEL.back,Q);
+        const usd=Math.round(SEL.out.priceUSD*1.045);
+        PRICE.pending={...SEL.out, priceUSD:usd, priceUZS:Math.round(usd*USD_TO_UZS/1000)*1000};
+        PRICE.old=old; PRICE.neu=totals(PRICE.pending,SEL.back,Q); PRICE.state="changed";
+      } else PRICE.state="ok";
+      draw(false);
+    }, 1100);
+  },
+  ticket: () => {
+    document.querySelectorAll("[data-qr]").forEach(el=>{
+      if(typeof qrcode!=="function"){ el.innerHTML=`<span class="mono small" style="color:#16275C">QR</span>`; return; }
+      try{ const q=qrcode(0,"M"); q.addData(el.dataset.qr); q.make(); el.innerHTML=q.createSvgTag({cellSize:4,margin:0,scalable:true}); }
+      catch(e){ el.innerHTML=""; }
+    });
+  }
+};
+
+/* =========================================================================
+   Обработчики
+   ========================================================================= */
+function showErr(id,msg){ const e=$(id); if(!e) return; e.hidden=false; e.textContent=msg; e.scrollIntoView({block:"center",behavior:"smooth"}); }
+function hideErr(id){ const e=$(id); if(e){ e.hidden=true; e.textContent=""; } }
+function enter(){ U.signedIn=true; root("search"); }
+function verify(){
+  const v=($("#otp")?.value||"").trim();
+  if(!/^\d{4}$/.test(v)) return showErr("#otpErr",t("err_code"));
+  enter();
+}
+function validatePax(){
+  const last = Q.type==="roundtrip" ? Q.ret : Q.depart;
+  for(let i=0;i<PAX.length;i++){
+    const x=PAX[i]; hideErr("#perr"+i);
+    let e=null;
+    if(!/^[A-Z][A-Z' -]{0,40}$/.test(x.surname) || !/^[A-Z][A-Z' -]{0,40}$/.test(x.given)) e="err_name";
+    else if(!/^[A-Z0-9]{5,9}$/.test(x.passport)) e="err_passport";
+    else if(!x.gender) e="err_gender";
+    else if(!x.dob || x.dob>=TODAY) e="err_dob";
+    else if(!x.expiry || x.expiry<=last) e="err_expiry";
+    if(e){ showErr("#perr"+i,t(e)); return false; }
+  }
+  hideErr("#cerr");
+  if(!validPhone(CONTACT)){ showErr("#cerr",t("err_contact")); return false; }
+  return true;
+}
+
+const ACT = {
+  back: () => back(),
+  tab: el => root(el.dataset.v),
+  go: el => go(el.dataset.v),
+  lang: el => { P.lang=el.dataset.v; save(); draw(false); },
+  cur: el => { P.cur=el.dataset.v; save(); draw(false); },
+  theme: el => { P.theme=el.dataset.v; save(); draw(false); },
+
+  sendCode: () => {
+    const v=$("#ph").value;
+    if(!validPhone(v)) return showErr("#loginErr",t("err_phone"));
+    U.phone=prettyPhone(v); U.guest=false; go("otp");
+  },
+  guest: () => { U.guest=true; U.phone=""; enter(); },
+  verify: () => verify(),
+  resend: () => toast(t("code_resent")),
+
+  type: el => { Q.type=el.dataset.v; draw(false); },
+  cabin: el => { Q.cabin=el.dataset.v; draw(false); },
+  pick: el => go("airport",{field:el.dataset.v}),
+  setAirport: el => { Q[cur().p.field]=el.dataset.v; back(); },
+  swap: () => { [Q.from,Q.to]=[Q.to,Q.from]; draw(false); },
+  step: el => {
+    const k=el.dataset.k, n={...Q}; n[k]=Math.max(k==="adults"?1:0, n[k]+Number(el.dataset.d));
+    if(n.adults+n.children+n.infants>9) return toast(t("max_pax"));
+    if(n.infants>n.adults) return toast(t("infants_rule"));
+    Object.assign(Q,n); draw(false);
+  },
+  search: () => {
+    hideErr("#searchErr");
+    if(Q.from===Q.to) return showErr("#searchErr",t("err_same_city"));
+    if(Q.depart<TODAY) return showErr("#searchErr",t("err_date_past"));
+    if(Q.type==="roundtrip" && Q.ret<Q.depart) return showErr("#searchErr",t("err_return"));
+    SEL={out:null,back:null}; R={sort:"cheapest",direct:false}; go("results",{leg:"out"});
+  },
+  popular: el => { Q.from="TAS"; Q.to=el.dataset.v; ACT.search(); },
+  editSearch: () => root("search"),
+  sort: el => { R.sort=el.dataset.v; draw(false); },
+  direct: () => { R.direct=!R.direct; draw(false); },
+  chooseOffer: el => {
+    const leg=cur().p.leg||"out", o=offersFor(leg).find(x=>x.id===el.dataset.v); if(!o) return;
+    if(leg==="out"){ SEL={out:o,back:null}; if(Q.type==="roundtrip"){ R={sort:"cheapest",direct:false}; return go("results",{leg:"back"}); } }
+    else SEL.back=o;
+    go("offer");
+  },
+  continue: () => { ensurePax(); go("passengers"); },
+  fillTraveller: el => {
+    const i=Number(el.dataset.i), tr=P.travellers.find(x=>x.id===el.dataset.v); if(!tr) return;
+    Object.assign(PAX[i],{surname:tr.surname,given:tr.given,passport:tr.passport,gender:tr.gender,dob:tr.dob,expiry:tr.expiry,cit:tr.cit,fromId:tr.id,save:false});
+    draw(false);
+  },
+  gender: el => { PAX[Number(el.dataset.i)].gender=el.dataset.v; draw(false); },
+  toReview: () => {
+    if(!validatePax()) return;
+    PAX.forEach(x=>{
+      if(!x.save) return;
+      if(P.travellers.some(tr=>tr.passport===x.passport)) return;
+      P.travellers.push({id:"tr"+Date.now().toString(36)+Math.floor(Math.random()*1e4),surname:x.surname,given:x.given,passport:x.passport,gender:x.gender,dob:x.dob,expiry:x.expiry,cit:x.cit});
+    });
+    P.travellers=P.travellers.slice(0,10); save();
+    PRICE={state:"checking",accepted:false}; go("review");
+  },
+  acceptPrice: () => { SEL.out=PRICE.pending; PRICE={state:"ok",accepted:true}; draw(false); },
+  method: el => { PAY.method=el.dataset.v; draw(false); },
+  pay: () => {
+    if(PRICE.state!=="ok") return;
+    overlay(t("processing"));
+    setTimeout(()=>{
+      const tr=mkTrip(SEL.out,SEL.back,Q,PAX.map(({type,save,fromId,...x})=>x),PAY.method,Date.now());
+      P.trips.unshift(tr); save(); overlay("");
+      stack=[{s:"trips",p:{}},{s:"success",p:{id:tr.id}}]; draw(true);
+    }, 1400);
+  },
+  openTicket: el => go("ticket",{id:el.dataset.v}),
+  openTicketFresh: el => { stack=[{s:"trips",p:{}},{s:"ticket",p:{id:el.dataset.v}}]; draw(true); },
+  request: el => { REQ={kind:"change_date",note:""}; go("request",{id:el.dataset.v}); },
+  reqKind: el => { REQ.kind=el.dataset.v; draw(false); },
+  submitReq: el => {
+    const tr=P.trips.find(x=>x.id===el.dataset.v); if(!tr) return;
+    tr.req={kind:REQ.kind,note:REQ.note.trim(),status:"new",at:Date.now()}; save();
+    back(); toast(t("req_status_new"));
+  },
+  delTraveller: el => {
+    if(!confirm(t("delete_traveller_title"))) return;
+    P.travellers=P.travellers.filter(x=>x.id!==el.dataset.v); save(); draw(false); toast(t("removed"));
+  },
+  reset: () => { if(!confirm(t("reset_confirm"))) return; P=seed(P); save(); LOADED.clear(); root("search"); },
+  signout: () => { U={signedIn:false,guest:false,phone:""}; PAX=[]; CONTACT=""; root("login"); }
+};
+
+document.addEventListener("click", e => {
+  const el=e.target.closest("[data-act]"); if(!el || el.disabled) return;
+  const fn=ACT[el.dataset.act]; if(fn){ e.preventDefault(); fn(el); }
+});
+document.addEventListener("input", e => {
+  const el=e.target;
+  if(el.dataset.pax!==undefined && el.dataset.f!=="save"){
+    const i=Number(el.dataset.pax), f=el.dataset.f; let v=el.value;
+    if(f==="surname"||f==="given"||f==="passport"){ v=v.toUpperCase(); if(f==="passport") v=v.replace(/\s/g,""); }
+    PAX[i][f]=v; if(f!=="dob"&&f!=="expiry"&&f!=="cit") PAX[i].fromId=null;
+  }
+  if(el.id==="apq") $("#aplist").innerHTML=airportList(el.value);
+  if(el.id==="contact") CONTACT=el.value;
+  if(el.id==="reqNote") REQ.note=el.value;
+  if(el.id==="otp"){ el.value=el.value.replace(/\D/g,"").slice(0,4); if(el.value.length===4) verify(); }
+});
+document.addEventListener("change", e => {
+  const el=e.target;
+  if(el.dataset.bind==="depart" && el.value){ Q.depart=el.value; if(Q.ret<=Q.depart) Q.ret=addDays(Q.depart,7); draw(false); }
+  if(el.dataset.bind==="ret" && el.value){ Q.ret=el.value; }
+  if(el.dataset.pax!==undefined && el.dataset.f==="save") PAX[Number(el.dataset.pax)].save=el.checked;
+});
+document.addEventListener("keydown", e => {
+  if(e.key!=="Enter") return;
+  if(e.target.id==="ph") ACT.sendCode();
+  if(e.target.id==="otp") verify();
+});
+
+P = load();
+draw(true);
+</script>
+</body>
+</html>
