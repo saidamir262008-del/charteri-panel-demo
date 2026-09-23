@@ -155,7 +155,7 @@ PAGES["done/:id"] = {
       <div class="stub print">
         <div class="stub-l"><span class="lbl">${esc(t("doc_" + o.type))}</span><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span>
           <span class="lbl" style="margin-top:8px">${esc(t("booking_ref"))}</span><span class="ref">${o.no}</span></div>
-        <div class="qr" data-qr="https://charteri.uz/v/${o.no}"></div></div>
+        <div class="qr" data-qr="${CONFIG.site.verifyUrl}${o.no}"></div></div>
       <div class="row center"><a class="cta" style="max-width:280px" href="#/orders/${o.id}">${esc(t(o.type === "FLIGHT" ? "view_ticket" : "view_voucher"))}</a>
         <a class="ghost" style="max-width:220px" href="#/">${esc(t("home"))}</a></div></div></div>`;
   },

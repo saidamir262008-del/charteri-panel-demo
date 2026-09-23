@@ -186,7 +186,7 @@ function tickCharter(){
 
 /* ---------------------------------------------------------------- документы */
 function qrStub(o){
-  return `<div class="pass-qr"><div class="qr" data-qr="https://charteri.uz/v/${o.no}"></div>
+  return `<div class="pass-qr"><div class="qr" data-qr="${CONFIG.site.verifyUrl}${o.no}"></div>
     <div class="stack" style="gap:4px"><span class="lbl">${esc(t("booking_ref"))}</span><span class="ref">${o.no}</span>
     <span class="small muted">${esc(t("offline_note"))}</span></div></div>`;
 }

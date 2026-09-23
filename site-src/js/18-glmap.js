@@ -14,8 +14,7 @@
    ========================================================================== */
 "use strict";
 
-const GL_BASE = "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/";
-const OFM = "https://tiles.openfreemap.org";
+const GL_BASE = CONFIG.map.lib;                                          // адреса карты — в 00-config.js
 const GL_TIMEOUT = 15000;                 // библиотека не загрузилась за это время — запасная схема
 const TILES_WAIT = 8000;                  // тайлы медленные — показываем карту и маршрут, подложка догрузится
 const FLY_MS = 1150;                      // полёт самолёта по линии
@@ -141,12 +140,12 @@ function glStyle(){
   const lbl = (id, layer, filter, minzoom, font, size, color, extra = {}) => ({ id, type:"symbol", source:"omt", "source-layer":layer, minzoom, filter,
     layout:{ "text-field":nm, "text-font":[font], "text-size":size, "text-max-width":8, ...extra.layout },
     paint:{ "text-color":color, "text-halo-color":MAPC.halo, "text-halo-width":extra.halo ?? 0 } });
-  return { version:8, glyphs:`${OFM}/fonts/{fontstack}/{range}.pbf`,
+  return { version:8, glyphs:CONFIG.map.glyphs,
     sources:{
-      omt:{ type:"vector", url:`${OFM}/planet` },
+      omt:{ type:"vector", url:CONFIG.map.tiles },
       /* 512: каждый тайл рельефа растягивается вдвое — при прозрачности 25–50 %
          разницы не видно, а загрузка меньше вчетверо. */
-      relief:{ type:"raster", tiles:[`${OFM}/natural_earth/ne2sr/{z}/{x}/{y}.png`], tileSize:512, maxzoom:6 },
+      relief:{ type:"raster", tiles:[CONFIG.map.relief], tileSize:512, maxzoom:6 },
       route:{ type:"geojson", data:EMPTY, lineMetrics:true },
       ports:{ type:"geojson", data:EMPTY },
       ends:{ type:"geojson", data:EMPTY } },
