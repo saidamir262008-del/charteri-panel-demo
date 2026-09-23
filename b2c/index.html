@@ -882,8 +882,8 @@ const CONFIG = {
   support: { phone: "", telegram: "", email: "" },
 
   /* Карта в шапке главной. OpenFreeMap бесплатен и работает без ключа.
-     Для своего сервера тайлов или MapTiler — поменять адреса (ключ MapTiler
-     ограничить доменом charteri.uz в кабинете MapTiler). */
+     Для своего сервера тайлов — поменять адреса. MapTiler берёт деньги за каждый
+     тайл, поэтому его ключ сюда не класть: только через свой кэширующий прокси. */
   map: {
     lib: "https://cdn.jsdelivr.net/npm/maplibre-gl@5.24.0/dist/",
     tiles: "https://tiles.openfreemap.org/planet",
