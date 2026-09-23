@@ -23,12 +23,13 @@ PAGES[""] = {
   render(){
     const mod = MODULES[M.module], swapped = M.ui.lastModule && M.ui.lastModule !== M.module;
     M.ui.lastModule = M.module;
-    return `<section class="hero"><div class="hero-deco"></div><div class="container">
+    return `<section class="hero"><div class="hero-map" id="mapdock" aria-hidden="true"></div><div class="hero-scrim" aria-hidden="true"></div><div class="container">
         <div class="hero-grid">
           <div class="hero-copy ${swapped && !REDUCED ? "swap-in" : ""}">
             <h1 class="hero-h">${esc(t("hero_" + M.module))}</h1>
             <p class="hero-sub">${esc(t("hero_" + M.module + "_sub"))}</p></div>
-          <div class="hero-map">${routeMap()}</div>
+          <div class="hero-frame" id="mapframe" role="img" aria-label="${esc(mapAria())}">${GL.state === "failed" ? routeSvg() : ""}</div>
+          <p class="map-attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a></p>
         </div>
         <div class="searchbox"><div class="searchbox-core">
           <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
@@ -48,7 +49,7 @@ PAGES[""] = {
       <section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
         `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(t(k + "_d"))}</p></div></div>`).join("")}</div></section>`;
   },
-  after(){ armBoard(); }
+  after(){ centerActive($(".modtab[aria-selected=\"true\"]")); armBoard(); dockMap(); }
 };
 Object.assign(ACT, {
   mod: el => {
@@ -65,7 +66,7 @@ function orderCard(o, i, rc = ""){
   const st = effStatus(o);
   const price = o.total ? fmt(o.total) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`;
   return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}" data-flip="${o.id}">
-    <span class="oc-ic">${TYPE_ICON[o.type]}</span>
+    ${hasPhoto(orderPhotoKey(o)) ? `<span class="oc-ic has-ph">${photo(orderPhotoKey(o), { w:140, sizes:"64px", deco:true })}<i>${TYPE_ICON[o.type]}</i></span>` : `<span class="oc-ic">${TYPE_ICON[o.type]}</span>`}
     <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${o.no}</span></span>
     <span class="oc-side">${pill(st)}<b class="mono">${price}</b></span></a>`;
 }
@@ -226,6 +227,13 @@ Object.assign(ACT, {
 document.addEventListener("change", e => { if (e.target.id === "langSel") { S.lang = e.target.value; save(); rerender(); } });
 
 /* ---------------------------------------------------------------- навигация */
+/* Полоса вкладок прокручивается вбок на узком экране, а перерисовка сбрасывает
+   прокрутку — возвращаем выбранную вкладку в середину полосы. Только по
+   горизонтали: scrollIntoView прокрутил бы и саму страницу. */
+function centerActive(el){
+  const strip = el?.parentElement; if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+  strip.scrollLeft = el.offsetLeft - (strip.clientWidth - el.offsetWidth) / 2;
+}
 function renderNav(key){
   const active = key === "" ? M.module : key.startsWith("charter/") ? key.split("/")[1] : key.split("/")[0];
   const live = S.orders.filter(o => o.start >= TODAY && !["CANCELLED","REFUNDED"].includes(o.status)).length;
@@ -238,9 +246,10 @@ function renderNav(key){
       <a class="navlink" href="#/orders" aria-current="${key.startsWith("orders")}">${IC.bag}<span>${esc(t("my_orders"))}</span>${live ? `<i class="badge">${live}</i>` : ""}</a>
       <a class="navlink" href="#/${S.user ? "account" : "login"}" aria-current="${key === "account" || key === "login"}">${IC.user}<span>${esc(S.user ? t("tab_profile") : t("sign_in"))}</span></a>
     </div></div>`;
+  centerActive($('.navmods [aria-current="true"]'));
   $("#footer").innerHTML = `<div class="container foot-in">
     <div class="stack" style="gap:8px"><span class="wordmark">CHARTERI<b>.UZ</b></span><p class="small">${esc(t("tagline"))}</p></div>
     <div class="stack" style="gap:6px"><b>${esc(t("all_services"))}</b>${MODULE_ORDER.map(k => `<button type="button" class="footlink" data-act="mod" data-v="${k}">${esc(t(MODULES[k].label))}</button>`).join("")}</div>
     <div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${PAY_METHODS.map(m => `<span>${m[1]}</span>`).join("")}</div></div>
-    <p class="foot-note small">${esc(t("demo_footer"))}</p></div>`;
+    <p class="foot-note small">${esc(t("demo_footer"))}<br>${esc(t("credits"))}</p></div>`;
 }

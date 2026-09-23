@@ -1,9 +1,8 @@
 /* ==========================================================================
-   Карта маршрутов в шапке главной — главный момент движения на сайте.
-   Показывает не абстрактную «географию», а маршрут из формы поиска: сменили
-   город — дуга перерисовывается и самолёт пролетает её заново. Самолёт —
-   фирменный силуэт, нос по направлению полёта (брендбук). Для вертолётов —
-   местная карта Ташкентской области.
+   Маршрут из формы поиска на карте в шапке главной. Основная карта —
+   настоящая (18-glmap.js). Здесь — общее состояние маршрута и запасная
+   SVG-схема на случай, если WebGL или картографический сервис недоступны.
+   Самолёт — фирменный силуэт, нос по направлению полёта (брендбук).
    ========================================================================== */
 "use strict";
 
@@ -16,6 +15,11 @@ function mapState(){
   if (M.module === "heli") return { local:true, from:"TAS", to:M.heli.to };
   const r = { flights:[M.flights.from, M.flights.to], tours:["TAS", M.tours.to], hotels:["TAS", M.hotels.city], jet:[M.jet.from, M.jet.to] }[M.module];
   return { local:false, from:r[0], to:r[1] };
+}
+function mapAria(){
+  const st = mapState();
+  if (!st.local) return tf("map_aria", { a:cityName(st.from), b:cityName(st.to) });
+  return HELI_DEST.find(d => d.id === st.to)?.tour ? heliName(st.to) : tf("map_aria", { a:t("heli_base").split(",")[0], b:heliName(st.to) });
 }
 /* Рамка карты растягивается, чтобы вместить любой выбранный аэропорт. */
 function mapBounds(points, base){
@@ -46,7 +50,8 @@ function mapLabel([x, y], text, cls){
   return `<text class="${cls}" x="${(x + (right ? -12 : 12)).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${right ? "end" : "start"}">${esc(text)}</text>`;
 }
 
-function routeMap(){
+/* Запасная схема: без подложки, только дуги и точки. */
+function routeSvg(){
   const st = mapState(), key = `${M.module}:${st.from}-${st.to}`;
   const animate = !REDUCED && M.ui.mapKey !== key, first = !REDUCED && M.ui.mapKey == null;
   M.ui.mapKey = key;
@@ -59,7 +64,7 @@ function routeMap(){
     pts = dests.map(d => ({ id:d.id, p:project(b, d.coord), name:d.name[S.lang] }));
     route = sel.tour ? loop(home) : arc(home, project(b, sel.coord));
     labels = mapLabel(home, t("heli_base").split(",")[0], "m-lbl m-lbl-home")
-      + pts.map(x => mapLabel(x.p, x.name, x.id === st.to ? "m-lbl" : "m-lbl m-lbl-dim")).join("");
+      + pts.filter(x => x.id === st.to).map(x => mapLabel(x.p, x.name, "m-lbl")).join("");
     pts = [{ id:"home", p:home }, ...pts];
   } else {
     const from = COORDS[st.from], to = COORDS[st.to];
@@ -75,9 +80,7 @@ function routeMap(){
   const dots = pts.map(x => { const sel = x.id === st.to || x.id === st.from || x.id === "home";
     return `<circle class="m-dot ${sel ? "m-dot-on" : ""}" cx="${x.p[0].toFixed(1)}" cy="${x.p[1].toFixed(1)}" r="${sel ? 4.5 : 3}"/>`; }).join("");
   const [ex, ey] = route.end;
-  const aria = st.local ? heliName(st.to) : tf("map_aria", { a:cityName(st.from), b:cityName(st.to) });
-
-  return `<svg class="rmap ${animate ? "anim" : ""} ${first ? "first" : ""}" viewBox="0 0 ${MAP_W} ${MAP_H}" role="img" aria-label="${esc(aria)}">
+  return `<svg class="rmap ${animate ? "anim" : ""} ${first ? "first" : ""}" viewBox="0 0 ${MAP_W} ${MAP_H}" aria-hidden="true">
     <defs>
       <pattern id="mdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#fff"/></pattern>
       <radialGradient id="mfade" cx="55%" cy="45%" r="62%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>

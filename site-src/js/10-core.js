@@ -256,21 +256,49 @@ function routeBlock(o, extra = ""){
   </div>`;
 }
 const nextDay = o => { const [h, m] = o.depTime.split(":").map(Number); return Math.floor((h*60 + m + o.durationMin) / 1440); };
-const carrierBadge = code => { const b = CARRIER_BRANDS[code] || { bg:"var(--navy)", fg:"var(--paper)" }; return `<span class="cb" style="background:${b.bg};color:${b.fg}">${esc(code)}</span>`; };
+/* Логотип авиакомпании на белой плитке. Квадратные цветные знаки (Air Arabia,
+   flydubai) заполняют плитку целиком, круглые и «птицы» — с полями.
+   Нет логотипа — плитка с кодом в цвете перевозчика. Подпись с названием
+   всегда стоит рядом, поэтому alt пустой. */
+const LOGO_FULL = new Set(["G9", "FZ"]);
+const carrierBadge = (code, cls = "") => {
+  if (LOGOS[code]) return `<span class="cb cb-logo ${LOGO_FULL.has(code) ? "cb-full" : ""} ${cls}"><img src="${LOGOS[code]}" alt="" width="34" height="34"></span>`;
+  const b = CARRIER_BRANDS[code] || { bg:"var(--navy)", fg:"var(--paper)" };
+  return `<span class="cb ${cls}" style="background:${b.bg};color:${b.fg}">${esc(code)}</span>`;
+};
 const CARRIER_BRANDS = {
   HY:{bg:"#16357F",fg:"#FFFFFF"}, FZ:{bg:"#EE7623",fg:"#0B1730"}, TK:{bg:"#C90822",fg:"#FFFFFF"},
   HH:{bg:"#0E8F6E",fg:"#FFFFFF"}, C4:{bg:"#1C7FC2",fg:"#FFFFFF"}, G9:{bg:"#E4002B",fg:"#FFFFFF"}
 };
-/* Открытка направления — вместо фотографии. */
+/* Открытка направления: фото города на фирменном градиенте. */
 function postcard(city, sub = "", big = true){
-  const [a, b] = PALETTE[city] || ["#2F6FE0", "#16275C"];
-  return `<div class="postcard ${big ? "" : "sm"}" style="--pa:${a};--pb:${b}">
+  const [a, b] = PALETTE[city] || ["#2F6FE0", "#16275C"], ph = photo(city, { w:560, sizes:"(max-width:600px) 100vw, (max-width:900px) 50vw, 380px" });
+  return `<div class="postcard ${big ? "" : "sm"} ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b}">${ph}
     <span class="pc-code">${city}</span><span class="pc-city">${esc(cityName(city))}</span>${sub ? `<span class="pc-sub">${esc(sub)}</span>` : ""}</div>`;
 }
-function hotelArt(h){
+function hotelArt(h, big = false){
   const [a, b] = PALETTE[h.city];
+  const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}"><span class="hart-m">${esc(initials)}</span><span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+}
+/* Галерея на странице отеля: главный снимок и два поменьше — номер
+   под звёздность отеля и бассейн или ресторан. */
+function hotelGallery(h){
+  const room = { 5:"room-suite", 4:"room-deluxe", 3:"room-standard" }[h.stars], extra = h.am.includes("pool") ? "extra-pool" : "extra-breakfast";
+  const side = [room, extra].filter(hasPhoto);
+  return `<div class="hgal ${side.length ? "" : "solo"}">${hotelArt(h, true)}${side.map(k => `<div class="hgal-s">${photo(k, { w:480, sizes:"(max-width:900px) 50vw, 380px" })}</div>`).join("")}</div>`;
+}
+/* Шапка выдачи: фото места назначения под строкой поиска. */
+const resbarPhoto = key => hasPhoto(key) ? `<div class="resbar-ph" aria-hidden="true">${photo(key, { w:1400, sizes:"100vw", eager:true, deco:true, ar:2.4 })}</div>` : "";
+const resbarCls = key => hasPhoto(key) ? "resbar has-ph" : "resbar";
+/* Снимок для карточки заказа. */
+function orderPhotoKey(o){
+  const d = o.details;
+  if (o.type === "FLIGHT") return d.out.to === "TAS" && d.out.from ? d.out.from : d.out.to;
+  if (o.type === "TOUR" || o.type === "HOTEL") return d.hotelId;
+  if (o.type === "JET") return d.to;
+  return "heli-" + d.to;
 }
 const fboxOpen = () => (M.ui.filters ?? !window.matchMedia("(max-width: 900px)").matches) ? "open" : "";
 const pageHead = (title, sub = "") => `<div class="pagehead"><h1>${esc(title)}</h1>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}</div>`;

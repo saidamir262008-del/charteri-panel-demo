@@ -40,7 +40,7 @@ MODULES.tours = {
     const q = M.tours;
     return `<div class="sform"><div class="sgrid sgrid-tours">
       <label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(cityName("TAS"))} · TAS</option></select></label>
-      <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="tours.to">${RESORTS.map(c =>
+      <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="tours.to" data-rr>${RESORTS.map(c =>
         `<option value="${c}" ${c === q.to ? "selected" : ""}>${esc(cityName(c))} · ${esc(countryName(c))}</option>`).join("")}</select></label>
       <label class="field"><span>${esc(t("depart"))}</span><input type="date" data-bind="tours.depart" value="${q.depart}" min="${TODAY}"></label>
       <label class="field"><span>${esc(t("nights"))}</span><select data-bind="tours.nights" data-num>${[3,4,5,6,7,8,9,10,11,12,13,14].map(n =>
@@ -81,13 +81,13 @@ PAGES["tours/results"] = {
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
     const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
-    return `<div class="resbar"><div class="container resbar-in">
+    return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName("TAS"))} → ${esc(cityName(q.to))}</span>
         <span class="muted">${esc(fdate(q.depart))} — ${esc(fdate(back))} · ${esc(pl(q.nights, "night"))} · ${esc(pl(q.adults + q.children, "tourist"))}</span></div>
         <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
       <div class="container section">
         <div class="flightstrip card">${IC.flights}<span>${esc(t("tour_flights"))}:</span>
-          <b class="mono">${f0.out.flightNo}</b><span class="muted">${esc(fdate(q.depart))} ${f0.out.depTime}</span>
+          ${carrierBadge(f0.out.flightNo.split("-")[0], "cb-xs")}<b class="mono">${f0.out.flightNo}</b><span class="muted">${esc(fdate(q.depart))} ${f0.out.depTime}</span>
           <b class="mono">${f0.back.flightNo}</b><span class="muted">${esc(fdate(back))} ${f0.back.depTime}</span></div>
         <div class="reslayout">
         <aside class="filters"><details class="fbox" data-keep="filters" ${fboxOpen()}><summary>${esc(t("filters"))}</summary><div class="fbody">
@@ -122,7 +122,7 @@ PAGES["tours/item/:id"] = {
     const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
-      <div class="hhero">${hotelArt(h)}<div class="stack" style="gap:8px">
+      <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
         <span class="muted">${esc(h.area)} · ${esc(beachText(h))}</span>

@@ -49,6 +49,19 @@ unused_prefix = [p for p in prefixes if not any(k.startswith(p) for k in known)]
 if missing or unused_prefix:
     print("НЕТ СТРОК:", missing, unused_prefix); sys.exit(1)
 
+# ---- логотипы авиакомпаний: встраиваются в страницу, без лишних запросов ----------
+import base64
+MIME = {".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp"}
+logos = {}
+for f in sorted((here / "img" / "airlines").glob("*")):
+    if f.suffix in MIME and "-" not in f.stem:
+        logos[f.stem] = f"data:{MIME[f.suffix]};base64," + base64.b64encode(f.read_bytes()).decode()
+marks = {}
+for f in sorted((here / "img" / "airlines").glob("*-wordmark.*")):
+    if f.suffix in MIME:
+        marks[f.stem.split("-")[0]] = f"data:{MIME[f.suffix]};base64," + base64.b64encode(f.read_bytes()).decode()
+js = js.replace('/* ---- 10-core.js ---- */', "/* ---- логотипы (build.py) ---- */\nconst LOGOS = " + json.dumps(logos) + ";\nconst WORDMARKS = " + json.dumps(marks) + ";\n/* ---- 10-core.js ---- */", 1)
+
 # ---- сборка ------------------------------------------------------------------------
 shell = (here / "shell.html").read_text()
 css = (here / "styles.css").read_text()

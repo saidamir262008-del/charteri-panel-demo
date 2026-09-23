@@ -26,7 +26,7 @@ MODULES.hotels = {
   form(){
     const q = M.hotels, n = nightsOf(q);
     return `<div class="sform"><div class="sgrid sgrid-hotels">
-      <label class="field"><span>${esc(t("city"))}</span><select data-bind="hotels.city">${RESORTS.map(c =>
+      <label class="field"><span>${esc(t("city"))}</span><select data-bind="hotels.city" data-rr>${RESORTS.map(c =>
         `<option value="${c}" ${c === q.city ? "selected" : ""}>${esc(cityName(c))} · ${esc(countryName(c))}</option>`).join("")}</select></label>
       <label class="field"><span>${esc(t("checkin"))}</span><input type="date" data-bind="hotels.checkin" data-rr value="${q.checkin}" min="${TODAY}"></label>
       <label class="field"><span>${esc(t("checkout"))}${n > 0 ? ` · ${esc(pl(n, "night"))}` : ""}</span><input type="date" data-bind="hotels.checkout" data-rr value="${q.checkout}" min="${addDays(q.checkin,1)}"></label>
@@ -79,7 +79,7 @@ PAGES["hotels/results"] = {
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
-    return `<div class="resbar"><div class="container resbar-in">
+    return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
         <span class="muted">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.adults + q.children, "guest"))}</span></div>
         <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
@@ -120,7 +120,7 @@ PAGES["hotels/item/:id"] = {
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}
-      <div class="hhero">${hotelArt(h)}<div class="stack" style="gap:8px">
+      <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
         <span class="muted">${esc(h.area)} · ${esc(cityName(h.city))}, ${esc(countryName(h.city))} · ${esc(beachText(h))}</span>
         <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
@@ -128,7 +128,8 @@ PAGES["hotels/item/:id"] = {
       <div class="card stack" style="margin-top:20px">
         <div class="leg-h"><h2>${esc(t("rooms_title"))}</h2><span class="muted small">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.rooms, "room"))}</span></div>
         <div class="roomlist">${rooms.map(({ r, stay }) => `<div class="room">
-          <div><b>${esc(t("room_" + r.id))}</b><span class="muted small">${r.size} ${esc(t("sqm"))} · ${esc(t("room_" + r.id + "_d"))}</span></div>
+          ${hasPhoto("room-" + r.id) ? `<div class="room-ph">${photo("room-" + r.id, { w:260, sizes:"130px" })}</div>` : ""}
+          <div class="room-info"><b>${esc(t("room_" + r.id))}</b><span class="muted small">${r.size} ${esc(t("sqm"))} · ${esc(t("room_" + r.id + "_d"))}</span></div>
           <div class="room-buy"><span class="of-price">${fmt(stay)}</span><small class="muted">${esc(tf("for_nights", { n: pl(n, "night") }))}</small>
             <button type="button" class="solid" data-act="hbook" data-h="${h.id}" data-r="${r.id}">${esc(t("book"))}</button></div></div>`).join("")}</div>
         <p class="small muted">${esc(t("hotel_note"))}</p></div></div>`;

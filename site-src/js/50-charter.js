@@ -55,7 +55,7 @@ MODULES.heli = {
   form(){
     const q = M.heli, e = heliEstimate(q);
     return `<div class="sform"><div class="sgrid sgrid-heli">
-      <label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base"))}</option></select></label>
+      <label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base_short"))}</option></select></label>
       <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="heli.to" data-rr>${HELI_DEST.map(d =>
         `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>
       <label class="field"><span>${esc(t("date"))}</span><input type="date" data-bind="heli.date" value="${q.date}" min="${TODAY}"></label>
@@ -80,14 +80,17 @@ Object.assign(ACT, {
   csend: el => sendCharterRequest(el.dataset.v)
 });
 
+const clsPhoto = key => hasPhoto(key) ? `<span class="cls-ph">${photo(key, { w:400, sizes:"(max-width:600px) 50vw, 240px", deco:true })}</span>` : "";
+/* Фото места назначения над расчётом: для вертолёта — сама точка, для самолёта — город. */
+const charterPhotoKey = (kind, q) => kind === "heli" ? "heli-" + q.to : q.to;
 function classCards(kind, list, q){
   const act = kind === "jet" ? "jcls" : "hcls";
   const auto = list.find(c => c.seats >= q.pax);
   return `<div class="clsgrid">
     <button type="button" class="cls" data-act="${act}" data-v="auto" aria-pressed="${q.cls === "auto"}">
-      <b>${esc(t("cls_auto"))}</b><span class="muted small">${auto ? esc(auto.model) : "—"}</span></button>
+      ${clsPhoto(kind + "-cabin")}<b>${esc(t("cls_auto"))}</b><span class="muted small">${auto ? esc(auto.model) : "—"}</span></button>
     ${list.map(c => `<button type="button" class="cls" data-act="${act}" data-v="${c.id}" aria-pressed="${q.cls === c.id}" ${c.seats < q.pax ? "disabled" : ""}>
-      <b>${esc(kind === "jet" ? t("jet_" + c.id) : c.model)}</b>
+      ${clsPhoto(kind + "-" + c.id)}<b>${esc(kind === "jet" ? t("jet_" + c.id) : c.model)}</b>
       <span class="muted small">${kind === "jet" ? esc(c.model) + " · " : ""}${esc(tf("up_to_seats", { n:c.seats }))}</span>
       <span class="mono small">${fmt(amt(c.rate))} / ${esc(t("hour"))}</span></button>`).join("")}</div>`;
 }
@@ -98,7 +101,7 @@ function charterPage(kind){
   const routeFields = isJet
     ? `<label class="field"><span>${esc(t("from"))}</span>${airportSelect("jet.from", q.from, q.to)}</label>
        <label class="field"><span>${esc(t("to"))}</span>${airportSelect("jet.to", q.to, q.from)}</label>`
-    : `<label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base"))}</option></select></label>
+    : `<label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base_short"))}</option></select></label>
        <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="heli.to" data-rr>${HELI_DEST.map(d =>
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
   return `<div class="container section">${backLink("", t("home"))}
@@ -118,7 +121,7 @@ function charterPage(kind){
         <label class="field"><span>${esc(t("wishes"))}</span><textarea data-bind="${kind}.note" placeholder="${esc(t(isJet ? "jet_note_ph" : "heli_note_ph"))}">${esc(q.note)}</textarea></label>
         <div class="err" id="cherr" hidden></div></div>
     </div>
-    <aside class="card sticky stack"><span class="lbl">${esc(t("estimate"))}</span>
+    <aside class="card sticky stack">${hasPhoto(charterPhotoKey(kind, q)) ? `<div class="aside-ph">${photo(charterPhotoKey(kind, q), { w:640, sizes:"(max-width:900px) 100vw, 360px", eager:true, deco:true })}</div>` : ""}<span class="lbl">${esc(t("estimate"))}</span>
       ${e ? `<div class="est"><span class="est-range"><span ${countAttr(kind + "-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr(kind + "-hi", e.high)}>${fmt(e.high)}</span></span>
           <div class="rows">
             <div><span class="k">${esc(t("route"))}</span><span class="v">${isJet ? `${q.from} → ${q.to}` : esc(heliName(q.to))}</span></div>

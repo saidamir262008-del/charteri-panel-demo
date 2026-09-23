@@ -174,7 +174,7 @@ PAGES["flights/results"] = {
   render(){
     const f = M.flights; if (!f.searched) { go(""); return null; }
     const q = legQuery(f.leg), key = legKey(f.leg), n = f.adults + f.children + f.infants;
-    const head = `<div class="resbar"><div class="container resbar-in">
+    const head = `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route mono">${q.from} → ${q.to}</span>
         <span class="muted">${esc(fdateLong(q.date))} · ${esc(pl(n, "pax"))} · ${esc(t(f.cabin))}</span></div>
         <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>`;
@@ -192,7 +192,7 @@ PAGES["flights/results"] = {
     if (f.sort === "fastest") list = [...list].sort((a, b) => a.durationMin - b.durationMin);
     if (f.sort === "early") list = [...list].sort((a, b) => a.depTime.localeCompare(b.depTime));
     const carriers = [...new Map(all.map(o => [o.carrierCode, o.carrier])).entries()];
-    const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${esc(label)}</span></label>`;
+    const chk = (act, v, on, label, pre = "") => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}>${pre}<span>${esc(label)}</span></label>`;
 
     return head + `<div class="container section">${legNote}${priceCalendar()}
       <div class="reslayout">
@@ -201,7 +201,7 @@ PAGES["flights/results"] = {
             <div class="fgroup"><span class="lbl">${esc(t("sort"))}</span>
               ${seg("fsort", [["cheapest", t("sort_cheapest")], ["fastest", t("sort_fastest")], ["early", t("sort_early")]], f.sort)}</div>
             <div class="fgroup">${chk("fdirect", "1", f.direct, t("filter_direct"))}</div>
-            <div class="fgroup"><span class="lbl">${esc(t("airlines"))}</span>${carriers.map(([c, name]) => chk("fcarrier", c, f.carriers.includes(c), name)).join("")}</div>
+            <div class="fgroup"><span class="lbl">${esc(t("airlines"))}</span>${carriers.map(([c, name]) => chk("fcarrier", c, f.carriers.includes(c), name, carrierBadge(c, "cb-xs"))).join("")}</div>
             <div class="fgroup"><span class="lbl">${esc(t("dep_time"))}</span>${TIME_BUCKETS.map(([id, a, b]) =>
               chk("ftime", id, f.times.includes(id), `${t("t_" + id)} · ${String(a).padStart(2,"0")}–${String(b).padStart(2,"0")}`)).join("")}</div>
             <button type="button" class="link" data-act="fclear">${esc(t("clear_filters"))}</button>
@@ -297,7 +297,9 @@ function startFlightCheckout(){
 function flightDocument(o){
   const d = o.details, pax = o.travellers, lead = pax[0];
   const pass = (leg, i) => `<article class="pass rise" style="--i:${i}">
-    <div class="pass-top">${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span><span class="f">${leg.flightNo}</span></div>
+    <div class="pass-top">${WORDMARKS[leg.carrierCode]
+      ? `<span class="pass-wm"><img src="${WORDMARKS[leg.carrierCode]}" alt="${esc(leg.carrier)}"></span><span class="n"></span>`
+      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${leg.flightNo}</span></div>
     <div class="pass-body">${routeBlock(leg, `<span class="d">${esc(fdate(leg.date))}</span>`)}
       <div class="pgrid">
         <div class="wide"><span class="lbl">${esc(t("passenger"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}${pax.length > 1 ? ` +${pax.length-1}` : ""}</b></div>
