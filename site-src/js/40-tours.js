@@ -46,12 +46,12 @@ MODULES.tours = {
       <label class="field"><span>${esc(t("nights"))}</span><select data-bind="tours.nights" data-num>${[3,4,5,6,7,8,9,10,11,12,13,14].map(n =>
         `<option value="${n}" ${n === q.nights ? "selected" : ""}>${esc(pl(n, "night"))}</option>`).join("")}</select></label>
       <div class="field"><span>${esc(t("tourists"))}</span>
-        <details class="drop" data-keep="tpax" ${M.ui.tpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.adults, "adult"))}${q.children ? ", " + esc(pl(q.children, "child")) : ""}</summary>
+        <details class="drop" data-keep="tpax" ${M.ui.tpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.adults, "adult"))}${q.children ? ", " + esc(pl(q.children, "child")) : ""}</summary>
           <div class="droppanel steps">
             ${stepper("tours.adults", q.adults, 1, 8, t("adults"), t("age_adult"))}
             ${stepper("tours.children", q.children, 0, 6, t("children"), t("age_child_tour"))}
           </div></details></div>
-      <button type="button" class="cta sgo" data-act="tsearch">${esc(t("find_tours"))}</button>
+      <button type="button" class="cta sgo" data-act="tsearch"><span>${esc(t("find_tours"))}</span><span class="cta-ic">${IC.tours}</span></button>
     </div><div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.tsearch(); }
@@ -64,10 +64,10 @@ Object.assign(ACT, {
     Object.assign(q, { searched:true, stars:[], boards:[], sort:"price" });
     M.ui.tpax = false; go("tours/results");
   },
-  tstar:  el => { const v = Number(el.dataset.v), a = M.tours.stars; M.tours.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  tboard: el => { const v = el.dataset.v, a = M.tours.boards; M.tours.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  tsort:  el => { M.tours.sort = el.dataset.v; rerender(); },
-  tclear: () => { Object.assign(M.tours, { stars:[], boards:[] }); rerender(); },
+  tstar:  el => { const v = Number(el.dataset.v), a = M.tours.stars; M.tours.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  tboard: el => { const v = el.dataset.v, a = M.tours.boards; M.tours.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  tsort:  el => { M.tours.sort = el.dataset.v; flip(rerender); },
+  tclear: () => flip(() => { Object.assign(M.tours, { stars:[], boards:[] }); rerender(); }),
   tbook:  el => startTourCheckout(el.dataset.h),
   /* с главной: «Туры от …» в карточке направления */
   tgo:    el => { M.tours.to = el.dataset.v; M.module = "tours"; ACT.tsearch(); }
@@ -79,7 +79,7 @@ PAGES["tours/results"] = {
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
-    const back = addDays(q.depart, q.nights), f0 = all[0];
+    const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="resbar"><div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName("TAS"))} → ${esc(cityName(q.to))}</span>
@@ -97,14 +97,14 @@ PAGES["tours/results"] = {
           <button type="button" class="link" data-act="tclear">${esc(t("clear_filters"))}</button>
         </div></details></aside>
         <section class="stack"><p class="muted small">${esc(tf("found_tours", { n:list.length }))}</p>
-          ${list.length ? list.map((p, i) => tourRow(p, i)).join("")
+          ${list.length ? list.map((p, i) => tourRow(p, i, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><button type="button" class="ghost" data-act="tclear">${esc(t("clear_filters"))}</button></div>`}
         </section></div></div>`;
   }
 };
-function tourRow(p, i){
+function tourRow(p, i, rc){
   const h = p.h;
-  return `<article class="hotel rise" style="--i:${i}">${hotelArt(h)}
+  return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(h.area)} · ${esc(beachText(h))}</span>
@@ -120,7 +120,7 @@ function tourRow(p, i){
 PAGES["tours/item/:id"] = {
   render({ id }){
     const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
-    const p = tourPackage(h, q), lines = tourLines(p, q);
+    const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelArt(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
@@ -129,12 +129,12 @@ PAGES["tours/item/:id"] = {
         <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="twocol" style="margin-top:20px">
-        <div class="stack">${legCard(p.out, t("leg_out"))}${legCard(p.back, t("leg_back"))}
+        <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
           <div class="card stack"><h3>${esc(t("tour_includes"))}</h3><div class="incl big">
             ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), t("incl_transfer_full"), t("incl_insurance_full")]
               .map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div></div></div>
         <aside class="card sticky stack"><span class="lbl">${esc(t("tour_price"))}</span>
-          ${checkLines(lines, p.total)}
+          ${checkLines(lines, p.total, "tour")}
           <button type="button" class="cta" data-act="tbook" data-h="${h.id}">${esc(t("book_tour"))}</button>
           <p class="small muted">${esc(tf("tour_pp", { p: fmt(p.perPerson) }))}</p></aside></div></div>`;
   }

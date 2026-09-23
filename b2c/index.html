@@ -34,20 +34,22 @@
   --hero-a:#3F7DF0; --hero-b:#1E3577; --cta-a:#3D82F6; --cta-b:#2565E0; --band:#EEEAE1;
   --shadow:0 1px 2px rgba(22,39,92,.05),0 14px 34px -20px rgba(22,39,92,.30);
   --card-border:transparent; --r:18px;
+  --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
+  --lift-shadow:0 22px 44px -24px rgba(22,39,92,.45); --core-hi:rgba(255,255,255,.7);
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240;
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
 }}
 :root[data-theme="dark"]{
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240;
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
 }
 [hidden]{display:none!important}
 *{box-sizing:border-box}
@@ -104,9 +106,11 @@ input:disabled,select:disabled{opacity:.6}
 .chk{display:flex;align-items:center;gap:10px;font-size:14px;cursor:pointer;padding-block:3px}
 .chk input{width:18px;height:18px;min-height:0;accent-color:var(--blue);flex:none;margin:0}
 .chk .stars svg{width:14px;height:14px}
-.seg{display:flex;background:var(--sunken);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg{position:relative;display:flex;background:var(--sunken);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
+.seg .ind{position:absolute;left:0;top:0;border-radius:9px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.1);pointer-events:none;transform-origin:0 0;opacity:0}
 .seg button{flex:1;min-height:36px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);text-align:center;white-space:nowrap;padding-inline:10px}
-.seg button[aria-pressed="true"]{background:var(--surface);color:var(--navy);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.seg button{position:relative;z-index:1;transition:color 200ms ease}
+.seg button[aria-pressed="true"]{color:var(--navy)}
 .card{background:var(--surface);border-radius:var(--r);box-shadow:var(--shadow);border:1px solid var(--card-border);padding:20px}
 
 /* ---- выпадающие панели (пассажиры, гости) ---- */
@@ -133,8 +137,10 @@ input:disabled,select:disabled{opacity:.6}
 .wordmark b{color:#9CC0FF;font-weight:800}
 .wordmark.dark{color:var(--navy)}
 .wordmark.dark b{color:var(--blue)}
-#nav{position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.nav-in{display:flex;align-items:center;gap:20px;min-height:64px}
+#nav{position:sticky;top:12px;z-index:40;margin:12px auto 0;width:min(1180px,calc(100% - 24px));border-radius:20px;
+  background:color-mix(in srgb,var(--surface) 76%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
+  border:1px solid color-mix(in srgb,var(--line) 80%,transparent);box-shadow:0 12px 32px -20px rgba(22,39,92,.45);view-transition-name:nav}
+.nav-in{display:flex;align-items:center;gap:18px;min-height:60px;padding-inline:16px 10px}
 .navmods{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
 .navmods::-webkit-scrollbar{display:none}
 .navmods button{padding:8px 12px;border-radius:10px;font-weight:600;font-size:14.5px;color:var(--muted);white-space:nowrap}
@@ -152,23 +158,28 @@ input:disabled,select:disabled{opacity:.6}
 /* ---- главная: герой и поиск ---- */
 /* Блок поиска нависает над следующей секцией, поэтому у героя нет overflow:hidden —
    декоративные круги обрезаются собственным слоем. */
-.hero{background:linear-gradient(155deg,var(--hero-a),var(--hero-b));color:#fff;padding-block:44px 40px;position:relative}
+.hero{background:linear-gradient(155deg,var(--hero-a),var(--hero-b));color:#fff;position:relative;
+  margin-top:calc(-1 * (var(--navh, 62px) + 12px));padding-block:calc(var(--navh, 62px) + 40px) 40px}
+.hero-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:28px;align-items:center;position:relative;z-index:1}
+.hero-copy{position:relative;z-index:1}
+.hero-map{margin-block:-24px -36px}
 .hero-deco{position:absolute;inset:0;overflow:hidden;pointer-events:none}
 .hero-deco::before{content:"";position:absolute;right:-120px;top:-160px;width:520px;height:520px;border-radius:50%;border:1px dashed rgba(255,255,255,.16)}
 .hero-deco::after{content:"";position:absolute;right:40px;top:-40px;width:300px;height:300px;border-radius:50%;border:1px dashed rgba(255,255,255,.10)}
 .eyebrow{font-size:13px;font-weight:600;color:rgba(255,255,255,.72);letter-spacing:.2px;position:relative;z-index:1}
 .hero-h{color:#fff;font-size:clamp(32px,5vw,52px);letter-spacing:-1.2px;margin-top:10px;max-width:18ch;position:relative;z-index:1}
 .hero-sub{color:rgba(255,255,255,.82);font-size:17px;margin-top:12px;max-width:60ch;position:relative;z-index:1}
-.searchbox{position:relative;z-index:2;margin-top:28px;margin-bottom:-96px;background:var(--surface);color:var(--ink);border-radius:22px;
-  box-shadow:0 30px 70px -30px rgba(12,20,50,.55);border:1px solid var(--card-border)}
+.searchbox{position:relative;z-index:2;margin-top:30px;margin-bottom:-96px;padding:6px;border-radius:30px;
+  background:rgba(255,255,255,.14);box-shadow:inset 0 0 0 1px rgba(255,255,255,.24),0 40px 80px -36px rgba(6,14,44,.65)}
+.searchbox-core{background:var(--surface);color:var(--ink);border-radius:24px;box-shadow:inset 0 1px 0 var(--core-hi)}
 .hero + .container{padding-top:128px}
-.modtabs{display:flex;gap:4px;padding:10px 10px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.modtabs{position:relative;display:flex;gap:4px;padding:10px 10px 0;overflow-x:auto;scrollbar-width:none;border-bottom:1px solid var(--line)}
+.modtabs .ind{position:absolute;left:0;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--blue);transform-origin:0 0;pointer-events:none;opacity:0}
 .modtabs::-webkit-scrollbar{display:none}
 .modtab{display:flex;align-items:center;gap:8px;padding:11px 14px 13px;border-radius:12px 12px 0 0;font-weight:600;font-size:14.5px;color:var(--muted);white-space:nowrap;position:relative}
 .modtab svg{width:20px;height:20px}
 .modtab:hover{color:var(--ink)}
 .modtab[aria-selected="true"]{color:var(--blue)}
-.modtab[aria-selected="true"]::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--blue)}
 .sform{padding:18px}
 .sform-top{margin-bottom:14px;max-width:340px}
 .sgrid{display:grid;gap:12px;align-items:end}
@@ -208,7 +219,6 @@ input:disabled,select:disabled{opacity:.6}
 .dest-row b{font-family:"IBM Plex Mono",monospace;color:var(--navy);white-space:nowrap}
 .svcgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
 .svc{display:flex;flex-direction:column;gap:8px;padding:20px;border-radius:var(--r);background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border);text-align:left}
-.svc:hover{outline:2px solid color-mix(in srgb,var(--blue) 30%,transparent)}
 .svc-ic{width:44px;height:44px;border-radius:13px;background:var(--sky);color:var(--blue);display:grid;place-items:center}
 .svc-ic svg{width:24px;height:24px}
 .svc b{font-size:16px;color:var(--navy)}
@@ -373,7 +383,6 @@ input:disabled,select:disabled{opacity:.6}
 .subh{font-size:18px;margin:22px 0 12px}
 .ocard{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;background:var(--surface);border:1px solid var(--card-border);
   border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
-.ocard:hover{outline:2px solid color-mix(in srgb,var(--blue) 30%,transparent)}
 .ocard.past{opacity:.75}
 .oc-ic{width:44px;height:44px;border-radius:13px;background:var(--sky);color:var(--blue);display:grid;place-items:center;flex:none}
 .oc-ic svg{width:23px;height:23px}
@@ -453,21 +462,27 @@ input:disabled,select:disabled{opacity:.6}
 
 /* ---- тост и оверлей ---- */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);border-radius:14px;
-  padding:12px 18px;font-size:14.5px;font-weight:500;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);max-width:calc(100% - 32px);animation:rise .3s ease-out both}
+  padding:12px 18px;font-size:14.5px;font-weight:500;box-shadow:0 14px 30px -12px rgba(0,0,0,.5);max-width:calc(100% - 32px);
+  animation:toastIn 320ms var(--ease-out) backwards;transition:opacity 170ms var(--ease-out),transform 170ms var(--ease-out)}
+.toast.out{opacity:0;transform:translate(-50%,8px)}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,14px)}}
 .overlay{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:color-mix(in srgb,var(--paper) 84%,transparent);backdrop-filter:blur(6px)}
 .overlay .box{display:flex;flex-direction:column;align-items:center;gap:14px;font-weight:600}
 .overlay .spin{width:42px;height:42px;border-width:3px}
 
 /* ---- движение: брендбук, «появление карточки» ---- */
-.rise{animation:rise .42s ease-out both;animation-delay:calc(var(--i,0) * 55ms)}
+.rise{animation:rise .42s var(--ease-out) backwards;animation-delay:calc(var(--i,0) * 55ms)}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 /* ---- адаптив ---- */
 @media (max-width:1080px){
-  .sgrid-flights{grid-template-columns:1fr auto 1fr;}
-  .sgrid-flights > :nth-child(4),.sgrid-flights > :nth-child(5){grid-column:span 1}
-  .sgrid-flights > :nth-child(6){grid-column:span 1}
+  /* Кнопка «поменять местами» живёт в своей узкой колонке и не раздувается
+     под поле даты: даты встают по краям, пассажиры — во всю ширину. */
+  .sgrid-flights{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)}
+  .sgrid-flights > :nth-child(4){grid-column:1}
+  .sgrid-flights > :nth-child(5){grid-column:3}
+  .sgrid-flights > :nth-child(6){grid-column:1 / -1}
   .sgrid-hotels,.sgrid-tours,.sgrid-jet,.sgrid-heli{grid-template-columns:1fr 1fr}
   .sgo{grid-column:1 / -1;width:100%}
   .svcgrid{grid-template-columns:repeat(3,1fr)}
@@ -492,8 +507,13 @@ input:disabled,select:disabled{opacity:.6}
 }
 @media (max-width:600px){
   .container{padding-inline:16px}
-  .hero{padding-block:30px 36px}
-  .sgrid-flights{grid-template-columns:1fr auto 1fr}
+  .hero{padding-block:calc(var(--navh, 104px) + 24px) 36px}
+  /* «Откуда» и «Куда» друг под другом, «поменять» справа между ними —
+     как пара полей в мобильном приложении; в строку названия не помещаются. */
+  .sgrid-flights{grid-template-columns:minmax(0,1fr) 44px}
+  .sgrid-flights > :nth-child(1){grid-column:1;grid-row:1}
+  .sgrid-flights > :nth-child(2){grid-column:2;grid-row:1 / span 2;align-self:center}
+  .sgrid-flights > :nth-child(3){grid-column:1;grid-row:2}
   .sgrid-flights > :nth-child(n+4){grid-column:1 / -1}
   .sgrid-hotels,.sgrid-tours,.sgrid-jet,.sgrid-heli,.sgrid-2{grid-template-columns:1fr}
   .sform{padding:14px}
@@ -509,6 +529,147 @@ input:disabled,select:disabled{opacity:.6}
   .droppanel{left:0;right:auto;min-width:0;width:min(340px,calc(100vw - 32px))}
   .cursw{display:none}
   .route .code{font-size:22px}
+}
+
+
+/* ==========================================================================
+   Движение — брендбук Charteri. Только transform и opacity; всё, что крутится
+   дольше секунды, — маленькое и остаётся на месте.
+   ========================================================================== */
+
+/* нажатие: элемент слегка сжимается — интерфейс «слышит» человека */
+.cta,.solid,.ghost,.chip,.modtab,.seg button,.method,.cls,.tchip,.calday,.stepper button,.swapbtn,.navlink,.navmods button,.svc{
+  transition:transform 140ms var(--ease-out),color 200ms ease,background-color 200ms ease}
+.cta:active,.solid:active,.ghost:active,.chip:active,.modtab:active,.seg button:active,.method:active,.cls:active,.tchip:active,
+.calday:active,.stepper button:active,.swapbtn:active,.navlink:active,.navmods button:active,.svc:active{transform:scale(.97)}
+.cta:disabled:active,.stepper button:disabled:active,.cls:disabled:active{transform:none}
+
+/* главная кнопка поиска: значок внутри кнопки подаётся вперёд */
+.sgo{justify-content:space-between;gap:14px}
+.cta-ic{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);margin-right:-10px;
+  transition:transform 260ms var(--ease-out)}
+.cta-ic svg{width:17px;height:17px}
+
+/* подъём карточки: тень — отдельный слой, анимируется только его прозрачность */
+.lift{position:relative;transition:transform 240ms var(--ease-out)}
+.lift::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:var(--lift-shadow);opacity:0;pointer-events:none;
+  transition:opacity 240ms var(--ease-out)}
+@media (hover:hover) and (pointer:fine){
+  .lift:hover{transform:translateY(-2px)}
+  .lift:hover::after{opacity:1}
+  .sgo:hover .cta-ic{transform:translateX(3px)}
+  .brd-row:hover{background:rgba(255,255,255,.06)}
+}
+
+/* выпадающие панели раскрываются от кнопки — только когда их открыл человек */
+.droppanel{transform-origin:top right}
+.drop[open]:not([data-restored]) .droppanel{animation:dropIn 180ms var(--ease-out)}
+@keyframes dropIn{from{opacity:0;transform:translateY(-4px) scale(.97)}}
+
+.swap-in{animation:swapIn 260ms var(--ease-out) backwards}
+@keyframes swapIn{from{opacity:0;transform:translateY(6px)}}
+.settle{animation:settle 420ms var(--ease-out) backwards}
+@keyframes settle{from{opacity:0;transform:translateY(8px) scale(.98)}}
+
+/* ---- карта маршрутов ---- */
+.rmap{display:block;width:100%;height:auto;overflow:visible}
+.m-bg{fill:none;stroke:rgba(255,255,255,.26);stroke-width:1.2;stroke-dasharray:3 5}
+.m-glow{fill:none;stroke:rgba(156,192,255,.3);stroke-width:9;stroke-linecap:round}
+.m-route{fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round}
+.m-dot{fill:rgba(255,255,255,.55)}
+.m-dot-on{fill:#fff;stroke:rgba(156,192,255,.5);stroke-width:6;paint-order:stroke}
+.m-ping{fill:none;stroke:#fff;stroke-width:1.5;opacity:0;transform-box:fill-box;transform-origin:center}
+.m-lbl{fill:#fff;font:600 13px "IBM Plex Sans",system-ui,sans-serif;paint-order:stroke;stroke:rgba(18,32,86,.55);stroke-width:3px}
+.m-lbl-home{fill:rgba(255,255,255,.82)}
+.m-lbl-dim{fill:rgba(255,255,255,.58);font-weight:500;font-size:12px}
+.m-plane path{fill:#fff}
+.rmap.first .m-bg{animation:mArc 700ms var(--ease-out) backwards;animation-delay:calc(var(--i) * 45ms)}
+.rmap.anim .m-route,.rmap.anim .m-glow{stroke-dasharray:1;stroke-dashoffset:1;animation:mDraw 820ms var(--ease-in-out) 120ms forwards}
+.rmap.anim .m-ping{animation:mPing 900ms var(--ease-out) 1.12s backwards}
+@keyframes mArc{from{opacity:0}}
+@keyframes mDraw{to{stroke-dashoffset:0}}
+@keyframes mPing{from{opacity:.9;transform:scale(.5)}to{opacity:0;transform:scale(3)}}
+
+/* ---- дуга в деталях рейса ---- */
+.tarc{display:block;width:100%;max-width:220px;height:46px;overflow:visible}
+.ta-path{fill:none;stroke:var(--line);stroke-width:1.6;stroke-dasharray:4 5}
+.ta-end{fill:var(--surface);stroke:var(--faint);stroke-width:1.5}
+.ta-plane path{fill:var(--blue)}
+
+/* ---- табло вылетов ---- */
+.board{background:#16275C;border-radius:24px;padding:8px 10px;color:#F4F1E8;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 26px 50px -30px rgba(22,39,92,.65)}
+.brd-h,.brd-row{display:grid;grid-template-columns:calc(5 * 1.12em + 8px) calc(7 * 1.12em + 12px) minmax(0,1fr) auto;
+  gap:18px;align-items:center;padding:10px 12px;font-size:15px}
+.brd-h{border-bottom:1px solid rgba(255,255,255,.1)}
+.brd-h span{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.brd-row{width:100%;text-align:left;border-radius:14px;transition:background-color 200ms ease}
+.brd-row + .brd-row{border-top:1px solid rgba(255,255,255,.06)}
+.brd-cell{display:flex;gap:2px;min-width:0;overflow:hidden}
+.fl{display:inline-grid;place-items:center;flex:none;width:1.12em;height:1.6em;border-radius:4px;position:relative;
+  background:linear-gradient(180deg,#2c418f 0 50%,#243879 50% 100%);box-shadow:inset 0 -1px 0 rgba(0,0,0,.25);
+  font-family:"IBM Plex Mono",monospace;font-weight:600;color:#F7F4EC}
+.fl::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(6,12,40,.55)}
+.fl-sp{background:linear-gradient(180deg,#223475 0 50%,#1d2e69 50% 100%)}
+.brd-fn .fl{color:#9CC0FF}
+.brd-pr{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:14px;color:#fff;text-align:right;white-space:nowrap}
+.brd-h .brd-pr{font-family:inherit}
+
+/* ---- ожидание: «радар» вместо спиннера ---- */
+.radar{position:relative;width:58px;height:58px;display:grid;place-items:center;color:var(--blue)}
+.radar svg{width:24px;height:24px;position:relative}
+.radar i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--blue);opacity:0;animation:ping 1.8s var(--ease-out) infinite}
+.radar i:nth-child(2){animation-delay:.9s}
+@keyframes ping{from{transform:scale(.45);opacity:.8}to{transform:scale(1.35);opacity:0}}
+
+/* ---- успех: корешок выезжает из щели после галочки ---- */
+.slot{width:min(360px,100%);height:10px;border-radius:6px;background:var(--sunken);box-shadow:inset 0 2px 3px rgba(0,0,0,.2);margin-top:12px}
+.stub{width:min(340px,calc(100% - 20px));margin-top:-5px;display:flex;gap:16px;align-items:center;justify-content:space-between;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:0 0 18px 18px;padding:16px 16px 18px;box-shadow:0 18px 30px -22px rgba(22,39,92,.5)}
+.stub-l{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stub-l b{color:var(--navy)}
+.stub .qr{width:92px;height:92px;padding:7px}
+.stub .ref{font-size:16px}
+.print{animation:print 1s var(--ease-drawer) .75s backwards}
+@keyframes print{from{clip-path:inset(0 0 100% 0);transform:translateY(-16px)}}
+
+/* ---- пустые заказы: самолёт делает круг и замирает (брендбук: 4,2 с + пауза) ---- */
+.empty-art{width:170px;height:100px;color:var(--muted)}
+.empty-plane{animation:loop 4.2s var(--ease-in-out) infinite}
+@keyframes loop{0%,70%,100%{transform:translate(73px,12px)}35%{transform:translate(81px,5px)}}
+
+/* ---- переходы между страницами ---- */
+::view-transition-old(root){animation:vtOut 160ms var(--ease-out) both}
+::view-transition-new(root){animation:vtIn 260ms var(--ease-out) both}
+::view-transition-group(*){animation-duration:420ms;animation-timing-function:var(--ease-in-out)}
+:root[data-vt="theme"]::view-transition-old(root){animation:vtOut 260ms ease both}
+:root[data-vt="theme"]::view-transition-new(root){animation:vtIn 260ms ease both}
+@keyframes vtOut{to{opacity:0}}
+@keyframes vtIn{from{opacity:0}}
+
+@media (max-width:900px){
+  .hero-grid{grid-template-columns:1fr}
+  /* На узком экране карта — отдельная полоса над заголовком: поверх текста
+     белая дуга мешала бы читать белые буквы. */
+  .hero-map{order:-1;margin:-12px 0 0}
+  .hero-map .rmap{max-height:150px}
+  /* подписи заданы в единицах карты — на узкой карте их надо крупнее */
+  .hero-map .m-lbl{font-size:24px;stroke-width:5px}
+  .hero-map .m-lbl-dim{font-size:20px}
+  .brd-h,.brd-row{grid-template-columns:calc(5 * 1.12em + 8px) minmax(0,1fr) auto;font-size:13px;gap:12px}
+  .brd-fn{display:none}
+}
+@media (max-width:600px){
+  .droppanel{transform-origin:top left}
+  .brd-h,.brd-row{grid-template-columns:calc(5 * 1.12em + 8px) minmax(0,1fr);font-size:11.5px;row-gap:6px}
+  .brd-row .brd-pr{grid-column:2;text-align:left;font-size:12.5px;color:rgba(255,255,255,.72)}
+  .brd-h .brd-pr{display:none}
+  /* логотип, язык и две иконки должны уместиться в одну строку на 375 px */
+  .nav-in{padding-inline:12px 4px}
+  #nav .wordmark{font-size:15px}
+  .navright{gap:2px}
+  .minisel{padding-inline:6px}
+  .hero-map .rmap{max-height:130px}
 }
 
 </style>
@@ -822,7 +983,14 @@ const STR = {
   where_to:["Куда","Qayerga","Destination"],
   wishes:["Пожелания","Istaklar","Special requests"],
   your_fare:["Ваш тариф","Sizning tarifingiz","Your fare"],
-  your_name:["Ваше имя","Ismingiz","Your name"]
+  your_name:["Ваше имя","Ismingiz","Your name"],
+  board_title:["Вылеты из Ташкента завтра","Ertaga Toshkentdan parvozlar","Tomorrow’s departures from Tashkent"],
+  board_sub:["Нажмите на рейс, чтобы найти билеты","Chipta topish uchun reysni bosing","Tap a flight to find tickets"],
+  board_time:["Время","Vaqt","Time"],
+  board_flight:["Рейс","Reys","Flight"],
+  board_to:["Направление","Yo‘nalish","Destination"],
+  board_price:["Цена","Narx","Fare"],
+  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
@@ -1070,10 +1238,18 @@ function render(scrollTop = true){
   // Новая страница открывается сверху сразу: плавная прокрутка html{scroll-behavior}
   // иначе протащила бы её через всю высоту предыдущей.
   if (scrollTop) window.scrollTo({ top: 0, behavior: "instant" });
+  slideIndicators(); countUps(); rollStepper(); launchFlights();
   page.after?.(params);
 }
 const rerender = () => render(false);
-window.addEventListener("hashchange", () => render(true));
+/* Переход на другую страницу: каскад и табло снова разрешены, смена — через
+   View Transitions. Перерисовка той же страницы (фильтр, степпер) — без них. */
+window.addEventListener("hashchange", () => {
+  M.ui.listKey = null; M.ui.boardDone = false; M.ui.arcSeen = false;
+  withTransition(() => render(true));
+});
+window.addEventListener("resize", () => slideIndicators(false));
+document.fonts?.ready.then(() => slideIndicators(false));
 
 function applyTheme(){
   const r = document.documentElement;
@@ -1084,10 +1260,11 @@ function applyTheme(){
 /* ---- уведомления и оверлей ---- */
 function toast(msg){
   const h = $("#toast"); h.innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
-  clearTimeout(toast.t); toast.t = setTimeout(() => h.innerHTML = "", 2800);
+  clearTimeout(toast.t); clearTimeout(toast.u);
+  toast.t = setTimeout(() => { h.firstChild?.classList.add("out"); toast.u = setTimeout(() => h.innerHTML = "", 180); }, 2800);
 }
 function overlay(msg){ $("#overlay").innerHTML = msg ? `<div class="overlay"><div class="box"><span class="spin"></span>${esc(msg)}</div></div>` : ""; }
-function showErr(sel, msg){ const e = $(sel); if (!e) return; e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); }
+function showErr(sel, msg){ const e = $(sel); if (!e) return; e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); shake(e); }
 function hideErr(sel){ const e = $(sel); if (e) { e.hidden = true; e.textContent = ""; } }
 
 /* ---- привязка полей к состоянию: data-bind="flights.from" ---- */
@@ -1117,7 +1294,10 @@ document.addEventListener("click", e => {
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
    выпадающие панели оставались открытыми после перерисовки. */
-document.addEventListener("toggle", e => { const d = e.target; if (d.dataset?.keep) M.ui[d.dataset.keep] = d.open; }, true);
+document.addEventListener("toggle", e => {
+  const d = e.target; if (d.dataset?.keep) M.ui[d.dataset.keep] = d.open;
+  if (d.open && d.querySelector?.("[data-ind]")) slideIndicators(false);
+}, true);
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") $$("details[open].drop").forEach(d => { d.open = false; if (d.dataset.keep) M.ui[d.dataset.keep] = false; });
 });
@@ -1163,12 +1343,14 @@ function stepper(bind, val, min, max, label, sub){
 }
 ACT.step = el => {
   const path = el.dataset.bind, ks = path.split("."), obj = ks.slice(0,-1).reduce((o,k) => o[k], M), k = ks.at(-1);
+  const before = obj[k];
   obj[k] = clamp(obj[k] + Number(el.dataset.d), Number(el.dataset.min), Number(el.dataset.max));
+  if (obj[k] !== before) M.ui.stepAnim = { bind:path, d:Number(el.dataset.d) };
   MODULES[ks[0]]?.normalize?.();
   rerender();
 };
 function seg(act, options, value, extra = ""){
-  return `<div class="seg" role="group">${options.map(([v, l]) =>
+  return `<div class="seg" role="group" data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
@@ -1203,11 +1385,318 @@ function postcard(city, sub = "", big = true){
 function hotelArt(h){
   const [a, b] = PALETTE[h.city];
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart" style="--pa:${a};--pb:${b}"><span class="hart-m">${esc(initials)}</span><span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}"><span class="hart-m">${esc(initials)}</span><span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
 }
 const fboxOpen = () => (M.ui.filters ?? !window.matchMedia("(max-width: 900px)").matches) ? "open" : "";
 const pageHead = (title, sub = "") => `<div class="pagehead"><h1>${esc(title)}</h1>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}</div>`;
 const backLink = (path, label) => `<a class="backlink" href="#/${path}">${IC.back}<span>${esc(label)}</span></a>`;
+
+/* ---- 15-motion.js ---- */
+/* ==========================================================================
+   Движение. Язык задан брендбуком Charteri:
+     появление карточек   — подъём на 14 px, каскад 55 мс, 420 мс, ease-out
+     детали рейса         — самолёт по дуге к вершине, 900 мс, cubic
+     смена темы           — затухание всей страницы, 260 мс
+     сортировка           — карточки переезжают на новые места, 260 мс
+     оплата               — синяя галочка на пружине
+     пустые поездки       — самолёт по кругу, 4,2 с
+   Анимируются только transform и opacity. При «уменьшить движение» всё
+   показывается сразу в конечном состоянии.
+   ========================================================================== */
+"use strict";
+
+const REDUCED = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const EASE_OUT = "cubic-bezier(0.23, 1, 0.32, 1)";
+const EASE_IN_OUT = "cubic-bezier(0.77, 0, 0.175, 1)";
+const canVT = () => !REDUCED && typeof document.startViewTransition === "function";
+
+/* ---- переход между страницами (View Transitions) ---- */
+function withTransition(update, kind = "nav"){
+  if (!canVT()) return update();
+  const root = document.documentElement;
+  root.dataset.vt = kind;
+  const vt = document.startViewTransition(update);
+  vt.finished.finally(() => { delete root.dataset.vt; });
+}
+
+/* ---- FLIP: карточки переезжают, а не прыгают (сортировка, фильтры) ----
+   Сначала все чтения, потом все записи: чередование вызвало бы
+   пересчёт раскладки на каждой карточке. */
+function flip(update){
+  if (REDUCED) return update();
+  const first = new Map($$("[data-flip]").map(el => [el.dataset.flip, el.getBoundingClientRect()]));
+  update();
+  const last = $$("[data-flip]").map(el => [el, el.getBoundingClientRect()]);
+  for (const [el, r] of last) {
+    const f = first.get(el.dataset.flip);
+    if (!f) { el.animate([{ opacity:0, transform:"translateY(8px)" }, { opacity:1, transform:"none" }], { duration:260, easing:EASE_OUT }); continue; }
+    const dx = f.left - r.left, dy = f.top - r.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) continue;
+    el.animate([{ transform:`translate(${dx}px, ${dy}px)` }, { transform:"none" }], { duration:260, easing:EASE_IN_OUT });
+  }
+}
+/* Каскад появления — только когда список пришёл впервые (новый поиск,
+   переход на страницу). При сортировке и фильтрах работает FLIP, а не каскад. */
+function listEnter(key){ const fresh = M.ui.listKey !== key; M.ui.listKey = key; return fresh ? "rise" : ""; }
+
+/* ---- скользящий индикатор вкладок и сегментов ---- */
+const IND = new Map();
+function slideIndicators(animate = true){
+  const route = currentParts().join("/") || "home", counts = {};
+  const reads = $$("[data-ind]").map(g => {
+    const k = (g.closest("#nav") ? "nav:" : route + ":") + g.dataset.ind;
+    counts[k] = (counts[k] || 0) + 1;
+    const on = g.querySelector('[aria-selected="true"],[aria-pressed="true"]');
+    return { key: k + ":" + counts[k], ind: g.querySelector(":scope > .ind"), line: "indLine" in g.dataset,
+      r: on && on.offsetWidth ? { x:on.offsetLeft, y:on.offsetTop, w:on.offsetWidth, h:on.offsetHeight } : null };
+  });
+  for (const { key, ind, line, r } of reads) {
+    if (!ind) continue;
+    if (!r) { ind.style.opacity = "0"; continue; }
+    const to = `translate(${r.x}px, ${line ? 0 : r.y}px)`;
+    Object.assign(ind.style, { opacity:"1", width:r.w + "px", height: line ? "" : r.h + "px", transform:to });
+    const prev = IND.get(key); IND.set(key, r);
+    if (animate && prev && !REDUCED && (prev.x !== r.x || prev.y !== r.y || prev.w !== r.w))
+      ind.animate([{ transform:`translate(${prev.x}px, ${line ? 0 : prev.y}px) scaleX(${prev.w / r.w})` }, { transform:to }],
+        { duration:240, easing:EASE_OUT });
+  }
+}
+
+/* ---- счётчик суммы: только при изменении, не при первом показе ----
+   Первый показ — сразу конечная цифра: сумму нельзя заставлять ждать. */
+const COUNTS = new Map();
+const fmtVal = v => S.cur === "USD" ? "$" + grp(v) : grp(v) + NB + t("cur_uzs");
+function countUps(){
+  for (const el of $$("[data-count]")) {
+    const key = el.dataset.count, target = Number(S.cur === "USD" ? el.dataset.usd : el.dataset.uzs), prev = COUNTS.get(key);
+    COUNTS.set(key, { cur:S.cur, v:target });
+    if (REDUCED || !prev || prev.cur !== S.cur || prev.v === target) continue;
+    const from = prev.v, t0 = performance.now(), D = 420;
+    const tick = now => {
+      if (!el.isConnected) return;                          // страницу перерисовали — останавливаемся
+      const p = Math.min(1, (now - t0) / D), e = 1 - (1 - p) ** 3;
+      el.textContent = fmtVal(Math.round(from + (target - from) * e));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+}
+const countAttr = (key, a) => `data-count="${key}" data-usd="${a.usd}" data-uzs="${a.uzs}"`;
+
+/* ---- степпер: цифра проезжает вверх или вниз ---- */
+function rollStepper(){
+  const s = M.ui.stepAnim; M.ui.stepAnim = null;
+  if (!s || REDUCED) return;
+  const btn = $(`[data-act="step"][data-bind="${s.bind}"]`), num = btn?.parentElement.querySelector("span");
+  num?.animate([{ transform:`translateY(${s.d > 0 ? 9 : -9}px)`, opacity:0 }, { transform:"none", opacity:1 }], { duration:200, easing:EASE_OUT });
+}
+
+/* ---- ошибка: короткое покачивание, чтобы взгляд нашёл сообщение ---- */
+function shake(el){ if (REDUCED || !el) return; el.animate(
+  [{ transform:"none" }, { transform:"translateX(-6px)" }, { transform:"translateX(5px)" }, { transform:"translateX(-3px)" }, { transform:"translateX(2px)" }, { transform:"none" }],
+  { duration:360, easing:"ease-out" }); }
+
+/* ---- самолёты на дугах: SMIL animateMotion, запуск после отрисовки ---- */
+function launchFlights(){
+  if (REDUCED) return;
+  $$("animateMotion[data-go]").forEach(a => setTimeout(() => a.beginElement?.(), Number(a.dataset.go)));
+}
+
+/* ---- высота плавающей шапки: герой заходит под неё ---- */
+new ResizeObserver(([e]) => document.documentElement.style.setProperty("--navh", Math.round(e.borderBoxSize?.[0]?.blockSize ?? e.target.offsetHeight) + "px"))
+  .observe(document.getElementById("nav"));
+
+/* ---- 16-routemap.js ---- */
+/* ==========================================================================
+   Карта маршрутов в шапке главной — главный момент движения на сайте.
+   Показывает не абстрактную «географию», а маршрут из формы поиска: сменили
+   город — дуга перерисовывается и самолёт пролетает её заново. Самолёт —
+   фирменный силуэт, нос по направлению полёта (брендбук). Для вертолётов —
+   местная карта Ташкентской области.
+   ========================================================================== */
+"use strict";
+
+const MAP_W = 600, MAP_H = 340;
+const WORLD = { lat0:4, lat1:58, lon0:24, lon1:114 };
+const LOCAL = { lat0:39.25, lat1:42.15, lon0:66.3, lon1:70.9 };
+const WORLD_BG = ["IST","AYT","DXB","SSH","JED","SHJ","CXR","HKT","DME"];
+
+function mapState(){
+  if (M.module === "heli") return { local:true, from:"TAS", to:M.heli.to };
+  const r = { flights:[M.flights.from, M.flights.to], tours:["TAS", M.tours.to], hotels:["TAS", M.hotels.city], jet:[M.jet.from, M.jet.to] }[M.module];
+  return { local:false, from:r[0], to:r[1] };
+}
+/* Рамка карты растягивается, чтобы вместить любой выбранный аэропорт. */
+function mapBounds(points, base){
+  const b = { ...base };
+  for (const [la, lo] of points) {
+    b.lat0 = Math.min(b.lat0, la - 3); b.lat1 = Math.max(b.lat1, la + 3);
+    b.lon0 = Math.min(b.lon0, lo - 5); b.lon1 = Math.max(b.lon1, lo + 5);
+  }
+  return b;
+}
+const project = (b, [la, lo]) => [(lo - b.lon0) / (b.lon1 - b.lon0) * MAP_W, (b.lat1 - la) / (b.lat1 - b.lat0) * MAP_H];
+/* Дуга выгибается к северу — так выглядят маршруты по большому кругу. */
+function arc([x1, y1], [x2, y2]){
+  const d = Math.hypot(x2 - x1, y2 - y1) || 1;
+  let nx = -(y2 - y1) / d, ny = (x2 - x1) / d;
+  if (ny > 0) { nx = -nx; ny = -ny; }
+  const k = Math.min(95, d * 0.3), cx = (x1 + x2) / 2 + nx * k, cy = (y1 + y2) / 2 + ny * k;
+  return { d:`M${x1.toFixed(1)} ${y1.toFixed(1)} Q${cx.toFixed(1)} ${cy.toFixed(1)} ${x2.toFixed(1)} ${y2.toFixed(1)}`,
+    end:[x2, y2], angle: Math.atan2(y2 - cy, x2 - cx) * 180 / Math.PI };
+}
+/* Обзорный полёт — петля над городом с возвращением на площадку. */
+function loop([x, y]){
+  return { d:`M${x} ${y} C${x + 70} ${y - 90} ${x + 190} ${y - 40} ${x + 120} ${y + 24} S${x + 10} ${y + 40} ${x} ${y}`,
+    end:[x, y], angle:-150 };
+}
+function mapLabel([x, y], text, cls){
+  const right = x > MAP_W - 130;
+  return `<text class="${cls}" x="${(x + (right ? -12 : 12)).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${right ? "end" : "start"}">${esc(text)}</text>`;
+}
+
+function routeMap(){
+  const st = mapState(), key = `${M.module}:${st.from}-${st.to}`;
+  const animate = !REDUCED && M.ui.mapKey !== key, first = !REDUCED && M.ui.mapKey == null;
+  M.ui.mapKey = key;
+
+  let b, pts, route, labels;
+  if (st.local) {
+    const dests = HELI_DEST.filter(d => d.coord);
+    b = LOCAL; const home = project(b, HELI_BASE);
+    const sel = HELI_DEST.find(d => d.id === st.to);
+    pts = dests.map(d => ({ id:d.id, p:project(b, d.coord), name:d.name[S.lang] }));
+    route = sel.tour ? loop(home) : arc(home, project(b, sel.coord));
+    labels = mapLabel(home, t("heli_base").split(",")[0], "m-lbl m-lbl-home")
+      + pts.map(x => mapLabel(x.p, x.name, x.id === st.to ? "m-lbl" : "m-lbl m-lbl-dim")).join("");
+    pts = [{ id:"home", p:home }, ...pts];
+  } else {
+    const from = COORDS[st.from], to = COORDS[st.to];
+    b = mapBounds([from, to], WORLD);
+    const bg = [...new Set([...WORLD_BG, st.from, st.to])];
+    pts = bg.map(c => ({ id:c, p:project(b, COORDS[c]) }));
+    route = arc(project(b, from), project(b, to));
+    labels = mapLabel(project(b, from), cityName(st.from), "m-lbl m-lbl-home") + mapLabel(route.end, cityName(st.to), "m-lbl");
+  }
+  const hub = st.local ? project(b, HELI_BASE) : project(b, COORDS["TAS"]);
+  const bgArcs = pts.filter(x => x.id !== "home" && x.id !== "TAS").map((x, i) =>
+    `<path class="m-bg" style="--i:${i}" d="${arc(hub, x.p).d}"/>`).join("");
+  const dots = pts.map(x => { const sel = x.id === st.to || x.id === st.from || x.id === "home";
+    return `<circle class="m-dot ${sel ? "m-dot-on" : ""}" cx="${x.p[0].toFixed(1)}" cy="${x.p[1].toFixed(1)}" r="${sel ? 4.5 : 3}"/>`; }).join("");
+  const [ex, ey] = route.end;
+  const aria = st.local ? heliName(st.to) : tf("map_aria", { a:cityName(st.from), b:cityName(st.to) });
+
+  return `<svg class="rmap ${animate ? "anim" : ""} ${first ? "first" : ""}" viewBox="0 0 ${MAP_W} ${MAP_H}" role="img" aria-label="${esc(aria)}">
+    <defs>
+      <pattern id="mdots" width="14" height="14" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#fff"/></pattern>
+      <radialGradient id="mfade" cx="55%" cy="45%" r="62%"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+      <mask id="mmask"><rect width="${MAP_W}" height="${MAP_H}" fill="url(#mfade)"/></mask>
+    </defs>
+    <rect width="${MAP_W}" height="${MAP_H}" fill="url(#mdots)" opacity=".15" mask="url(#mmask)"/>
+    <g>${bgArcs}</g>
+    <path class="m-glow" d="${route.d}" pathLength="1"/>
+    <path id="mroute" class="m-route" d="${route.d}" pathLength="1"/>
+    ${dots}
+    <circle class="m-ping" cx="${ex.toFixed(1)}" cy="${ey.toFixed(1)}" r="6"/>
+    ${labels}
+    <g class="m-plane" ${animate ? 'opacity="0"' : `transform="translate(${ex.toFixed(1)} ${ey.toFixed(1)}) rotate(${route.angle.toFixed(1)})"`}>
+      <g transform="rotate(90) scale(.95) translate(-12 -12)"><path d="${PLANE_PATH}"/></g>
+      ${animate ? `<animateMotion id="mfly" data-go="330" dur="0.9s" begin="indefinite" fill="freeze" rotate="auto" calcMode="spline" keyPoints="0;1" keyTimes="0;1" keySplines="0.65 0 0.35 1"><mpath href="#mroute"/></animateMotion>
+        <set attributeName="opacity" to="1" begin="mfly.begin" fill="freeze"/>` : ""}
+    </g>
+  </svg>`;
+}
+
+/* Дуга в деталях рейса: самолёт летит к вершине и остаётся там (брендбук).
+   Время SMIL у встроенного SVG идёт от загрузки документа, поэтому видимость
+   привязана к началу полёта (id.begin), а не к абсолютной задержке. */
+let arcSeq = 0;
+function arcTrack(animate, delay = 0){
+  const id = "ta" + (++arcSeq);
+  return `<svg class="tarc" viewBox="0 0 200 46" aria-hidden="true">
+    <path class="ta-path" d="M8 40 Q100 -6 192 40"/>
+    <circle class="ta-end" cx="8" cy="40" r="3"/><circle class="ta-end" cx="192" cy="40" r="3"/>
+    <g class="ta-plane" ${animate ? 'opacity="0"' : 'transform="translate(100 17)"'}>
+      <g transform="rotate(90) scale(.72) translate(-12 -12)"><path d="${PLANE_PATH}"/></g>
+      ${animate ? `<animateMotion id="${id}" data-go="${140 + delay}" dur="0.9s" begin="indefinite" fill="freeze" rotate="auto" calcMode="spline" keyPoints="0;0.5" keyTimes="0;1" keySplines="0.33 0 0.2 1" path="M8 40 Q100 -6 192 40"/>
+        <set attributeName="opacity" to="1" begin="${id}.begin" fill="freeze"/>` : ""}
+    </g></svg>`;
+}
+
+/* ---- 17-board.js ---- */
+/* ==========================================================================
+   Табло вылетов на главной — «Board» из брендбука (IBM Plex Mono).
+   Рейсы настоящие: базовые рейсы маршрутов из движка приложения на завтра.
+   Перекидные буквы щёлкают один раз, когда табло попадает в поле зрения;
+   до и после этого — конечный текст, так что страница читается и без анимации.
+   ========================================================================== */
+"use strict";
+
+const BOARD_DEST = ["IST","DXB","AYT","JED","SSH","CXR","HKT","DME"];
+const FLAP_POOL = {
+  lat:"ABCDEFGHIJKLMNOPQRSTUVWXYZ", cyr:"АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЭЮЯ", dig:"0123456789"
+};
+const poolFor = ch => /\d/.test(ch) ? FLAP_POOL.dig : /[А-ЯЁ]/.test(ch) ? FLAP_POOL.cyr : FLAP_POOL.lat;
+const flaps = (s, row, col0) => [...s].map((ch, i) =>
+  `<span class="fl${ch === " " ? " fl-sp" : ""}" data-r="${row}" data-c="${col0 + i}">${ch === " " ? "&nbsp;" : esc(ch)}</span>`).join("");
+
+function boardRows(){
+  const d = addDays(TODAY, 1);
+  return BOARD_DEST.map(c => ({ c, o:baseOffer("TAS", c, d) })).sort((a, b) => a.o.depTime.localeCompare(b.o.depTime));
+}
+function departureBoard(){
+  const rows = boardRows(), locale = LOC[S.lang];
+  const names = rows.map(r => cityName(r.c).toLocaleUpperCase(locale));
+  const w = Math.max(...names.map(n => n.length));
+  return `<section class="container section">
+    <div class="sec-h"><h2>${esc(t("board_title"))}</h2><p class="muted">${esc(t("board_sub"))}</p></div>
+    <div class="board" id="board" role="table" aria-label="${esc(t("board_title"))}">
+      <div class="brd-h" role="row"><span role="columnheader">${esc(t("board_time"))}</span><span role="columnheader" class="brd-fn">${esc(t("board_flight"))}</span>
+        <span role="columnheader">${esc(t("board_to"))}</span><span role="columnheader" class="brd-pr">${esc(t("board_price"))}</span></div>
+      ${rows.map((r, i) => `<button type="button" class="brd-row" role="row" data-act="boardgo" data-v="${r.c}">
+        <span class="brd-cell" role="cell">${flaps(r.o.depTime, i, 0)}</span>
+        <span class="brd-cell brd-fn" role="cell">${flaps(r.o.flightNo.padEnd(7, " "), i, 6)}</span>
+        <span class="brd-cell" role="cell">${flaps(names[i].padEnd(w, " "), i, 14)}</span>
+        <span class="brd-pr" role="cell">${priceFrom(fmt({ usd:r.o.priceUSD, uzs:r.o.priceUZS }))}</span>
+      </button>`).join("")}
+    </div></section>`;
+}
+/* Один цикл requestAnimationFrame на всё табло, с условием остановки. */
+function flapBoard(board){
+  if (REDUCED || !board) return;
+  const t0 = performance.now();
+  const jobs = [...board.querySelectorAll(".fl:not(.fl-sp)")].map(el => ({
+    el, final:el.textContent, pool:poolFor(el.textContent),
+    end: t0 + 180 + Number(el.dataset.c) * 26 + Number(el.dataset.r) * 55 + Math.random() * 140 }));
+  let last = 0;
+  const tick = now => {
+    if (!board.isConnected) return;
+    if (now - last >= 50) {
+      last = now; let busy = false;
+      for (const j of jobs) {
+        if (j.done) continue;
+        if (now >= j.end) { j.el.textContent = j.final; j.done = true; }
+        else { busy = true; j.el.textContent = j.pool[Math.floor(Math.random() * j.pool.length)]; }
+      }
+      if (!busy) return;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+/* Табло щёлкает, когда его видно, и один раз за посещение главной. */
+function armBoard(){
+  const board = $("#board"); if (!board || M.ui.boardDone || REDUCED) return;
+  const io = new IntersectionObserver(([e]) => {
+    if (!e.isIntersecting) return;
+    io.disconnect(); M.ui.boardDone = true; flapBoard(board);
+  }, { threshold:0.35 });
+  io.observe(board);
+}
+ACT.boardgo = el => {
+  Object.assign(M.flights, { from:"TAS", to:el.dataset.v, type:"oneway", depart:addDays(TODAY, 1) });
+  M.module = "flights"; ACT.fsearch();
+};
 
 /* ---- 20-flights.js ---- */
 /* ==========================================================================
@@ -1304,14 +1793,14 @@ MODULES.flights = {
         <label class="field ${f.type === "oneway" ? "is-off" : ""}"><span>${esc(t("return_"))}</span>
           <input type="date" data-bind="flights.ret" value="${f.ret}" min="${f.depart}" ${f.type === "oneway" ? "disabled" : ""}></label>
         <div class="field"><span>${esc(t("passengers"))}</span>
-          <details class="drop" data-keep="fpax" ${M.ui.fpax ? "open" : ""}><summary class="dropsum">${esc(this.paxSummary())}</summary>
+          <details class="drop" data-keep="fpax" ${M.ui.fpax ? "open data-restored" : ""}><summary class="dropsum">${esc(this.paxSummary())}</summary>
             <div class="droppanel steps">
               ${stepper("flights.adults", f.adults, 1, 9 - f.children - f.infants, t("adults"), t("age_adult"))}
               ${stepper("flights.children", f.children, 0, 9 - f.adults - f.infants, t("children"), t("age_child"))}
               ${stepper("flights.infants", f.infants, 0, Math.min(f.adults, 9 - f.adults - f.children), t("infants"), t("age_infant"))}
               <div class="steprow"><b>${esc(t("cabin_class"))}</b>${seg("fcabin", [["economy", t("economy")], ["business", t("business")]], f.cabin)}</div>
             </div></details></div>
-        <button type="button" class="cta sgo" data-act="fsearch">${esc(t("search_cta"))}</button>
+        <button type="button" class="cta sgo" data-act="fsearch"><span>${esc(t("search_cta"))}</span><span class="cta-ic">${IC.flights}</span></button>
       </div>
       <div class="err" id="serr" hidden></div></div>`;
   },
@@ -1321,7 +1810,10 @@ MODULES.flights = {
 Object.assign(ACT, {
   ftype:   el => { M.flights.type = el.dataset.v; rerender(); },
   fcabin:  el => { M.flights.cabin = el.dataset.v; rerender(); },
-  fswap:   () => { const f = M.flights; [f.from, f.to] = [f.to, f.from]; rerender(); },
+  fswap:   () => {
+    const f = M.flights; [f.from, f.to] = [f.to, f.from]; rerender();
+    if (!REDUCED) $(".swapbtn svg")?.animate([{ transform:"rotate(-180deg)" }, { transform:"none" }], { duration:320, easing:EASE_OUT });
+  },
   fsearch: () => {
     const f = M.flights; hideErr("#serr");
     if (f.from === f.to) return showErr("#serr", t("err_same_city"));
@@ -1330,11 +1822,11 @@ Object.assign(ACT, {
     Object.assign(f, { searched:true, leg:"out", sel:{ out:null, back:null }, sort:"cheapest", direct:false, carriers:[], times:[] });
     M.ui.fpax = false; go("flights/results");
   },
-  fsort:   el => { M.flights.sort = el.dataset.v; rerender(); },
-  fdirect: () => { M.flights.direct = !M.flights.direct; rerender(); },
-  fcarrier: el => { const a = M.flights.carriers, c = el.dataset.v; M.flights.carriers = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; rerender(); },
-  ftime:   el => { const a = M.flights.times, c = el.dataset.v; M.flights.times = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; rerender(); },
-  fclear:  () => Object.assign(M.flights, { direct:false, carriers:[], times:[] }) && rerender(),
+  fsort:   el => { M.flights.sort = el.dataset.v; flip(rerender); },
+  fdirect: () => { M.flights.direct = !M.flights.direct; flip(rerender); },
+  fcarrier: el => { const a = M.flights.carriers, c = el.dataset.v; M.flights.carriers = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; flip(rerender); },
+  ftime:   el => { const a = M.flights.times, c = el.dataset.v; M.flights.times = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; flip(rerender); },
+  fclear:  () => flip(() => { Object.assign(M.flights, { direct:false, carriers:[], times:[] }); rerender(); }),
   fday:    el => {
     const f = M.flights, d = el.dataset.v;
     if (f.leg === "back") f.ret = d;
@@ -1367,8 +1859,8 @@ function priceCalendar(){
       <span class="cd">${esc(fdate(d, { weekday:"short", day:"numeric", month:"short" }))}</span>
       <span class="cp">${fmt({ usd:p.priceUSD, uzs:p.priceUZS })}</span></button>`; }).join("")}</div>`;
 }
-function offerRow(o, i, bestId){
-  return `<article class="offer rise" style="--i:${i}">
+function offerRow(o, i, bestId, rc){
+  return `<article class="offer lift ${rc}" style="--i:${i}" data-flip="${o.id}">
     <div class="of-car">${carrierBadge(o.carrierCode)}<span><b>${esc(o.carrier)}</b><small class="mono">${o.flightNo} · ${esc(o.aircraft)}</small></span>
       ${o.id === bestId ? `<span class="tag-best">${esc(t("best"))}</span>` : ""}</div>
     <div class="of-route">${routeBlock(o)}</div>
@@ -1395,7 +1887,7 @@ PAGES["flights/results"] = {
         <div class="searching"><span class="spin"></span>${esc(t("searching_providers"))}</div>
         <div class="stack">${[0,1,2].map(() => `<div class="skel"></div>`).join("")}</div></div>`;
 
-    const all = generateOffers({ ...q, cabin:f.cabin }), bestId = all[0]?.id;
+    const all = generateOffers({ ...q, cabin:f.cabin }), bestId = all[0]?.id, rc = listEnter("fl:" + key);
     const bucket = o => TIME_BUCKETS.find(([, a, b]) => { const h = Number(o.depTime.slice(0,2)); return h >= a && h < b; })[0];
     let list = all.filter(o => (!f.direct || !o.stops) && (!f.carriers.length || f.carriers.includes(o.carrierCode)) && (!f.times.length || f.times.includes(bucket(o))));
     if (f.sort === "fastest") list = [...list].sort((a, b) => a.durationMin - b.durationMin);
@@ -1418,7 +1910,7 @@ PAGES["flights/results"] = {
         </aside>
         <section class="stack">
           <p class="muted small">${esc(tf("found_n", { n:list.length }))}</p>
-          ${list.length ? list.map((o, i) => offerRow(o, i, bestId)).join("")
+          ${list.length ? list.map((o, i) => offerRow(o, i, bestId, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><p class="muted">${esc(t("no_results_body"))}</p>
                <button type="button" class="ghost" data-act="fclear">${esc(t("clear_filters"))}</button></div>`}
         </section>
@@ -1431,10 +1923,22 @@ PAGES["flights/results"] = {
 };
 
 /* --------------------------------------------------------- детали и цена */
-function legCard(o, label){
+/* Маршрут с дугой: в деталях рейса самолёт летит к вершине (брендбук). */
+function routeArc(o, animate, delay){
+  const nd = nextDay(o);
+  return `<div class="route">
+    <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+    <div class="track">${arcTrack(animate, delay)}<span class="d">${dur(o.durationMin)}</span>
+      <span class="s ${o.stops ? "s-stop" : "s-direct"}">${o.stops ? esc(tf("via", { c: o.stopCity })) : esc(t("direct"))}</span></div>
+    <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
+  </div>`;
+}
+/* Дуга анимируется один раз за посещение страницы, не при каждой перерисовке. */
+function arcOnce(){ const a = !REDUCED && !M.ui.arcSeen; M.ui.arcSeen = true; return a; }
+function legCard(o, label, animate = false, delay = 0){
   return `<div class="card leg">
     <div class="leg-h"><span class="lbl">${esc(label)} · ${esc(fdateLong(o.date))}</span>${carrierBadge(o.carrierCode)}</div>
-    ${routeBlock(o)}
+    ${routeArc(o, animate, delay)}
     <div class="rows">
       <div><span class="k">${esc(o.carrier)}</span><span class="v mono">${o.flightNo}</span></div>
       <div><span class="k">${esc(t("aircraft"))}</span><span class="v">${esc(o.aircraft)}</span></div>
@@ -1452,14 +1956,14 @@ function flightLines(out, back, q){
 PAGES["flights/offer"] = {
   render(){
     const f = M.flights; if (!f.sel.out) { go(""); return null; }
-    const { lines, total } = flightLines(f.sel.out, f.sel.back, f);
+    const { lines, total } = flightLines(f.sel.out, f.sel.back, f), an = arcOnce();
     return `<div class="container section">${backLink("flights/results", t("back_results"))}
       ${pageHead(t("flight_details"))}
-      <div class="twocol"><div class="stack">${legCard(f.sel.out, t("leg_out"))}${f.sel.back ? legCard(f.sel.back, t("leg_back")) : ""}</div>
+      <div class="twocol"><div class="stack">${legCard(f.sel.out, t("leg_out"), an)}${f.sel.back ? legCard(f.sel.back, t("leg_back"), an, 180) : ""}</div>
         <aside class="card sticky stack">
           <span class="lbl">${esc(t("your_fare"))}</span>
           <div class="rows">${lines.map(([l, a]) => `<div><span class="k">${esc(l)}</span><span class="v mono">${fmt(a)}</span></div>`).join("")}
-            <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v">${fmt(total)}</span></div></div>
+            <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v" ${countAttr("fare", total)}>${fmt(total)}</span></div></div>
           <button type="button" class="cta" data-act="fbook">${esc(t("to_checkout"))}</button>
           <p class="small muted">${esc(t("fare_note"))}</p>
         </aside></div></div>`;
@@ -1542,13 +2046,13 @@ MODULES.hotels = {
       <label class="field"><span>${esc(t("checkin"))}</span><input type="date" data-bind="hotels.checkin" data-rr value="${q.checkin}" min="${TODAY}"></label>
       <label class="field"><span>${esc(t("checkout"))}${n > 0 ? ` · ${esc(pl(n, "night"))}` : ""}</span><input type="date" data-bind="hotels.checkout" data-rr value="${q.checkout}" min="${addDays(q.checkin,1)}"></label>
       <div class="field"><span>${esc(t("guests"))}</span>
-        <details class="drop" data-keep="hpax" ${M.ui.hpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.adults + q.children, "guest"))}, ${esc(pl(q.rooms, "room"))}</summary>
+        <details class="drop" data-keep="hpax" ${M.ui.hpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.adults + q.children, "guest"))}, ${esc(pl(q.rooms, "room"))}</summary>
           <div class="droppanel steps">
             ${stepper("hotels.adults", q.adults, 1, 12, t("adults"), t("age_adult"))}
             ${stepper("hotels.children", q.children, 0, 8, t("children"), t("children_free"))}
             ${stepper("hotels.rooms", q.rooms, 1, Math.min(4, q.adults), t("rooms"), "")}
           </div></details></div>
-      <button type="button" class="cta sgo" data-act="hsearch">${esc(t("find_hotels"))}</button>
+      <button type="button" class="cta sgo" data-act="hsearch"><span>${esc(t("find_hotels"))}</span><span class="cta-ic">${IC.hotels}</span></button>
     </div><div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.hsearch(); }
@@ -1564,14 +2068,14 @@ Object.assign(ACT, {
     Object.assign(q, { searched:true, stars:[], boards:[], maxNight:0, sort:"price" });
     M.ui.hpax = false; go("hotels/results");
   },
-  hstar:  el => { const v = Number(el.dataset.v), a = M.hotels.stars; M.hotels.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  hboard: el => { const v = el.dataset.v, a = M.hotels.boards; M.hotels.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  hsort:  el => { M.hotels.sort = el.dataset.v; rerender(); },
-  hclear: () => { Object.assign(M.hotels, { stars:[], boards:[], maxNight:0 }); rerender(); },
+  hstar:  el => { const v = Number(el.dataset.v), a = M.hotels.stars; M.hotels.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  hboard: el => { const v = el.dataset.v, a = M.hotels.boards; M.hotels.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  hsort:  el => { M.hotels.sort = el.dataset.v; flip(rerender); },
+  hclear: () => flip(() => { Object.assign(M.hotels, { stars:[], boards:[], maxNight:0 }); rerender(); }),
   hbook:  el => startHotelCheckout(el.dataset.h, el.dataset.r)
 });
 /* Ползунок цены меняет состояние на лету, а перерисовывает по отпусканию. */
-document.addEventListener("change", e => { if (e.target.id === "hmax") { M.hotels.maxNight = Number(e.target.value); rerender(); } });
+document.addEventListener("change", e => { if (e.target.id === "hmax") { M.hotels.maxNight = Number(e.target.value); flip(rerender); } });
 document.addEventListener("input",  e => { if (e.target.id === "hmax") { const o = $("#hmaxv"); if (o) o.textContent = maxLabel(Number(e.target.value)); } });
 const maxLabel = v => v ? `≤ ${fmt(amt(v))}` : t("any_price");
 
@@ -1585,7 +2089,7 @@ function hotelResults(q){
 PAGES["hotels/results"] = {
   render(){
     const q = M.hotels; if (!q.searched) { go(""); return null; }
-    const n = nightsOf(q), all = hotelResults(q);
+    const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
@@ -1605,15 +2109,15 @@ PAGES["hotels/results"] = {
           <button type="button" class="link" data-act="hclear">${esc(t("clear_filters"))}</button>
         </div></details></aside>
         <section class="stack"><p class="muted small">${esc(tf("found_hotels", { n:list.length }))}</p>
-          ${list.length ? list.map((x, i) => hotelRow(x, i, n)).join("")
+          ${list.length ? list.map((x, i) => hotelRow(x, i, n, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><button type="button" class="ghost" data-act="hclear">${esc(t("clear_filters"))}</button></div>`}
         </section></div></div>`;
   }
 };
 function amenityChips(h){ return `<div class="chips-row">${h.am.map(a => `<span class="chip-s">${esc(t("am_" + a))}</span>`).join("")}</div>`; }
-function hotelRow(x, i, n){
+function hotelRow(x, i, n, rc){
   const h = x.h;
-  return `<article class="hotel rise" style="--i:${i}">${hotelArt(h)}
+  return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(h.area)} · ${esc(cityName(h.city))} · ${esc(beachText(h))}</span>
@@ -1722,12 +2226,12 @@ MODULES.tours = {
       <label class="field"><span>${esc(t("nights"))}</span><select data-bind="tours.nights" data-num>${[3,4,5,6,7,8,9,10,11,12,13,14].map(n =>
         `<option value="${n}" ${n === q.nights ? "selected" : ""}>${esc(pl(n, "night"))}</option>`).join("")}</select></label>
       <div class="field"><span>${esc(t("tourists"))}</span>
-        <details class="drop" data-keep="tpax" ${M.ui.tpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.adults, "adult"))}${q.children ? ", " + esc(pl(q.children, "child")) : ""}</summary>
+        <details class="drop" data-keep="tpax" ${M.ui.tpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.adults, "adult"))}${q.children ? ", " + esc(pl(q.children, "child")) : ""}</summary>
           <div class="droppanel steps">
             ${stepper("tours.adults", q.adults, 1, 8, t("adults"), t("age_adult"))}
             ${stepper("tours.children", q.children, 0, 6, t("children"), t("age_child_tour"))}
           </div></details></div>
-      <button type="button" class="cta sgo" data-act="tsearch">${esc(t("find_tours"))}</button>
+      <button type="button" class="cta sgo" data-act="tsearch"><span>${esc(t("find_tours"))}</span><span class="cta-ic">${IC.tours}</span></button>
     </div><div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.tsearch(); }
@@ -1740,10 +2244,10 @@ Object.assign(ACT, {
     Object.assign(q, { searched:true, stars:[], boards:[], sort:"price" });
     M.ui.tpax = false; go("tours/results");
   },
-  tstar:  el => { const v = Number(el.dataset.v), a = M.tours.stars; M.tours.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  tboard: el => { const v = el.dataset.v, a = M.tours.boards; M.tours.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  tsort:  el => { M.tours.sort = el.dataset.v; rerender(); },
-  tclear: () => { Object.assign(M.tours, { stars:[], boards:[] }); rerender(); },
+  tstar:  el => { const v = Number(el.dataset.v), a = M.tours.stars; M.tours.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  tboard: el => { const v = el.dataset.v, a = M.tours.boards; M.tours.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  tsort:  el => { M.tours.sort = el.dataset.v; flip(rerender); },
+  tclear: () => flip(() => { Object.assign(M.tours, { stars:[], boards:[] }); rerender(); }),
   tbook:  el => startTourCheckout(el.dataset.h),
   /* с главной: «Туры от …» в карточке направления */
   tgo:    el => { M.tours.to = el.dataset.v; M.module = "tours"; ACT.tsearch(); }
@@ -1755,7 +2259,7 @@ PAGES["tours/results"] = {
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
-    const back = addDays(q.depart, q.nights), f0 = all[0];
+    const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="resbar"><div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName("TAS"))} → ${esc(cityName(q.to))}</span>
@@ -1773,14 +2277,14 @@ PAGES["tours/results"] = {
           <button type="button" class="link" data-act="tclear">${esc(t("clear_filters"))}</button>
         </div></details></aside>
         <section class="stack"><p class="muted small">${esc(tf("found_tours", { n:list.length }))}</p>
-          ${list.length ? list.map((p, i) => tourRow(p, i)).join("")
+          ${list.length ? list.map((p, i) => tourRow(p, i, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><button type="button" class="ghost" data-act="tclear">${esc(t("clear_filters"))}</button></div>`}
         </section></div></div>`;
   }
 };
-function tourRow(p, i){
+function tourRow(p, i, rc){
   const h = p.h;
-  return `<article class="hotel rise" style="--i:${i}">${hotelArt(h)}
+  return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(h.area)} · ${esc(beachText(h))}</span>
@@ -1796,7 +2300,7 @@ function tourRow(p, i){
 PAGES["tours/item/:id"] = {
   render({ id }){
     const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
-    const p = tourPackage(h, q), lines = tourLines(p, q);
+    const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelArt(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
@@ -1805,12 +2309,12 @@ PAGES["tours/item/:id"] = {
         <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="twocol" style="margin-top:20px">
-        <div class="stack">${legCard(p.out, t("leg_out"))}${legCard(p.back, t("leg_back"))}
+        <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
           <div class="card stack"><h3>${esc(t("tour_includes"))}</h3><div class="incl big">
             ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), t("incl_transfer_full"), t("incl_insurance_full")]
               .map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div></div></div>
         <aside class="card sticky stack"><span class="lbl">${esc(t("tour_price"))}</span>
-          ${checkLines(lines, p.total)}
+          ${checkLines(lines, p.total, "tour")}
           <button type="button" class="cta" data-act="tbook" data-h="${h.id}">${esc(t("book_tour"))}</button>
           <p class="small muted">${esc(tf("tour_pp", { p: fmt(p.perPerson) }))}</p></aside></div></div>`;
   }
@@ -1887,11 +2391,11 @@ MODULES.jet = {
       <label class="field"><span>${esc(t("to"))}</span>${airportSelect("jet.to", q.to, q.from)}</label>
       <label class="field"><span>${esc(t("depart"))}</span><input type="date" data-bind="jet.date" value="${q.date}" min="${TODAY}"></label>
       <div class="field"><span>${esc(t("passengers"))}</span>
-        <details class="drop" data-keep="jpax" ${M.ui.jpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
+        <details class="drop" data-keep="jpax" ${M.ui.jpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
           <div class="droppanel steps">${stepper("jet.pax", q.pax, 1, 14, t("passengers"), t("jet_max"))}</div></details></div>
-      <button type="button" class="cta sgo" data-act="jgo">${esc(t("jet_calc"))}</button>
+      <button type="button" class="cta sgo" data-act="jgo"><span>${esc(t("jet_calc"))}</span><span class="cta-ic">${IC.jet}</span></button>
     </div>
-    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b>${fmt(e.low)} – ${fmt(e.high)}</b></span>` : ""}</p>
+    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b><span ${countAttr("jf-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr("jf-hi", e.high)}>${fmt(e.high)}</span></b></span>` : ""}</p>
     <div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.jgo(); }
@@ -1906,11 +2410,11 @@ MODULES.heli = {
         `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>
       <label class="field"><span>${esc(t("date"))}</span><input type="date" data-bind="heli.date" value="${q.date}" min="${TODAY}"></label>
       <div class="field"><span>${esc(t("passengers"))}</span>
-        <details class="drop" data-keep="hlpax" ${M.ui.hlpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
+        <details class="drop" data-keep="hlpax" ${M.ui.hlpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
           <div class="droppanel steps">${stepper("heli.pax", q.pax, 1, 18, t("passengers"), t("heli_max"))}</div></details></div>
-      <button type="button" class="cta sgo" data-act="hlgo">${esc(t("heli_calc"))}</button>
+      <button type="button" class="cta sgo" data-act="hlgo"><span>${esc(t("heli_calc"))}</span><span class="cta-ic">${IC.heli}</span></button>
     </div>
-    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b>${fmt(e.low)} – ${fmt(e.high)}</b></span>` : ""}</p>
+    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b><span ${countAttr("hf-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr("hf-hi", e.high)}>${fmt(e.high)}</span></b></span>` : ""}</p>
     <div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.hlgo(); }
@@ -1965,7 +2469,7 @@ function charterPage(kind){
         <div class="err" id="cherr" hidden></div></div>
     </div>
     <aside class="card sticky stack"><span class="lbl">${esc(t("estimate"))}</span>
-      ${e ? `<div class="est"><span class="est-range">${fmt(e.low)} – ${fmt(e.high)}</span>
+      ${e ? `<div class="est"><span class="est-range"><span ${countAttr(kind + "-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr(kind + "-hi", e.high)}>${fmt(e.high)}</span></span>
           <div class="rows">
             <div><span class="k">${esc(t("route"))}</span><span class="v">${isJet ? `${q.from} → ${q.to}` : esc(heliName(q.to))}</span></div>
             ${e.km ? `<div><span class="k">${esc(t("distance"))}</span><span class="v mono">${grp(e.km)} ${esc(t("km"))}</span></div>` : ""}
@@ -2031,10 +2535,10 @@ const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? k;
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
 
-function checkLines(lines, total){
+function checkLines(lines, total, countKey){
   return `<div class="rows">${lines.map(([l, a]) => `<div><span class="k">${esc(l)}</span><span class="v mono ${a && a.usd < 0 ? "neg" : ""}">${
       a == null ? esc(t("included")) : a.usd < 0 ? "−" + fmt({ usd:-a.usd, uzs:-a.uzs }) : fmt(a)}</span></div>`).join("")}
-    <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v">${fmt(total)}</span></div></div>`;
+    <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v" ${countKey ? countAttr(countKey, total) : ""}>${fmt(total)}</span></div></div>`;
 }
 
 /* ---------------------------------------------------------------- оформление */
@@ -2070,7 +2574,7 @@ PAGES.checkout = {
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-    else if (c.pstate === "changed") check = `<div class="changed"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
+    else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
         <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(c.total)}</span></div>
           <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(c.pending.total)}</span></div></div>
         <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
@@ -2089,7 +2593,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(lines, total)}${check}
+        ${checkLines(lines, total, "checkout")}${check}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" ? "" : "disabled"}>${esc(t("pay_now"))} · ${fmt(total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></aside></div></div>`;
   },
@@ -2240,7 +2744,7 @@ function destPrices(c){
 }
 function destCard(c, i){
   const p = destPrices(c);
-  return `<article class="dest rise" style="--i:${i}">${postcard(c, countryName(c))}
+  return `<article class="dest lift">${postcard(c, countryName(c))}
     <div class="dest-b">
       <button type="button" class="dest-row" data-act="dflights" data-v="${c}"><span>${IC.flights}${esc(t("mod_flights"))}</span><b>${priceFrom(fmt(p.flight))}</b></button>
       <button type="button" class="dest-row" data-act="tgo" data-v="${c}"><span>${IC.tours}${esc(t("mod_tours"))} · ${esc(pl(7, "night"))}</span><b>${priceFrom(fmt(p.tour))}</b></button>
@@ -2248,28 +2752,34 @@ function destCard(c, i){
 }
 PAGES[""] = {
   render(){
-    const mod = MODULES[M.module];
+    const mod = MODULES[M.module], swapped = M.ui.lastModule && M.ui.lastModule !== M.module;
+    M.ui.lastModule = M.module;
     return `<section class="hero"><div class="hero-deco"></div><div class="container">
-        <p class="eyebrow">${esc(t("hero_eyebrow"))}</p>
-        <h1 class="hero-h">${esc(t("hero_" + M.module))}</h1>
-        <p class="hero-sub">${esc(t("hero_" + M.module + "_sub"))}</p>
-        <div class="searchbox">
-          <div class="modtabs" role="tablist">${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
-          ${mod.form()}
-        </div></div></section>
+        <div class="hero-grid">
+          <div class="hero-copy ${swapped && !REDUCED ? "swap-in" : ""}">
+            <h1 class="hero-h">${esc(t("hero_" + M.module))}</h1>
+            <p class="hero-sub">${esc(t("hero_" + M.module + "_sub"))}</p></div>
+          <div class="hero-map">${routeMap()}</div>
+        </div>
+        <div class="searchbox"><div class="searchbox-core">
+          <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
+          <div class="${swapped && !REDUCED ? "swap-in" : ""}">${mod.form()}</div>
+        </div></div></div></section>
+      ${departureBoard()}
       <section class="container section">
         <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
         <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>
       <section class="band"><div class="container section">
         <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
-        <div class="svcgrid">${MODULE_ORDER.map((k, i) => `<button type="button" class="svc rise" style="--i:${i}" data-act="mod" data-v="${k}">
+        <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
           <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(t("svc_" + k))}</span></button>`).join("")}</div></div></section>
       <section class="container section">
         <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
         <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(t("how_" + i + "_d"))}</p></li>`).join("")}</ol></section>
       <section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
         `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(t(k + "_d"))}</p></div></div>`).join("")}</div></section>`;
-  }
+  },
+  after(){ armBoard(); }
 };
 Object.assign(ACT, {
   mod: el => {
@@ -2282,10 +2792,10 @@ Object.assign(ACT, {
 /* ------------------------------------------------------------------- заказы */
 const ORDER_TYPES = ["ALL","FLIGHT","TOUR","HOTEL","JET","HELI"];
 const TYPE_ICON = { FLIGHT:IC.flights, TOUR:IC.tours, HOTEL:IC.hotels, JET:IC.jet, HELI:IC.heli };
-function orderCard(o, i){
+function orderCard(o, i, rc = ""){
   const st = effStatus(o);
   const price = o.total ? fmt(o.total) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`;
-  return `<a class="ocard rise ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}">
+  return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}" data-flip="${o.id}">
     <span class="oc-ic">${TYPE_ICON[o.type]}</span>
     <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${o.no}</span></span>
     <span class="oc-side">${pill(st)}<b class="mono">${price}</b></span></a>`;
@@ -2296,12 +2806,12 @@ PAGES.orders = {
     const list = S.orders.filter(o => f === "ALL" || o.type === f);
     const live = o => o.start >= TODAY && !["CANCELLED","REFUNDED"].includes(o.status);
     const up = list.filter(live).sort((a, b) => a.start.localeCompare(b.start));
-    const past = list.filter(o => !live(o)).sort((a, b) => b.start.localeCompare(a.start));
+    const past = list.filter(o => !live(o)).sort((a, b) => b.start.localeCompare(a.start)), rc = listEnter("orders");
     const chips = `<div class="chipbar">${ORDER_TYPES.map(k => `<button type="button" class="chip" data-act="ofilter" data-v="${k}" aria-pressed="${f === k}">${esc(t(k === "ALL" ? "all" : "type_" + k))}</button>`).join("")}</div>`;
     return `<div class="container section">${pageHead(t("my_orders"), t("orders_sub"))}${chips}
-      ${!list.length ? `<div class="card empty"><h3>${esc(t("orders_empty"))}</h3><p class="muted">${esc(t("orders_empty_d"))}</p><a class="solid" href="#/">${esc(t("trips_start"))}</a></div>` : ""}
-      ${up.length ? `<h2 class="subh">${esc(t("upcoming"))}</h2><div class="stack">${up.map(orderCard).join("")}</div>` : ""}
-      ${past.length ? `<h2 class="subh">${esc(t("past_trips"))}</h2><div class="stack">${past.map((o, i) => orderCard(o, i + up.length)).join("")}</div>` : ""}</div>`;
+      ${!list.length ? `<div class="card empty"><svg class="empty-art" viewBox="0 0 170 100" aria-hidden="true"><path d="M10 88 Q85 -8 160 88" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2" stroke-dasharray="5 6"/><g class="empty-plane" transform="translate(73 12)"><g transform="rotate(45 12 12)"><path d="${PLANE_PATH}" fill="var(--blue)"/></g></g></svg><h3>${esc(t("orders_empty"))}</h3><p class="muted">${esc(t("orders_empty_d"))}</p><a class="solid" href="#/">${esc(t("trips_start"))}</a></div>` : ""}
+      ${up.length ? `<h2 class="subh">${esc(t("upcoming"))}</h2><div class="stack">${up.map((o, i) => orderCard(o, i, rc)).join("")}</div>` : ""}
+      ${past.length ? `<h2 class="subh">${esc(t("past_trips"))}</h2><div class="stack">${past.map((o, i) => orderCard(o, i + up.length, rc)).join("")}</div>` : ""}</div>`;
   }
 };
 const REQ_KINDS = ["change_date","change_passenger","cancel","other"];
@@ -2311,13 +2821,13 @@ PAGES["orders/:id"] = {
     if (!o) return `<div class="container section">${backLink("orders", t("my_orders"))}<div class="card empty"><h3>${esc(t("order_missing"))}</h3></div></div>`;
     const st = effStatus(o), charter = o.type === "JET" || o.type === "HELI";
     let main;
-    if (charter && st === "NEW") main = `<div class="card stack waitcard"><span class="spin"></span><h3>${esc(t("mgr_title"))}</h3>
+    if (charter && st === "NEW") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${TYPE_ICON[o.type]}</span><h3>${esc(t("mgr_title"))}</h3>
         <p class="muted">${esc(t("mgr_body"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
     else if (charter && st === "PENDING") main = `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(t("price_ready_d"))}</p>
         ${checkLines(orderLines(o), o.total)}<h3 style="margin-top:6px">${esc(t("pay_method"))}</h3>${payMethods("opm", M.ui.opm || "payme")}
         <button type="button" class="cta" data-act="opay" data-v="${o.id}">${esc(t("pay_now"))} · ${fmt(o.total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></div>`;
-    else if (charter && st === "PAID") main = `<div class="card stack waitcard"><span class="spin"></span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body"))}</p></div>`;
+    else if (charter && st === "PAID") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${IC.shield}</span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body"))}</p></div>`;
     else main = orderDocument(o);
 
     let req = "";
@@ -2347,7 +2857,7 @@ PAGES["orders/:id"] = {
   after(){ renderQRs(); }
 };
 Object.assign(ACT, {
-  ofilter:  el => { M.ui.ofilter = el.dataset.v; rerender(); },
+  ofilter:  el => { M.ui.ofilter = el.dataset.v; flip(rerender); },
   opm:      el => { M.ui.opm = el.dataset.v; rerender(); },
   opay:     el => {
     const o = S.orders.find(x => x.id === el.dataset.v); if (!o || o.status !== "PENDING") return;
@@ -2371,10 +2881,15 @@ PAGES["done/:id"] = {
     return `<div class="container section"><div class="card success">
       <svg class="checkmark" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="45"/><path d="M30 52l13 13 27-29"/></svg>
       <h1>${esc(t("booking_confirmed"))}</h1><p class="muted">${esc(tf("doc_sent", { to }))}</p>
-      <div class="refbox"><span class="lbl">${esc(t("booking_ref"))}</span><b>${o.no}</b></div>
+      <div class="slot" aria-hidden="true"></div>
+      <div class="stub print">
+        <div class="stub-l"><span class="lbl">${esc(t("doc_" + o.type))}</span><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span>
+          <span class="lbl" style="margin-top:8px">${esc(t("booking_ref"))}</span><span class="ref">${o.no}</span></div>
+        <div class="qr" data-qr="https://charteri.uz/v/${o.no}"></div></div>
       <div class="row center"><a class="cta" style="max-width:280px" href="#/orders/${o.id}">${esc(t(o.type === "FLIGHT" ? "view_ticket" : "view_voucher"))}</a>
         <a class="ghost" style="max-width:220px" href="#/">${esc(t("home"))}</a></div></div></div>`;
-  }
+  },
+  after(){ renderQRs(); }
 };
 
 /* ----------------------------------------------------------------- вход */
@@ -2434,7 +2949,7 @@ PAGES.account = {
 Object.assign(ACT, {
   setlang:  el => { S.lang = el.dataset.v; save(); rerender(); },
   setcur:   el => { S.cur = el.dataset.v; save(); rerender(); },
-  settheme: el => { S.theme = el.dataset.v; save(); rerender(); },
+  settheme: el => { S.theme = el.dataset.v; save(); withTransition(rerender, "theme"); },
   signout:  () => { S.user = null; save(); toast(t("signed_out")); go(""); },
   deltr:    el => { if (!confirm(t("delete_traveller_title"))) return; S.travellers = S.travellers.filter(x => x.id !== el.dataset.v); save(); rerender(); },
   reset:    () => { if (!confirm(t("reset_confirm"))) return; S = freshState(); save(); go(""); }

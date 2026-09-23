@@ -92,14 +92,14 @@ MODULES.flights = {
         <label class="field ${f.type === "oneway" ? "is-off" : ""}"><span>${esc(t("return_"))}</span>
           <input type="date" data-bind="flights.ret" value="${f.ret}" min="${f.depart}" ${f.type === "oneway" ? "disabled" : ""}></label>
         <div class="field"><span>${esc(t("passengers"))}</span>
-          <details class="drop" data-keep="fpax" ${M.ui.fpax ? "open" : ""}><summary class="dropsum">${esc(this.paxSummary())}</summary>
+          <details class="drop" data-keep="fpax" ${M.ui.fpax ? "open data-restored" : ""}><summary class="dropsum">${esc(this.paxSummary())}</summary>
             <div class="droppanel steps">
               ${stepper("flights.adults", f.adults, 1, 9 - f.children - f.infants, t("adults"), t("age_adult"))}
               ${stepper("flights.children", f.children, 0, 9 - f.adults - f.infants, t("children"), t("age_child"))}
               ${stepper("flights.infants", f.infants, 0, Math.min(f.adults, 9 - f.adults - f.children), t("infants"), t("age_infant"))}
               <div class="steprow"><b>${esc(t("cabin_class"))}</b>${seg("fcabin", [["economy", t("economy")], ["business", t("business")]], f.cabin)}</div>
             </div></details></div>
-        <button type="button" class="cta sgo" data-act="fsearch">${esc(t("search_cta"))}</button>
+        <button type="button" class="cta sgo" data-act="fsearch"><span>${esc(t("search_cta"))}</span><span class="cta-ic">${IC.flights}</span></button>
       </div>
       <div class="err" id="serr" hidden></div></div>`;
   },
@@ -109,7 +109,10 @@ MODULES.flights = {
 Object.assign(ACT, {
   ftype:   el => { M.flights.type = el.dataset.v; rerender(); },
   fcabin:  el => { M.flights.cabin = el.dataset.v; rerender(); },
-  fswap:   () => { const f = M.flights; [f.from, f.to] = [f.to, f.from]; rerender(); },
+  fswap:   () => {
+    const f = M.flights; [f.from, f.to] = [f.to, f.from]; rerender();
+    if (!REDUCED) $(".swapbtn svg")?.animate([{ transform:"rotate(-180deg)" }, { transform:"none" }], { duration:320, easing:EASE_OUT });
+  },
   fsearch: () => {
     const f = M.flights; hideErr("#serr");
     if (f.from === f.to) return showErr("#serr", t("err_same_city"));
@@ -118,11 +121,11 @@ Object.assign(ACT, {
     Object.assign(f, { searched:true, leg:"out", sel:{ out:null, back:null }, sort:"cheapest", direct:false, carriers:[], times:[] });
     M.ui.fpax = false; go("flights/results");
   },
-  fsort:   el => { M.flights.sort = el.dataset.v; rerender(); },
-  fdirect: () => { M.flights.direct = !M.flights.direct; rerender(); },
-  fcarrier: el => { const a = M.flights.carriers, c = el.dataset.v; M.flights.carriers = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; rerender(); },
-  ftime:   el => { const a = M.flights.times, c = el.dataset.v; M.flights.times = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; rerender(); },
-  fclear:  () => Object.assign(M.flights, { direct:false, carriers:[], times:[] }) && rerender(),
+  fsort:   el => { M.flights.sort = el.dataset.v; flip(rerender); },
+  fdirect: () => { M.flights.direct = !M.flights.direct; flip(rerender); },
+  fcarrier: el => { const a = M.flights.carriers, c = el.dataset.v; M.flights.carriers = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; flip(rerender); },
+  ftime:   el => { const a = M.flights.times, c = el.dataset.v; M.flights.times = a.includes(c) ? a.filter(x => x !== c) : [...a, c]; flip(rerender); },
+  fclear:  () => flip(() => { Object.assign(M.flights, { direct:false, carriers:[], times:[] }); rerender(); }),
   fday:    el => {
     const f = M.flights, d = el.dataset.v;
     if (f.leg === "back") f.ret = d;
@@ -155,8 +158,8 @@ function priceCalendar(){
       <span class="cd">${esc(fdate(d, { weekday:"short", day:"numeric", month:"short" }))}</span>
       <span class="cp">${fmt({ usd:p.priceUSD, uzs:p.priceUZS })}</span></button>`; }).join("")}</div>`;
 }
-function offerRow(o, i, bestId){
-  return `<article class="offer rise" style="--i:${i}">
+function offerRow(o, i, bestId, rc){
+  return `<article class="offer lift ${rc}" style="--i:${i}" data-flip="${o.id}">
     <div class="of-car">${carrierBadge(o.carrierCode)}<span><b>${esc(o.carrier)}</b><small class="mono">${o.flightNo} · ${esc(o.aircraft)}</small></span>
       ${o.id === bestId ? `<span class="tag-best">${esc(t("best"))}</span>` : ""}</div>
     <div class="of-route">${routeBlock(o)}</div>
@@ -183,7 +186,7 @@ PAGES["flights/results"] = {
         <div class="searching"><span class="spin"></span>${esc(t("searching_providers"))}</div>
         <div class="stack">${[0,1,2].map(() => `<div class="skel"></div>`).join("")}</div></div>`;
 
-    const all = generateOffers({ ...q, cabin:f.cabin }), bestId = all[0]?.id;
+    const all = generateOffers({ ...q, cabin:f.cabin }), bestId = all[0]?.id, rc = listEnter("fl:" + key);
     const bucket = o => TIME_BUCKETS.find(([, a, b]) => { const h = Number(o.depTime.slice(0,2)); return h >= a && h < b; })[0];
     let list = all.filter(o => (!f.direct || !o.stops) && (!f.carriers.length || f.carriers.includes(o.carrierCode)) && (!f.times.length || f.times.includes(bucket(o))));
     if (f.sort === "fastest") list = [...list].sort((a, b) => a.durationMin - b.durationMin);
@@ -206,7 +209,7 @@ PAGES["flights/results"] = {
         </aside>
         <section class="stack">
           <p class="muted small">${esc(tf("found_n", { n:list.length }))}</p>
-          ${list.length ? list.map((o, i) => offerRow(o, i, bestId)).join("")
+          ${list.length ? list.map((o, i) => offerRow(o, i, bestId, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><p class="muted">${esc(t("no_results_body"))}</p>
                <button type="button" class="ghost" data-act="fclear">${esc(t("clear_filters"))}</button></div>`}
         </section>
@@ -219,10 +222,22 @@ PAGES["flights/results"] = {
 };
 
 /* --------------------------------------------------------- детали и цена */
-function legCard(o, label){
+/* Маршрут с дугой: в деталях рейса самолёт летит к вершине (брендбук). */
+function routeArc(o, animate, delay){
+  const nd = nextDay(o);
+  return `<div class="route">
+    <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+    <div class="track">${arcTrack(animate, delay)}<span class="d">${dur(o.durationMin)}</span>
+      <span class="s ${o.stops ? "s-stop" : "s-direct"}">${o.stops ? esc(tf("via", { c: o.stopCity })) : esc(t("direct"))}</span></div>
+    <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
+  </div>`;
+}
+/* Дуга анимируется один раз за посещение страницы, не при каждой перерисовке. */
+function arcOnce(){ const a = !REDUCED && !M.ui.arcSeen; M.ui.arcSeen = true; return a; }
+function legCard(o, label, animate = false, delay = 0){
   return `<div class="card leg">
     <div class="leg-h"><span class="lbl">${esc(label)} · ${esc(fdateLong(o.date))}</span>${carrierBadge(o.carrierCode)}</div>
-    ${routeBlock(o)}
+    ${routeArc(o, animate, delay)}
     <div class="rows">
       <div><span class="k">${esc(o.carrier)}</span><span class="v mono">${o.flightNo}</span></div>
       <div><span class="k">${esc(t("aircraft"))}</span><span class="v">${esc(o.aircraft)}</span></div>
@@ -240,14 +255,14 @@ function flightLines(out, back, q){
 PAGES["flights/offer"] = {
   render(){
     const f = M.flights; if (!f.sel.out) { go(""); return null; }
-    const { lines, total } = flightLines(f.sel.out, f.sel.back, f);
+    const { lines, total } = flightLines(f.sel.out, f.sel.back, f), an = arcOnce();
     return `<div class="container section">${backLink("flights/results", t("back_results"))}
       ${pageHead(t("flight_details"))}
-      <div class="twocol"><div class="stack">${legCard(f.sel.out, t("leg_out"))}${f.sel.back ? legCard(f.sel.back, t("leg_back")) : ""}</div>
+      <div class="twocol"><div class="stack">${legCard(f.sel.out, t("leg_out"), an)}${f.sel.back ? legCard(f.sel.back, t("leg_back"), an, 180) : ""}</div>
         <aside class="card sticky stack">
           <span class="lbl">${esc(t("your_fare"))}</span>
           <div class="rows">${lines.map(([l, a]) => `<div><span class="k">${esc(l)}</span><span class="v mono">${fmt(a)}</span></div>`).join("")}
-            <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v">${fmt(total)}</span></div></div>
+            <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v" ${countAttr("fare", total)}>${fmt(total)}</span></div></div>
           <button type="button" class="cta" data-act="fbook">${esc(t("to_checkout"))}</button>
           <p class="small muted">${esc(t("fare_note"))}</p>
         </aside></div></div>`;

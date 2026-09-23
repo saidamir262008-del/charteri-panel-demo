@@ -263,7 +263,14 @@ const STR = {
   where_to:["Куда","Qayerga","Destination"],
   wishes:["Пожелания","Istaklar","Special requests"],
   your_fare:["Ваш тариф","Sizning tarifingiz","Your fare"],
-  your_name:["Ваше имя","Ismingiz","Your name"]
+  your_name:["Ваше имя","Ismingiz","Your name"],
+  board_title:["Вылеты из Ташкента завтра","Ertaga Toshkentdan parvozlar","Tomorrow’s departures from Tashkent"],
+  board_sub:["Нажмите на рейс, чтобы найти билеты","Chipta topish uchun reysni bosing","Tap a flight to find tickets"],
+  board_time:["Время","Vaqt","Time"],
+  board_flight:["Рейс","Reys","Flight"],
+  board_to:["Направление","Yo‘nalish","Destination"],
+  board_price:["Цена","Narx","Fare"],
+  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */

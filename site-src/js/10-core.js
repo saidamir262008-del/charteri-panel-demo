@@ -123,10 +123,18 @@ function render(scrollTop = true){
   // Новая страница открывается сверху сразу: плавная прокрутка html{scroll-behavior}
   // иначе протащила бы её через всю высоту предыдущей.
   if (scrollTop) window.scrollTo({ top: 0, behavior: "instant" });
+  slideIndicators(); countUps(); rollStepper(); launchFlights();
   page.after?.(params);
 }
 const rerender = () => render(false);
-window.addEventListener("hashchange", () => render(true));
+/* Переход на другую страницу: каскад и табло снова разрешены, смена — через
+   View Transitions. Перерисовка той же страницы (фильтр, степпер) — без них. */
+window.addEventListener("hashchange", () => {
+  M.ui.listKey = null; M.ui.boardDone = false; M.ui.arcSeen = false;
+  withTransition(() => render(true));
+});
+window.addEventListener("resize", () => slideIndicators(false));
+document.fonts?.ready.then(() => slideIndicators(false));
 
 function applyTheme(){
   const r = document.documentElement;
@@ -137,10 +145,11 @@ function applyTheme(){
 /* ---- уведомления и оверлей ---- */
 function toast(msg){
   const h = $("#toast"); h.innerHTML = `<div class="toast" role="status">${esc(msg)}</div>`;
-  clearTimeout(toast.t); toast.t = setTimeout(() => h.innerHTML = "", 2800);
+  clearTimeout(toast.t); clearTimeout(toast.u);
+  toast.t = setTimeout(() => { h.firstChild?.classList.add("out"); toast.u = setTimeout(() => h.innerHTML = "", 180); }, 2800);
 }
 function overlay(msg){ $("#overlay").innerHTML = msg ? `<div class="overlay"><div class="box"><span class="spin"></span>${esc(msg)}</div></div>` : ""; }
-function showErr(sel, msg){ const e = $(sel); if (!e) return; e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); }
+function showErr(sel, msg){ const e = $(sel); if (!e) return; e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); shake(e); }
 function hideErr(sel){ const e = $(sel); if (e) { e.hidden = true; e.textContent = ""; } }
 
 /* ---- привязка полей к состоянию: data-bind="flights.from" ---- */
@@ -170,7 +179,10 @@ document.addEventListener("click", e => {
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
    выпадающие панели оставались открытыми после перерисовки. */
-document.addEventListener("toggle", e => { const d = e.target; if (d.dataset?.keep) M.ui[d.dataset.keep] = d.open; }, true);
+document.addEventListener("toggle", e => {
+  const d = e.target; if (d.dataset?.keep) M.ui[d.dataset.keep] = d.open;
+  if (d.open && d.querySelector?.("[data-ind]")) slideIndicators(false);
+}, true);
 document.addEventListener("keydown", e => {
   if (e.key === "Escape") $$("details[open].drop").forEach(d => { d.open = false; if (d.dataset.keep) M.ui[d.dataset.keep] = false; });
 });
@@ -216,12 +228,14 @@ function stepper(bind, val, min, max, label, sub){
 }
 ACT.step = el => {
   const path = el.dataset.bind, ks = path.split("."), obj = ks.slice(0,-1).reduce((o,k) => o[k], M), k = ks.at(-1);
+  const before = obj[k];
   obj[k] = clamp(obj[k] + Number(el.dataset.d), Number(el.dataset.min), Number(el.dataset.max));
+  if (obj[k] !== before) M.ui.stepAnim = { bind:path, d:Number(el.dataset.d) };
   MODULES[ks[0]]?.normalize?.();
   rerender();
 };
 function seg(act, options, value, extra = ""){
-  return `<div class="seg" role="group">${options.map(([v, l]) =>
+  return `<div class="seg" role="group" data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
@@ -256,7 +270,7 @@ function postcard(city, sub = "", big = true){
 function hotelArt(h){
   const [a, b] = PALETTE[h.city];
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart" style="--pa:${a};--pb:${b}"><span class="hart-m">${esc(initials)}</span><span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}"><span class="hart-m">${esc(initials)}</span><span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
 }
 const fboxOpen = () => (M.ui.filters ?? !window.matchMedia("(max-width: 900px)").matches) ? "open" : "";
 const pageHead = (title, sub = "") => `<div class="pagehead"><h1>${esc(title)}</h1>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}</div>`;

@@ -11,10 +11,10 @@ const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? k;
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
 
-function checkLines(lines, total){
+function checkLines(lines, total, countKey){
   return `<div class="rows">${lines.map(([l, a]) => `<div><span class="k">${esc(l)}</span><span class="v mono ${a && a.usd < 0 ? "neg" : ""}">${
       a == null ? esc(t("included")) : a.usd < 0 ? "−" + fmt({ usd:-a.usd, uzs:-a.uzs }) : fmt(a)}</span></div>`).join("")}
-    <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v">${fmt(total)}</span></div></div>`;
+    <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v" ${countKey ? countAttr(countKey, total) : ""}>${fmt(total)}</span></div></div>`;
 }
 
 /* ---------------------------------------------------------------- оформление */
@@ -50,7 +50,7 @@ PAGES.checkout = {
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-    else if (c.pstate === "changed") check = `<div class="changed"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
+    else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
         <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(c.total)}</span></div>
           <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(c.pending.total)}</span></div></div>
         <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
@@ -69,7 +69,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(lines, total)}${check}
+        ${checkLines(lines, total, "checkout")}${check}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" ? "" : "disabled"}>${esc(t("pay_now"))} · ${fmt(total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></aside></div></div>`;
   },

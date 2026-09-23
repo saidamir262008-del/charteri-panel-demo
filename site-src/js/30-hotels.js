@@ -31,13 +31,13 @@ MODULES.hotels = {
       <label class="field"><span>${esc(t("checkin"))}</span><input type="date" data-bind="hotels.checkin" data-rr value="${q.checkin}" min="${TODAY}"></label>
       <label class="field"><span>${esc(t("checkout"))}${n > 0 ? ` · ${esc(pl(n, "night"))}` : ""}</span><input type="date" data-bind="hotels.checkout" data-rr value="${q.checkout}" min="${addDays(q.checkin,1)}"></label>
       <div class="field"><span>${esc(t("guests"))}</span>
-        <details class="drop" data-keep="hpax" ${M.ui.hpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.adults + q.children, "guest"))}, ${esc(pl(q.rooms, "room"))}</summary>
+        <details class="drop" data-keep="hpax" ${M.ui.hpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.adults + q.children, "guest"))}, ${esc(pl(q.rooms, "room"))}</summary>
           <div class="droppanel steps">
             ${stepper("hotels.adults", q.adults, 1, 12, t("adults"), t("age_adult"))}
             ${stepper("hotels.children", q.children, 0, 8, t("children"), t("children_free"))}
             ${stepper("hotels.rooms", q.rooms, 1, Math.min(4, q.adults), t("rooms"), "")}
           </div></details></div>
-      <button type="button" class="cta sgo" data-act="hsearch">${esc(t("find_hotels"))}</button>
+      <button type="button" class="cta sgo" data-act="hsearch"><span>${esc(t("find_hotels"))}</span><span class="cta-ic">${IC.hotels}</span></button>
     </div><div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.hsearch(); }
@@ -53,14 +53,14 @@ Object.assign(ACT, {
     Object.assign(q, { searched:true, stars:[], boards:[], maxNight:0, sort:"price" });
     M.ui.hpax = false; go("hotels/results");
   },
-  hstar:  el => { const v = Number(el.dataset.v), a = M.hotels.stars; M.hotels.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  hboard: el => { const v = el.dataset.v, a = M.hotels.boards; M.hotels.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; rerender(); },
-  hsort:  el => { M.hotels.sort = el.dataset.v; rerender(); },
-  hclear: () => { Object.assign(M.hotels, { stars:[], boards:[], maxNight:0 }); rerender(); },
+  hstar:  el => { const v = Number(el.dataset.v), a = M.hotels.stars; M.hotels.stars = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  hboard: el => { const v = el.dataset.v, a = M.hotels.boards; M.hotels.boards = a.includes(v) ? a.filter(x => x !== v) : [...a, v]; flip(rerender); },
+  hsort:  el => { M.hotels.sort = el.dataset.v; flip(rerender); },
+  hclear: () => flip(() => { Object.assign(M.hotels, { stars:[], boards:[], maxNight:0 }); rerender(); }),
   hbook:  el => startHotelCheckout(el.dataset.h, el.dataset.r)
 });
 /* Ползунок цены меняет состояние на лету, а перерисовывает по отпусканию. */
-document.addEventListener("change", e => { if (e.target.id === "hmax") { M.hotels.maxNight = Number(e.target.value); rerender(); } });
+document.addEventListener("change", e => { if (e.target.id === "hmax") { M.hotels.maxNight = Number(e.target.value); flip(rerender); } });
 document.addEventListener("input",  e => { if (e.target.id === "hmax") { const o = $("#hmaxv"); if (o) o.textContent = maxLabel(Number(e.target.value)); } });
 const maxLabel = v => v ? `≤ ${fmt(amt(v))}` : t("any_price");
 
@@ -74,7 +74,7 @@ function hotelResults(q){
 PAGES["hotels/results"] = {
   render(){
     const q = M.hotels; if (!q.searched) { go(""); return null; }
-    const n = nightsOf(q), all = hotelResults(q);
+    const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
@@ -94,15 +94,15 @@ PAGES["hotels/results"] = {
           <button type="button" class="link" data-act="hclear">${esc(t("clear_filters"))}</button>
         </div></details></aside>
         <section class="stack"><p class="muted small">${esc(tf("found_hotels", { n:list.length }))}</p>
-          ${list.length ? list.map((x, i) => hotelRow(x, i, n)).join("")
+          ${list.length ? list.map((x, i) => hotelRow(x, i, n, rc)).join("")
             : `<div class="card empty"><h3>${esc(t("no_results"))}</h3><button type="button" class="ghost" data-act="hclear">${esc(t("clear_filters"))}</button></div>`}
         </section></div></div>`;
   }
 };
 function amenityChips(h){ return `<div class="chips-row">${h.am.map(a => `<span class="chip-s">${esc(t("am_" + a))}</span>`).join("")}</div>`; }
-function hotelRow(x, i, n){
+function hotelRow(x, i, n, rc){
   const h = x.h;
-  return `<article class="hotel rise" style="--i:${i}">${hotelArt(h)}
+  return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(h.area)} · ${esc(cityName(h.city))} · ${esc(beachText(h))}</span>

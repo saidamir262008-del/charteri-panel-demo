@@ -41,11 +41,11 @@ MODULES.jet = {
       <label class="field"><span>${esc(t("to"))}</span>${airportSelect("jet.to", q.to, q.from)}</label>
       <label class="field"><span>${esc(t("depart"))}</span><input type="date" data-bind="jet.date" value="${q.date}" min="${TODAY}"></label>
       <div class="field"><span>${esc(t("passengers"))}</span>
-        <details class="drop" data-keep="jpax" ${M.ui.jpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
+        <details class="drop" data-keep="jpax" ${M.ui.jpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
           <div class="droppanel steps">${stepper("jet.pax", q.pax, 1, 14, t("passengers"), t("jet_max"))}</div></details></div>
-      <button type="button" class="cta sgo" data-act="jgo">${esc(t("jet_calc"))}</button>
+      <button type="button" class="cta sgo" data-act="jgo"><span>${esc(t("jet_calc"))}</span><span class="cta-ic">${IC.jet}</span></button>
     </div>
-    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b>${fmt(e.low)} – ${fmt(e.high)}</b></span>` : ""}</p>
+    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b><span ${countAttr("jf-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr("jf-hi", e.high)}>${fmt(e.high)}</span></b></span>` : ""}</p>
     <div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.jgo(); }
@@ -60,11 +60,11 @@ MODULES.heli = {
         `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>
       <label class="field"><span>${esc(t("date"))}</span><input type="date" data-bind="heli.date" value="${q.date}" min="${TODAY}"></label>
       <div class="field"><span>${esc(t("passengers"))}</span>
-        <details class="drop" data-keep="hlpax" ${M.ui.hlpax ? "open" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
+        <details class="drop" data-keep="hlpax" ${M.ui.hlpax ? "open data-restored" : ""}><summary class="dropsum">${esc(pl(q.pax, "pax"))}</summary>
           <div class="droppanel steps">${stepper("heli.pax", q.pax, 1, 18, t("passengers"), t("heli_max"))}</div></details></div>
-      <button type="button" class="cta sgo" data-act="hlgo">${esc(t("heli_calc"))}</button>
+      <button type="button" class="cta sgo" data-act="hlgo"><span>${esc(t("heli_calc"))}</span><span class="cta-ic">${IC.heli}</span></button>
     </div>
-    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b>${fmt(e.low)} – ${fmt(e.high)}</b></span>` : ""}</p>
+    <p class="sform-note">${e ? `${IC.clock}<span>${esc(tf("est_line", { h: hoursText(e.hours), m: e.cls.model }))} · <b><span ${countAttr("hf-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr("hf-hi", e.high)}>${fmt(e.high)}</span></b></span>` : ""}</p>
     <div class="err" id="serr" hidden></div></div>`;
   },
   search(){ ACT.hlgo(); }
@@ -119,7 +119,7 @@ function charterPage(kind){
         <div class="err" id="cherr" hidden></div></div>
     </div>
     <aside class="card sticky stack"><span class="lbl">${esc(t("estimate"))}</span>
-      ${e ? `<div class="est"><span class="est-range">${fmt(e.low)} – ${fmt(e.high)}</span>
+      ${e ? `<div class="est"><span class="est-range"><span ${countAttr(kind + "-lo", e.low)}>${fmt(e.low)}</span> – <span ${countAttr(kind + "-hi", e.high)}>${fmt(e.high)}</span></span>
           <div class="rows">
             <div><span class="k">${esc(t("route"))}</span><span class="v">${isJet ? `${q.from} → ${q.to}` : esc(heliName(q.to))}</span></div>
             ${e.km ? `<div><span class="k">${esc(t("distance"))}</span><span class="v mono">${grp(e.km)} ${esc(t("km"))}</span></div>` : ""}
