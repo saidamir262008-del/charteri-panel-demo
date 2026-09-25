@@ -229,6 +229,48 @@ a.arow:hover + .arow{box-shadow:none}
 .crm-task.done .chk span{text-decoration:line-through;color:var(--faint)}
 .task-form{border-top:1px dashed var(--line);padding-top:12px}
 
+/* ---- услуги и цены ---- */
+.pct-in.sm{display:inline-block;align-self:flex-start}
+.pct-in.sm input{width:92px;font-size:15px;padding-right:28px;min-height:40px}
+.pct-in.sm i{right:10px}
+.pr-table .arow{align-items:center}
+.pr-table .chk{align-items:flex-start;flex-direction:row;min-width:0}
+.pr-table .chk input{margin-top:3px}
+.pr-lbl{display:none}
+.pr-ex{line-height:1.45}
+.pr-extra{border-top:1px solid var(--line);padding-top:14px;align-items:start}
+.pr-extra .usd-in input{width:110px}
+.adj-rows{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.adj-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.adj-row .minisel{min-width:220px;min-height:40px}
+.savebar{position:sticky;bottom:12px;z-index:5;display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-top:18px;padding:12px 16px;border-radius:16px;
+  background:var(--navy);color:#fff;box-shadow:0 18px 40px -18px rgba(10,20,60,.55)}
+.savebar .muted{color:#C9D6F5}
+.savebar .row{margin-left:auto;gap:12px}
+.savebar .link{color:#fff}
+.savebar .err{flex-basis:100%;margin:0}
+.pm-form{padding:14px;border-radius:14px;background:var(--sunken)}
+.pm-svc{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+.pm-svc legend{font-size:13px;font-weight:600;margin-bottom:6px;padding:0}
+.pm-svc p{flex-basis:100%;margin:0}
+.pm-on{background:var(--mint-bg);color:var(--mint-ink)}
+.pm-off,.pm-ended,.pm-used{background:var(--sunken);color:var(--muted)}
+.pm-soon{background:var(--sky);color:var(--navy)}
+
+/* ---- документы заказа, бренд агентства ---- */
+.send-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.send-row input{flex:1 1 200px;min-height:40px;padding:7px 10px}
+.send-row .minisel{min-height:40px}
+.sent-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.sent-list li{display:flex;gap:8px;align-items:flex-start}
+.sent-list svg{width:16px;height:16px;color:var(--mint-ink);flex:none;margin-top:2px}
+.ab-prev{border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.ab-prev .bd-foot{padding:10px 14px;font-size:12.5px}
+.ab-form input[type="color"]{width:64px;height:40px;padding:2px;border-radius:10px}
+.filebtn{position:relative;overflow:hidden;cursor:pointer}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.oc-form{gap:10px}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
@@ -256,6 +298,10 @@ a.arow:hover + .arow{box-shadow:none}
   .arow.ahead{display:none}
   .note-form{grid-template-columns:1fr}
   .ohead > .row{grid-column:1 / -1}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+  .pr-lbl{display:inline;font-size:12px;color:var(--muted);margin-right:8px}
+  .pr-cell{display:flex;align-items:center;margin-top:6px}
+  .adj-row .minisel{min-width:0;flex:1 1 100%}
   /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
   .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
@@ -278,3 +324,5 @@ a.arow:hover + .arow{box-shadow:none}
   .whosel .minisel{max-width:150px}
   .taskchip .tc-l{display:none}
 }
+
+@media print{ .no-print{display:none!important} }

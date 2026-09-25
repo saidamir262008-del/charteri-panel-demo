@@ -41,7 +41,8 @@ function inkOn(hex){
 }
 const brandColor = (b = S.brand) => /^#[0-9a-f]{6}$/i.test(b.color || "") ? b.color : "#16275C";
 const brandStyle = (b = S.brand) => `--bc:${brandColor(b)};--bi:${inkOn(brandColor(b))}`;
-const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram].filter(Boolean).map(esc).join(" · ");
+const handle = v => "@" + String(v).trim().replace(/^@/, "");
+const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram && "Telegram " + handle(b.telegram), b.instagram && "Instagram " + handle(b.instagram), b.website].filter(Boolean).map(esc).join(" · ");
 function brandTop(kind, b = S.brand){
   return `<div class="bd-top" style="${brandStyle(b)}">${brandMark("bd-mark", b)}<span class="bd-name">${esc(b.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
 }
@@ -60,7 +61,6 @@ function orderDocument(o, b = S.brand){
 /* ---- сбор Charteri ----
    Ставка фиксируется в заказе (feeBps), как курс: смена сбора в админке
    меняет только новые заказы. */
-const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
 const orderFeeBps = o => o.feeBps ?? (o.fee && o.total?.uzs ? Math.round(o.fee.uzs / o.total.uzs * 10000) : prices().feeBps);
 /* Строки чека услуги и сбор отдельной строкой. */
 const feeLines = (lines, total, fee, bps) => [...lines, [tf("service_fee", { p:pctText(bps) }), fee]];

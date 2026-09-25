@@ -57,8 +57,10 @@ function auditVal(v){
   if ("t" in v) return t(v.t);
   if ("acts" in v) return v.acts.length ? v.acts.map(x => t("act_" + x)).join(", ") : "—";
   if ("uzs" in v) return (v.sign && v.uzs > 0 ? "+" : "") + fmtUZS(v.uzs);
-  if ("pct" in v) return pctText(v.pct) + "%";
+  if ("pct" in v) return (v.sign && v.pct > 0 ? "+" : "") + pctText(v.pct) + "%";
+  if ("promo" in v) { const x = v.promo; return (x.kind === "pct" ? `−${pctText(x.value)}%` : `−$${grp(x.value)}`) + (x.active ? "" : " · " + t("pm_st_off")); }
   if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
+  if ("svcs" in v) return v.svcs.length ? v.svcs.map(k => t("type_" + k)).join(", ") : t("pm_all_svc");
   if ("dest" in v) return v.dest.heli ? heliName(v.dest.code) : cityName(v.dest.code);
   return loc(v);
 }
@@ -70,8 +72,10 @@ function auditText(e){
   const dec = e.f === 2 ? auditVal : legacyVal;
   return e.vars?.apk ? tf("a_" + e.action, { ...auditVars(e.vars, dec), what:tf("apk_" + e.vars.apk, auditVars(e.vars.w)) }) : tf("a_" + e.action, auditVars(e.vars, dec));
 }
-/* Строка «что было → что стало»: k — ключ строки с названием поля. */
-const diffText = d => `${t(d.k)}: ${auditVal(d.from) || "—"} → ${auditVal(d.to) || "—"}`;
+/* Строка «что было → что стало». k — ключ строки с названием поля или
+   несколько ключей («Туры · Сайт»); sub — уточнение (город, агентство, код). */
+const diffLabel = d => [].concat(d.k).map(k => t(k)).join(" · ") + (d.sub ? " · " + auditVal(d.sub) : "");
+const diffText = d => `${diffLabel(d)}: ${auditVal(d.from) || "—"} → ${auditVal(d.to) || "—"}`;
 /* Служебные значения для журнала: роль, строка интерфейса, сумма. */
 const roleRef = id => ({ role:id }), strRef = key => ({ t:key }), uzsRef = (uzs, sign = false) => sign ? { uzs, sign:true } : { uzs };
 const staffName = id => O.staff.find(s => s.id === id)?.name || "—";
@@ -205,7 +209,7 @@ function seedAgency(spec){
       o = { type:"FLIGHT", start, end:start, total:flightFare(out, null, q).total, details:flightDetailsOf(out, null, q) };
     } else if (kind === "TOUR") {
       const h = pick(HOTELS.filter(x => RESORTS.includes(x.city))), q = { to:h.city, depart:start, nights:7, adults:2, children:0 }, p = tourPackage(h, q);
-      o = { type:"TOUR", start, end:addDays(start, 7), total:p.total, details:{ hotelId:h.id, to:h.city, depart:start, nights:7, adults:2, children:0, rooms:p.rooms, out:p.out, back:p.back } };
+      o = { type:"TOUR", start, end:addDays(start, 7), total:p.total, details:{ hotelId:h.id, to:h.city, depart:start, nights:7, adults:2, children:0, rooms:p.rooms, out:p.out, back:p.back, px:p.px } };
     } else {
       const h = pick(HOTELS), n = 3 + Math.floor(rnd() * 5);
       o = { type:"HOTEL", start, end:addDays(start, n), total:hotelStay(h, start, n, 1, 1), details:{ hotelId:h.id, room:"standard", checkin:start, checkout:addDays(start, n), nights:n, adults:2, children:0, rooms:1 } };
@@ -294,7 +298,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";

@@ -24,6 +24,10 @@ const TOPUP_CLEAR_MS = 8000;             // банк или касса подт�
    Каждое движение денег — проводка с остатком после неё: так выписка
    сходится с балансом без пересчёта. st — состояние агентства: в кабинете это
    S, в админке — любое из агентств. */
+/* Сколько можно потратить: баланс плюс кредитный лимит, который ставит
+   Charteri в админке (баланс может уйти в минус до лимита). */
+const creditOf = (st = S) => Number.isInteger(st.agency?.credit) && st.agency.credit > 0 ? st.agency.credit : 0;
+const available = (st = S) => st.balance + creditOf(st);
 function post(kind, amount, extra = {}, st = S){
   st.balance += amount;
   st.ledger.unshift({ id:uid("l"), at:Date.now(), kind, amount, after:st.balance, ...extra });
@@ -121,7 +125,7 @@ function freshState(){
   const hA = hotelById("ayt-belek"), qA = { to:"AYT", depart:addDays(TODAY, -34), nights:7, adults:2, children:0 }, pA = tourPackage(hA, qA);
   paid(order({ type:"TOUR", title:"", sub:"", start:qA.depart, end:addDays(qA.depart, qA.nights), total:pA.total, ref:"seed-tour",
     travellers:[pax(cl[1])], contact:{ phone:cl[1].phone, email:"" },
-    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back } }), now - 38 * day, "cl2");
+    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back, px:pA.px } }), now - 38 * day, "cl2");
 
   // Проводки идут по времени: остаток после каждой — как в настоящей выписке.
   post("topup", 120_000_000, { method:"card" }); S.ledger[0].at = now - 8 * day;

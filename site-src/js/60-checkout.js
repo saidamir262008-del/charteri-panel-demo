@@ -19,6 +19,7 @@ function checkLines(lines, total, countKey){
 
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
+  const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   M.checkout = { ...spec, method:"payme", pstate: spec.recheck ? "checking" : "ok", pending:null,
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
@@ -47,7 +48,10 @@ function travellerForm(x, i, mode){
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
-    const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
+    const lines0 = c.pstate === "changed" ? c.pending.lines : c.lines, gross = c.pstate === "changed" ? c.pending.total : c.total;
+    // Скидка по промокоду или акции — отдельной строкой чека; к оплате — со скидкой.
+    const pr = checkoutPromo(c, gross), total = pr ? subA(gross, pr.off) : gross, lines = pr ? [...lines0, promoLine(pr)] : lines0;
+    c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
     else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
@@ -69,7 +73,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(lines, total, "checkout")}${check}
+        ${checkLines(lines, total, "checkout")}${check}${promoBox(c, pr)}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" ? "" : "disabled"}>${esc(t("pay_now"))} · ${fmt(total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></aside></div></div>`;
   },
@@ -117,6 +121,8 @@ Object.assign(ACT, {
     rerender();
   },
   cmethod: el => { M.checkout.method = el.dataset.v; rerender(); },
+  cpromo:  () => applyPromo(),
+  cpromox: () => { M.checkout.promoCode = null; rerender(); $("[data-pc]")?.focus(); },
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
@@ -126,15 +132,52 @@ Object.assign(ACT, {
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
     });
     S.travellers = S.travellers.slice(0, 10);
+    const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
+    const pr = checkoutPromo(c, c.total);
+    // Скидка изменилась, пока страница была открыта (акцию выключили) — показываем новую сумму, не списываем молча.
+    if ((pr ? pr.off.usd : 0) !== (c.shownOff || 0)) { rerender(); return toast(t("promo_changed")); }
     overlay(t("processing"));
     setTimeout(() => {
       overlay("");
-      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total,
+      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
+        ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
         method:c.method, details:c.details }, id => { M.checkout = null; go(`done/${id}`); });
     }, 1400);
   }
 });
+
+/* ---- промокод при оформлении (только сайт) ---- */
+const subA = (a, b) => ({ usd:a.usd - b.usd, uzs:a.uzs - b.uzs });
+const promoLine = pr => [pr.auto ? tf("promo_auto_line", { name:pr.name }) : tf("promo_line", { code:pr.code }), { usd:-pr.off.usd, uzs:-pr.off.uzs }];
+const checkoutPromo = (c, total) => APP === "b2c" && total?.usd > 0 ? bestPromo(c.type, total, c.promoCode || "", S.orders) : null;
+function promoBox(c, pr){
+  if (APP !== "b2c") return "";
+  const applied = c.promoCode && pr && pr.code === c.promoCode;
+  return `<div class="promo-box stack">
+    ${applied ? `<p class="promo-ok">${IC.ok}<span>${esc(tf("promo_ok", { code:c.promoCode }))}</span><button type="button" class="link" data-act="cpromox">${esc(t("promo_remove"))}</button></p>`
+      : `<label class="field"><span>${esc(t("promo_h"))}</span><span class="promo-in"><input data-pc value="${esc(c.promoIn || "")}" autocomplete="off" maxlength="20" placeholder="${esc(t("promo_ph"))}" aria-describedby="perr">
+          <button type="button" class="ghost sm" data-act="cpromo">${esc(t("promo_apply"))}</button></span></label>`}
+    ${c.promoCode && pr && pr.auto ? `<p class="small muted">${esc(t("promo_better_auto"))}</p>` : ""}
+    <div class="err" id="perr" hidden></div></div>`;
+}
+document.addEventListener("input", e => { if (e.target.dataset?.pc != null && M.checkout) M.checkout.promoIn = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset?.pc != null) { e.preventDefault(); applyPromo(); } });
+function applyPromo(){
+  const c = M.checkout; if (!c) return;
+  const code = String(c.promoIn || "").trim().toUpperCase(), total = c.pstate === "changed" ? c.pending.total : c.total;
+  hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
+  const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
+  if (!code) return bad(t("err_promo_empty"));
+  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
+  if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
+  c.promoCode = code; c.promoIn = ""; rerender();
+  // Бо́льшая акция побеждает — так и говорим, а не «промокод применён».
+  const pr = checkoutPromo(c, total);
+  toast(pr?.code === code ? tf("promo_ok", { code }) : t("promo_better_auto"));
+  ($('[data-act="cpromox"]') || $("[data-pc]"))?.focus();
+}
 
 /* ------------------------------------------------------------------ заказы */
 function createOrder(spec, then){
@@ -142,6 +185,7 @@ function createOrder(spec, then){
   const o = { id:uid("o"), no:makeRef(`${spec.ref}:${now}:${Math.random()}`), type:spec.type, status:spec.status, createdAt:now,
     title:spec.title, sub:spec.sub, start:spec.start, end:spec.end, total:spec.total, method:spec.method || null,
     travellers:spec.travellers, contact:spec.contact, details:spec.details, req:null, paidAt:null,
+    ...(spec.promo ? { promo:spec.promo, gross:spec.gross } : {}),
     history: spec.status === "CONFIRMED" ? [{ s:"PAID", at:now }, { s:"CONFIRMED", at:now + 1000 }] : [{ s:"NEW", at:now }] };
   S.orders.unshift(o); save(); then?.(o.id);
   return o;
@@ -166,12 +210,18 @@ function orderSub(o){
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
 const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
+/* Строки чека заказа. Со скидкой по промокоду строки считаются от суммы до
+   скидки (gross), а скидка идёт отдельной строкой — итог сходится с оплатой. */
 function orderLines(o){
+  const base = orderLinesBase(o.promo ? { ...o, total:o.gross || o.total } : o);
+  return o.promo ? [...base, promoLine(o.promo)] : base;
+}
+function orderLinesBase(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
   // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
   if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { px:d.px, out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];

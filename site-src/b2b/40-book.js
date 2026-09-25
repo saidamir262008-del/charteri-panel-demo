@@ -14,7 +14,7 @@ function bookPage(m){
       <button type="button" class="link" data-act="forclear">${esc(t("cancel"))}</button></div>` : ""}
     <div class="bookbox"><nav class="modtabs" aria-label="${esc(t("nav_book"))}" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k =>
       `<a class="modtab" href="#/book/${k}" ${M.module === k ? 'aria-current="page"' : ""}>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></a>`).join("")}</nav>
-      ${mod.form()}</div>
+      ${modForm(mod)}</div>
     ${M.module === "flights" ? departureBoard() : `<p class="book-note">${IC.shield}<span>${esc(t("book_note_" + M.module))}</span></p>`}
   </div>`;
 }

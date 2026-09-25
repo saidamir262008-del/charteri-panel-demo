@@ -11,6 +11,7 @@ const clientByPhone = phone => S.travellers.find(c => c.phone && digits(c.phone)
 /* Бронь «для клиента» (из карточки клиента): первый путешественник и
    контакты уже заполнены. */
 function startCheckout(spec){
+  const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   const cl = S.travellers.find(c => c.id === M.ui.forClient), travellers = spec.travellers.types.map(blankTraveller);
   if (cl) Object.assign(travellers[0], clientFill(cl));
   M.checkout = { ...spec, method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
@@ -30,20 +31,21 @@ function priceCheck(c){
 /* Сколько спишется и что останется — в сумах: баланс агентства в сумах. */
 function balanceBlock(due){
   if (!agencyActive()) return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3><div class="err">${esc(t("agency_blocked_d"))}</div></div>`;
-  const after = S.balance - due.uzs, short = after < 0;
+  const after = S.balance - due.uzs, short = after < -creditOf(), cr = creditOf();
   return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3>
     <div class="rows">
       <div><span class="k">${esc(t("balance_now"))}</span><span class="v mono">${fmtUZS(S.balance)}</span></div>
+      ${cr ? `<div><span class="k">${esc(t("credit_limit"))}</span><span class="v mono">${fmtUZS(cr)}</span></div>` : ""}
       <div><span class="k">${esc(t("will_debit"))}</span><span class="v mono">−${fmtUZS(due.uzs)}</span></div>
       <div class="tot"><span class="k">${esc(t("balance_after"))}</span><span class="v ${short ? "bad" : ""}">${fmtUZS(after)}</span></div></div>
-    ${short ? `<div class="err shortfall"><span>${esc(tf("err_short", { amount:fmtUZS(-after) }))}</span><a class="solid sm" href="#/balance?topup">${esc(t("topup"))}</a></div>` : ""}</div>`;
+    ${short ? `<div class="err shortfall"><span>${esc(tf("err_short", { amount:fmtUZS(-after - cr) }))}</span><a class="solid sm" href="#/balance?topup">${esc(t("topup"))}</a></div>` : ""}</div>`;
 }
 
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
-    const due = withFee(total), short = due.uzs > S.balance || !agencyActive();
+    const due = withFee(total), short = due.uzs > available() || !agencyActive();
     return `<div class="page"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
       <div class="twocol"><div class="stack">
@@ -78,9 +80,11 @@ Object.assign(ACT, {
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
+    const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
     const due = withFee(c.total);
     if (!agencyActive()) return showErr("#cerr", t("agency_blocked_d"));
-    if (due.uzs > S.balance) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) }));
+    // Кредитный лимит: платить можно до баланса плюс лимит.
+    if (due.uzs > available()) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) }));
     const phone = prettyPhone(c.contact.phone);
     c.travellers.forEach((x, i) => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
@@ -99,7 +103,8 @@ Object.assign(ACT, {
       for (const v of newClients) if (!S.travellers.some(x => x.id === v.id)) S.travellers.push(v);
       const due = addA(c.total, feeOf(c.total, feeBps));
       if (!agencyActive()) { rerender(); return showErr("#cerr", t("agency_blocked_d")); }
-      if (due.uzs > S.balance) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
+      if (cantBuy(c.type, c.total)) { M.checkout = null; toast(t(cantBuy(c.type, c.total))); return go(SEARCH_PATH); }
+      if (due.uzs > available()) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
       createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId, feeBps,
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone }, details:c.details },
         id => { M.checkout = null; M.ui.forClient = null; go(`done/${id}`); });

@@ -6,31 +6,38 @@
    ========================================================================== */
 "use strict";
 
-const TOUR_DISCOUNT = 0.93;
-const TRANSFER_USD = 20;          // за человека, туда и обратно
+/* Цены пакета — из настроек админки: поправка на отель в туре, скидка
+   пакета, трансфер и страховка за человека (null — не входит, 0 — входит
+   бесплатно). Заказ хранит их снимок (px), чтобы строки чека сходились с
+   оплаченной суммой и после смены цен. У старых заказов снимка нет — они
+   считались по прежним постоянным (LEGACY_PX). */
+const LEGACY_PX = { hotel:0, pkg:700, transfer:20, insurance:0 };
+function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null }; }
 
 /* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
    от сегодняшней наценки. Без них — рейсы по текущим ценам. */
 function tourPackage(h, q, legs = null){
+  const px = legs ? legs.px || LEGACY_PX : tourPx(h);
   const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
-  const hotel = hotelStay(h, q.depart, q.nights, rooms);
-  const transfer = mulA(amt(TRANSFER_USD), people);
-  const separate = addA(flights, hotel, transfer);
-  const total = pctA(separate, TOUR_DISCOUNT);
+  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel);
+  const transfer = px.transfer == null ? null : mulA(amt(px.transfer), people);
+  const insurance = px.insurance ? mulA(amt(px.insurance), people) : null;
+  const separate = addA(flights, hotel, ...[transfer, insurance].filter(Boolean));
+  const total = pctA(separate, 1 - px.pkg / 10000);
   const saving = { usd: separate.usd - total.usd, uzs: separate.uzs - total.uzs };
   const perPerson = { usd: Math.round(total.usd / people), uzs: Math.round(total.uzs / people / 1000) * 1000 };
-  return { h, out, back, people, rooms, flights, hotel, transfer, separate, total, saving, perPerson };
+  return { h, out, back, people, rooms, flights, hotel, transfer, insurance, px, separate, total, saving, perPerson };
 }
 /* Строки чека: их сумма ровно равна итогу — скидка идёт отрицательной строкой. */
 function tourLines(p, q){
   return [
     [`${t("flight_rt")} × ${pl(p.people, "pax")}`, p.flights],
     [`${p.h.name} · ${pl(q.nights, "night")} × ${pl(p.rooms, "room")}`, p.hotel],
-    [t("transfer"), p.transfer],
-    [t("insurance"), null],
-    [t("package_discount"), { usd: -p.saving.usd, uzs: -p.saving.uzs }]
+    ...(p.transfer ? [[t("transfer"), p.transfer]] : []),
+    ...(p.px.insurance != null ? [[t("insurance"), p.insurance]] : []),     // 0 — «включено»
+    ...(p.px.pkg ? [[tf("package_discount", { p:pctText(p.px.pkg) }), { usd: -p.saving.usd, uzs: -p.saving.uzs }]] : [])
   ];
 }
 
@@ -113,7 +120,7 @@ function tourRow(p, i, rc){
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
       <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
-      <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
+      <div class="incl">${[t("incl_flight"), ...(p.px.transfer != null ? [t("incl_transfer")] : []), ...(p.px.insurance != null ? [t("incl_insurance")] : [])].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
       <small class="muted">${esc(t("per_person"))}</small>
@@ -135,7 +142,7 @@ PAGES["tours/item/:id"] = {
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
           <div class="card stack"><h3>${esc(t("tour_includes"))}</h3><div class="incl big">
-            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), t("incl_transfer_full"), t("incl_insurance_full")]
+            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), ...(p.px.transfer != null ? [t("incl_transfer_full")] : []), ...(p.px.insurance != null ? [t("incl_insurance_full")] : [])]
               .map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div></div></div>
         <aside class="card sticky stack"><span class="lbl">${esc(t("tour_price"))}</span>
           ${checkLines(lines, p.total, "tour")}
@@ -155,8 +162,8 @@ function startTourCheckout(hid){
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
     priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
-      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back } }; },
-    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back },
+      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
+    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
   });
 }
@@ -168,8 +175,8 @@ function tourVoucherBody(o){
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
     <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
-    <div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>
-    <div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>
+    ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
+    ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>
   </div>`;
 }

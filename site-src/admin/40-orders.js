@@ -89,7 +89,7 @@ function admActions(r){
           <button type="button" class="link" data-act="acancel" data-v="">${esc(t("keep_order"))}</button></div></div>`);
     }
   }
-  return rows.length ? `<section class="card stack"><h2>${esc(t("actions"))}</h2>${rows.join("")}</section>` : "";
+  return rows.length ? `<section class="card stack no-print"><h2>${esc(t("actions"))}</h2>${rows.join("")}</section>` : "";
 }
 function admPayment(r){
   const o = r.o;
@@ -97,6 +97,12 @@ function admPayment(r){
   if (!r.a) return `<span class="lbl">${esc(t("payment"))}</span>${checkLines(orderLines(o), o.total)}${o.method ? `<div class="rows"><div><span class="k">${esc(t("pay_method"))}</span><span class="v">${esc(methodName(o.method))}</span></div></div>` : ""}`;
   return `<span class="lbl">${esc(t("payment"))}</span>${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), dueOf(o))}
     ${o.paidAt ? `<div class="rows"><div><span class="k">${esc(t("pay_method"))}</span><span class="v">${esc(t("method_balance"))}</span></div><div><span class="k">${esc(t("paid_at"))}</span><span class="v">${esc(fdt(o.paidAt))}</span></div></div>` : ""}`;
+}
+/* История заказа: статусы, отправленные документы и правки из журнала. */
+function orderTimeline(o){
+  const items = [...o.history.map(h => ({ at:h.at, s:h.s, text:t("st_" + h.s) })), ...(o.sent || []).map(x => ({ at:x.at, s:"CONFIRMED", text:tf("tl_doc_sent", { ch:t("doc_ch_" + x.ch), to:x.to }), by:x.by })),
+    ...O.audit.filter(e => e.vars?.no === o.no && ["order_edit"].includes(e.action)).map(e => ({ at:e.at, s:"NEW", text:auditText(e), by:staffName(e.staffId) }))];
+  return items.sort((a, b) => a.at - b.at);
 }
 function admRefund(r){
   const x = r.o.refund; if (!x) return "";
@@ -109,22 +115,23 @@ PAGES["orders/:src/:id"] = {
     const r = findOrder(src, id);
     if (!r) return `<div class="page">${backLink("orders", t("an_orders"))}<div class="card empty"><h1 class="h-empty">${esc(t("order_missing"))}</h1></div></div>`;
     const o = r.o, st = effStatus(o), showDoc = ["CONFIRMED", "COMPLETED"].includes(st) || (st === "PAID" && !isCharter(o));
-    const req = o.req ? `<div class="reqbanner"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${o.req.note ? `<span>«${esc(o.req.note)}»</span>` : ""}
+    const req = o.req ? `<div class="reqbanner no-print"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${o.req.note ? `<span>«${esc(o.req.note)}»</span>` : ""}
       ${o.req.status ? `<span class="small">${esc(t(o.req.status === "done" ? "req_status_done" : "req_status_declined"))}${o.req.reply ? ` — ${esc(o.req.reply)}` : ""} · ${esc(o.req.by || "")}</span>` : ""}</div>` : "";
     return `<div class="page">${backLink("orders", t("an_orders"))}
       <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span> · ${esc(srcName(r))}</span>
         <h1>${esc(orderTitle(o))}</h1><p class="muted">${esc(orderSub(o))}</p></div>${pill(st)}</div>
       <div class="twocol"><div class="stack">${admActions(r)}${req}
-          ${showDoc ? orderDocument(o, r.a ? r.a.brand : null) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
+          ${showDoc ? orderDocument(o, r.a ? r.a.brand : null) + docActions(r) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
         <aside class="stack sticky">
           <div class="card stack">${admPayment(r)}</div>${admRefund(r)}
           <div class="card stack"><span class="lbl">${esc(r.a ? t("col_source") : t("customer"))}</span>
             ${r.a ? `<div class="client-mini"><span class="bmark-wrap" style="${brandStyle(r.a.brand)}">${brandMark("", r.a.brand)}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(r.a.name)}</b>
               <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
-              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("b2c.view") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+              <span class="mono small muted">${esc(o.contact.phone)}</span>${o.contact.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}</div>${can("clients") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+          ${r.a ? "" : `<div class="card stack">${contactEdit(r)}</div>`}
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
-            <ol class="timeline">${o.history.map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(t("st_" + h.s))}</b><span class="muted small">${esc(fdt(h.at))}</span></li>`).join("")}</ol></div>
+            <ol class="timeline">${orderTimeline(o).map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(h.text)}</b><span class="muted small">${esc(fdt(h.at))}${h.by ? " · " + esc(h.by) : ""}</span></li>`).join("")}</ol></div>
         </aside></div></div>`;
   },
   after(){ renderQRs(); if (M.ui.cancelFor) $(".cancelbox")?.scrollIntoView({ block:"nearest", behavior:REDUCED ? "auto" : "smooth" }); }

@@ -29,7 +29,8 @@ function generateOffers({ from, to, date, cabin }){
     const rawBase = cabin === "business" ? seed.busPrice : seed.ecoPrice;
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
-    const priceUSD = Math.round(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000));   // наценка (10%, меняется в админке), как на сервере
+    // Наценка на авиабилеты и поправка канала и направления — из админки.
+    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,

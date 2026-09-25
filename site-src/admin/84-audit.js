@@ -8,8 +8,8 @@
 /* Раздел старых записей (без поля module) — по действию. */
 const AUDIT_MODULE = {
   price:"orders", confirm:"orders", cancel:"orders", refund:"finance", req_done:"b2c", req_declined:"b2c", topup_ok:"finance", topup_rejected:"finance",
-  app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
-  fee:"pricing", markup:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
+  app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", credit:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
+  fee:"pricing", markup:"pricing", pricing:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
   staff_add:"staff", staff_off:"staff", staff_on:"staff", staff_role:"staff", staff_edit:"staff", role_new:"roles", role_edit:"roles", role_delete:"roles",
   rules:"settings", reset:"settings", export:"finance", switch:"session", signin:"session", signout:"session"
 };
@@ -34,7 +34,7 @@ function auditList(){
       <span role="columnheader">${esc(t("col_action"))}</span><span role="columnheader">${esc(t("col_where"))}</span></div>
     ${rows.slice(0, AU_SHOW).map(e => `<div class="arow" role="row"><span class="a-cell a-sub muted small" role="cell">${esc(fdt(e.at))}</span>
       <span class="a-cell a-sub wrap" role="cell">${esc(staffName(e.staffId))}<br><span class="muted small">${esc(auditRole(e))}</span></span>
-      <span class="a-key" role="cell"><span>${esc(auditText(e))}</span>${e.diff?.length ? `<ul class="ap-diff">${e.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s>
+      <span class="a-key" role="cell"><span>${esc(auditText(e))}</span>${e.diff?.length ? `<ul class="ap-diff">${e.diff.map(d => `<li><span class="muted">${esc(diffLabel(d))}:</span> <s>${esc(auditVal(d.from) || "—")}</s>
         <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : ""}
         <span class="muted small">${esc(t("m_" + auditModule(e)))}</span></span>
       <span class="a-cell small muted" role="cell"><span class="mono">${esc(e.ip || "—")}</span><br>${esc(e.dev || "")}</span></div>`).join("")}</div>
@@ -70,7 +70,7 @@ ACT.aucsv = () => {
   const when = ms => new Date(ms).toLocaleString(LOC[S.lang]), rows = auditRows();
   const out = [[t("col_date"), t("col_staff"), t("staff_role"), t("col_section"), t("col_action"), t("col_was"), t("col_now"), "IP", t("au_device")],
     ...rows.map(e => [when(e.at), staffName(e.staffId), auditRole(e), t("m_" + auditModule(e)), auditText(e),
-      (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];
+      (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];
   const blob = new Blob([csvText(out)], { type:"text/csv;charset=utf-8" });
   const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-audit-${TODAY}.csv` });
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);

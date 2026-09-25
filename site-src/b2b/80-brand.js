@@ -32,7 +32,8 @@ PAGES.brand = {
         <section class="card stack"><h2>${esc(t("brand_details"))}</h2>
           ${f("name", t("brand_name"), 'maxlength="40" autocomplete="organization"')}
           <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
-          <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("address", t("brand_address"))}</div></section>
+          <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
+          <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}

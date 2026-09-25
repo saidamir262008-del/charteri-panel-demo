@@ -840,6 +840,17 @@ input:disabled,select:disabled{opacity:.6}
   .brd-h .brd-st,.brd-h .brd-pr{display:none}
 }
 
+/* ---- услуга выключена в админке; промокод при оформлении ---- */
+.svc-off{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:18px;background:var(--sunken);color:var(--ink)}
+.svc-off svg{width:22px;height:22px;flex:none;color:var(--muted);margin-top:2px}
+.svc-off b{display:block;margin-bottom:4px}
+.promo-box{border-top:1px solid var(--line);padding-top:12px;gap:8px}
+.promo-in{display:flex;gap:8px}
+.promo-in input{flex:1;min-width:0;text-transform:uppercase;font-family:"IBM Plex Mono",monospace}
+.promo-ok{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--mint-ink,var(--mint))}
+.promo-ok svg{width:18px;height:18px;flex:none}
+.promo-ok .link{margin-left:auto}
+
 /* ==========================================================================
    Кабинет агентства поверх оформления сайта: те же токены, шрифты и
    компоненты. Своё — каркас (тёмно-синее меню слева, прозрачная панель
@@ -1456,6 +1467,24 @@ const STR = {
   err_contact:["Укажите телефон в формате +998 XX XXX XX XX","Telefonni +998 XX XXX XX XX formatida kiriting","Enter a phone as +998 XX XXX XX XX"],
   err_date_past:["Эта дата уже прошла","Bu sana o‘tib ketgan","This date has passed"],
   err_dob:["Укажите дату рождения","Tug‘ilgan sanani kiriting","Enter the date of birth"],
+  promo_h:["Промокод","Promokod","Promo code"],
+  promo_ph:["Например, SUMMER10","Masalan, SUMMER10","For example, SUMMER10"],
+  promo_apply:["Применить","Qo‘llash","Apply"],
+  promo_remove:["Убрать","Olib tashlash","Remove"],
+  promo_line:["Промокод {code}","Promokod {code}","Promo code {code}"],
+  promo_auto_line:["Акция: {name}","Aksiya: {name}","Offer: {name}"],
+  promo_ok:["Промокод {code} применён","{code} promokodi qo‘llandi","Promo code {code} applied"],
+  promo_better_auto:["Действует акция с большей скидкой — применена она.","Kattaroq chegirmali aksiya amalda — u qo‘llandi.","An offer with a bigger discount applies, so we used it."],
+  err_promo_empty:["Введите промокод","Promokodni kiriting","Enter a promo code"],
+  promo_changed:["Скидка изменилась — проверьте сумму и нажмите «Оплатить» ещё раз","Chegirma o‘zgardi — summani tekshirib, «To‘lash»ni yana bosing","The discount changed. Check the total and press Pay again"],
+  err_total:["Цену не удалось рассчитать. Обновите поиск.","Narxni hisoblab bo‘lmadi. Qidiruvni yangilang.","We couldn’t price this. Please search again."],
+  err_promo_unknown:["Такого промокода нет","Bunday promokod yo‘q","No such promo code"],
+  err_promo_expired:["Промокод не действует","Promokod amal qilmaydi","This promo code isn’t active"],
+  err_promo_svc:["Промокод не подходит к этой услуге","Promokod bu xizmatga mos emas","This promo code doesn’t cover this service"],
+  err_promo_min:["Промокод действует для заказа от {min}","Promokod {min} dan buyurtma uchun amal qiladi","This promo code needs an order of {min} or more"],
+  err_promo_used:["Лимит использований промокода исчерпан","Promokoddan foydalanish chegarasi tugagan","This promo code has run out"],
+  svc_off_h:["Услуга временно недоступна","Xizmat vaqtincha mavjud emas","This service is temporarily unavailable"],
+  svc_off_d:["Мы скоро её вернём. Остальные услуги работают как обычно.","Tez orada qaytaramiz. Boshqa xizmatlar odatdagidek ishlaydi.","We’ll bring it back soon. Other services work as usual."],
   err_blocked:["Бронирование с этого номера закрыто. Свяжитесь с поддержкой Charteri.","Bu raqamdan bron qilish yopilgan. Charteri qo‘llab-quvvatlash xizmatiga murojaat qiling.","Booking from this number is closed. Please contact Charteri support."],
   err_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
   err_expiry:["Паспорт истекает раньше, чем закончится поездка","Pasport muddati safar tugashidan oldin tugaydi","The passport expires before the trip ends"],
@@ -1509,7 +1538,7 @@ const STR = {
   hero_jet:["Частный самолёт — по вашему расписанию","Xususiy samolyot — sizning jadvalingiz bo‘yicha","A private jet on your schedule"],
   hero_jet_sub:["Из любого аэропорта Узбекистана. Оценка стоимости сразу, точная цена — от менеджера.","O‘zbekistonning istalgan aeroportidan. Narx darhol baholanadi, aniq narxni menejer beradi.","From any airport in Uzbekistan. An estimate right away, the exact price from a manager."],
   hero_tours:["Тур на море: перелёт, отель и трансфер","Dengizga tur: parvoz, mehmonxona va transfer","Beach holidays: flight, hotel and transfer"],
-  hero_tours_sub:["Пакетом на 7% дешевле, чем покупать всё отдельно. Страховка включена.","Paket holida alohida sotib olishdan 7% arzon. Sug‘urta kiritilgan.","7% cheaper as a package than bought separately. Insurance included."],
+  hero_tours_sub:["Пакетом на {p}% дешевле, чем покупать всё отдельно.","Paket holida alohida sotib olishdan {p}% arzon.","{p}% cheaper as a package than bought separately."],
   history:["История заказа","Buyurtma tarixi","Order history"],
   home:["На главную","Bosh sahifa","Home"],
   hotel:["Отель","Mehmonxona","Hotel"],
@@ -1572,7 +1601,7 @@ const STR = {
   orders_empty:["Заказов пока нет","Hozircha buyurtmalar yo‘q","No orders yet"],
   orders_empty_d:["Билеты, ваучеры и заявки появятся здесь","Chiptalar, vaucherlar va so‘rovlar shu yerda paydo bo‘ladi","Tickets, vouchers and requests will appear here"],
   orders_sub:["Билеты, ваучеры и заявки на частные рейсы","Chiptalar, vaucherlar va xususiy reyslarga so‘rovlar","Tickets, vouchers and private flight requests"],
-  package_discount:["Пакетная скидка 7%","Paket chegirmasi 7%","Package discount 7%"],
+  package_discount:["Пакетная скидка {p}%","Paket chegirmasi {p}%","Package discount {p}%"],
   pax_adult:["Взрослый","Katta","Adult"],
   pax_child:["Ребёнок","Bola","Child"],
   pax_infant:["Младенец","Chaqaloq","Infant"],
@@ -1623,7 +1652,7 @@ const STR = {
   svc_heli:["Горы и озёра Ташкентской области, Самарканд, обзорные полёты","Toshkent viloyati tog‘lari va ko‘llari, Samarqand, sayr parvozlari","Mountains and lakes near Tashkent, Samarkand, sightseeing flights"],
   svc_hotels:["Курортные и городские отели, фильтр по звёздам и питанию","Kurort va shahar mehmonxonalari, yulduz va ovqat bo‘yicha filtr","Resort and city hotels, filter by stars and meals"],
   svc_jet:["Бизнес-джеты от лёгких до тяжёлых, оценка стоимости сразу","Yengildan og‘irgacha biznes-jetlar, narx darhol baholanadi","Business jets from light to heavy, instant estimate"],
-  svc_tours:["Перелёт, отель и трансфер одним заказом, дешевле на 7%","Parvoz, mehmonxona va transfer bitta buyurtmada, 7% arzonroq","Flight, hotel and transfer in one booking, 7% cheaper"],
+  svc_tours:["Перелёт и отель одним заказом, дешевле на {p}%","Parvoz va mehmonxona bitta buyurtmada, {p}% arzonroq","Flight and hotel in one booking, {p}% cheaper"],
   swap:["Поменять местами","Almashtirish","Swap"],
   t_day:["День","Kunduzi","Afternoon"],
   t_evening:["Вечер","Kechqurun","Evening"],
@@ -2010,15 +2039,89 @@ const BLOCK_KEY = "charteri.ops.blocked";
 const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
-const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
-const OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+/* ---- цены и услуги: их ставит админка (PRICES_KEY) ----
+   feeBps — сервисный сбор агентств, flightMarkupBps — наценка на авиабилеты;
+   svc — по услуге: работает ли (on), поправка для сайта (b2c) и для агентств
+   (b2b) в сотых процента, у тура — скидка пакета (pkg); у трансфера и
+   страховки — цена за человека в долларах (страховка 0 — включена в тур);
+   dest — поправка по направлению, agents — индивидуальная поправка агентства;
+   promos — промокоды и акции сайта. Всё в сотых процента, от −50% до +50%. */
+const SVC_TYPES = ["FLIGHT", "TOUR", "HOTEL", "JET", "HELI"], ADDONS = ["TRANSFER", "INSURANCE"];
+const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000, pkgBps:700, transferUsd:20, insuranceUsd:0 };
+const ADJ_MAX = 5000, OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+const LIVE_AGENCY = "ag-live";
 let PRICES = null;
 function prices(){
   if (PRICES) return PRICES;
   let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
-  const ok = v => Number.isInteger(v) && v >= 0 && v <= 5000;
-  PRICES = { feeBps: ok(saved.feeBps) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps: ok(saved.flightMarkupBps) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps };
+  const ok = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi, on = v => typeof v === "boolean" ? v : true;
+  const svc = {};
+  for (const k of SVC_TYPES) { const x = saved.svc?.[k] || {};
+    svc[k] = { on:on(x.on), b2c:ok(x.b2c, -ADJ_MAX, ADJ_MAX) ? x.b2c : 0, b2b:ok(x.b2b, -ADJ_MAX, ADJ_MAX) ? x.b2b : 0 }; }
+  svc.TOUR.pkg = ok(saved.svc?.TOUR?.pkg, 0, 3000) ? saved.svc.TOUR.pkg : PRICE_DEFAULTS.pkgBps;
+  svc.TRANSFER = { on:on(saved.svc?.TRANSFER?.on), usd:ok(saved.svc?.TRANSFER?.usd, 0, 1000) ? saved.svc.TRANSFER.usd : PRICE_DEFAULTS.transferUsd };
+  svc.INSURANCE = { on:on(saved.svc?.INSURANCE?.on), usd:ok(saved.svc?.INSURANCE?.usd, 0, 1000) ? saved.svc.INSURANCE.usd : PRICE_DEFAULTS.insuranceUsd };
+  const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
+  PRICES = { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
+    svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
+    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
   return PRICES;
+}
+/* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
+   агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
+   для кабинета — ещё индивидуальная цена агентства. */
+const CHANNEL = APP === "b2c" ? "b2c" : "b2b";
+/* Поправки складываются, но итог не ниже −50% и не выше +100%: цена не может
+   стать нулевой или отрицательной, как бы ни сложились настройки. */
+function adjBps(type, dest){
+  const p = prices(), sum = (p.svc[type]?.[CHANNEL] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
+  return Math.max(-ADJ_MAX, Math.min(2 * ADJ_MAX, sum));
+}
+/* Проценты из сотых: 150 → «1,5» (в английском — «1.5»). */
+const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
+const withAdj = (usd, type, dest) => usd * (1 + adjBps(type, dest) / 10000);
+const svcOn = type => prices().svc[type]?.on !== false;
+const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
+/* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
+const modForm = mod => svcOn(mod.type) ? mod.form() : svcOffNote();
+/* Нельзя купить: услуга выключена или итог не положительный. */
+const cantBuy = (type, total) => !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
+
+/* ---- промокоды и акции (только сайт; авиабилеты, туры, отели) ----
+   Промокод вводят; акция (auto) применяется сама. Скидка одна на заказ —
+   бо́льшая; при равной побеждает промокод: его вводили специально. Сколько
+   раз код использован — по заказам сайта в этом браузере. */
+const PROMO_TYPES = ["FLIGHT", "TOUR", "HOTEL"], PROMO_MAX = 100;
+function validPromo(x){
+  return !!x && typeof x.id === "string" && /^[\w-]{1,40}$/.test(x.id) && typeof x.name === "string" && !!x.name.trim() && ["pct", "fixed"].includes(x.kind)
+    && Number.isInteger(x.value) && x.value > 0 && x.value <= (x.kind === "pct" ? 9000 : 100000)
+    && (x.auto === true || /^[A-Z0-9][A-Z0-9_-]{2,19}$/.test(x.code || ""));
+}
+/* Данные из хранилища — чужие: только известные поля в правильном виде. */
+const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+  return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+/* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
+const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
+/* Почему промокод не подходит заказу (ключ строки) или null. */
+function promoProblem(x, type, total, orders){
+  if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
+  if (!x.active) return "err_promo_expired";
+  if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
+  if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
+  if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
+  if (x.limit && promoUsed(x, orders) >= x.limit) return "err_promo_used";
+  return null;
+}
+const promoOffUsd = (x, total) => Math.max(0, Math.min(total.usd - 1, x.kind === "pct" ? Math.floor(total.usd * x.value / 10000) : x.value));
+function bestPromo(type, total, code, orders){
+  let best = null;
+  for (const x of prices().promos) {
+    if (!(x.auto || (code && x.code === code)) || promoProblem(x, type, total, orders)) continue;
+    const off = promoOffUsd(x, total);
+    if (off > 0 && (!best || off > best.off || (off === best.off && !x.auto && best.x.auto))) best = { x, off };
+  }
+  return best ? { id:best.x.id, code:best.x.code || "", name:best.x.name, auto:!!best.x.auto, off:{ usd:best.off, uzs:Math.round(total.uzs * best.off / total.usd) } } : null;
 }
 /* Каждая вкладка админки отмечается своей строкой: закрыли одну — другие на месте. */
 function opsLive(){
@@ -2120,6 +2223,9 @@ function render(scrollTop = true){
   try { html = page.render(params); }
   catch (e) { console.error(e); html = `<div class="container section"><div class="err">${esc(t("err_generic"))}</div></div>`; }
   if (html === null) return;                        // страница перенаправила
+  // Выдача и карточки выключенной в админке услуги — с объявлением сверху: купить всё равно нельзя.
+  const svcType = { flights:"FLIGHT", hotels:"HOTEL", tours:"TOUR" }[key.split("/")[0]];
+  if (svcType && key.includes("/") && !svcOn(svcType)) html = `<div class="container section" style="padding-bottom:0">${svcOffNote()}</div>` + html;
   $("#app").innerHTML = html;
   renderNav(key);
   // Новая страница открывается сверху сразу: плавная прокрутка html{scroll-behavior}
@@ -3277,7 +3383,8 @@ function generateOffers({ from, to, date, cabin }){
     const rawBase = cabin === "business" ? seed.busPrice : seed.ecoPrice;
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
-    const priceUSD = Math.round(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000));   // наценка (10%, меняется в админке), как на сервере
+    // Наценка на авиабилеты и поправка канала и направления — из админки.
+    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,
@@ -3572,14 +3679,16 @@ function flightDocument(o){
    ========================================================================== */
 "use strict";
 
-function hotelNightly(h, date){
+/* bps — поправка цены из админки: для отеля отдельно — «Отели», в туре —
+   «Туры» (её передаёт тур), плюс поправка по направлению. */
+function hotelNightly(h, date, bps = adjBps("HOTEL", h.city)){
   const month = parseYMD(date).getMonth() + 1;
   // У направлений из админки сезона нет — цена ровная весь год.
   const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
-  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
+  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12) * (1 + bps / 10000);
 }
-function hotelStay(h, checkin, nights, rooms, mult = 1){
-  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i));
+function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city)){
+  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i), bps);
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
@@ -3748,31 +3857,38 @@ function hotelVoucherBody(o){
    ========================================================================== */
 "use strict";
 
-const TOUR_DISCOUNT = 0.93;
-const TRANSFER_USD = 20;          // за человека, туда и обратно
+/* Цены пакета — из настроек админки: поправка на отель в туре, скидка
+   пакета, трансфер и страховка за человека (null — не входит, 0 — входит
+   бесплатно). Заказ хранит их снимок (px), чтобы строки чека сходились с
+   оплаченной суммой и после смены цен. У старых заказов снимка нет — они
+   считались по прежним постоянным (LEGACY_PX). */
+const LEGACY_PX = { hotel:0, pkg:700, transfer:20, insurance:0 };
+function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null }; }
 
 /* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
    от сегодняшней наценки. Без них — рейсы по текущим ценам. */
 function tourPackage(h, q, legs = null){
+  const px = legs ? legs.px || LEGACY_PX : tourPx(h);
   const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
-  const hotel = hotelStay(h, q.depart, q.nights, rooms);
-  const transfer = mulA(amt(TRANSFER_USD), people);
-  const separate = addA(flights, hotel, transfer);
-  const total = pctA(separate, TOUR_DISCOUNT);
+  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel);
+  const transfer = px.transfer == null ? null : mulA(amt(px.transfer), people);
+  const insurance = px.insurance ? mulA(amt(px.insurance), people) : null;
+  const separate = addA(flights, hotel, ...[transfer, insurance].filter(Boolean));
+  const total = pctA(separate, 1 - px.pkg / 10000);
   const saving = { usd: separate.usd - total.usd, uzs: separate.uzs - total.uzs };
   const perPerson = { usd: Math.round(total.usd / people), uzs: Math.round(total.uzs / people / 1000) * 1000 };
-  return { h, out, back, people, rooms, flights, hotel, transfer, separate, total, saving, perPerson };
+  return { h, out, back, people, rooms, flights, hotel, transfer, insurance, px, separate, total, saving, perPerson };
 }
 /* Строки чека: их сумма ровно равна итогу — скидка идёт отрицательной строкой. */
 function tourLines(p, q){
   return [
     [`${t("flight_rt")} × ${pl(p.people, "pax")}`, p.flights],
     [`${p.h.name} · ${pl(q.nights, "night")} × ${pl(p.rooms, "room")}`, p.hotel],
-    [t("transfer"), p.transfer],
-    [t("insurance"), null],
-    [t("package_discount"), { usd: -p.saving.usd, uzs: -p.saving.uzs }]
+    ...(p.transfer ? [[t("transfer"), p.transfer]] : []),
+    ...(p.px.insurance != null ? [[t("insurance"), p.insurance]] : []),     // 0 — «включено»
+    ...(p.px.pkg ? [[tf("package_discount", { p:pctText(p.px.pkg) }), { usd: -p.saving.usd, uzs: -p.saving.uzs }]] : [])
   ];
 }
 
@@ -3855,7 +3971,7 @@ function tourRow(p, i, rc){
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
       <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
-      <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
+      <div class="incl">${[t("incl_flight"), ...(p.px.transfer != null ? [t("incl_transfer")] : []), ...(p.px.insurance != null ? [t("incl_insurance")] : [])].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
       <small class="muted">${esc(t("per_person"))}</small>
@@ -3877,7 +3993,7 @@ PAGES["tours/item/:id"] = {
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
           <div class="card stack"><h3>${esc(t("tour_includes"))}</h3><div class="incl big">
-            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), t("incl_transfer_full"), t("incl_insurance_full")]
+            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), ...(p.px.transfer != null ? [t("incl_transfer_full")] : []), ...(p.px.insurance != null ? [t("incl_insurance_full")] : [])]
               .map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div></div></div>
         <aside class="card sticky stack"><span class="lbl">${esc(t("tour_price"))}</span>
           ${checkLines(lines, p.total, "tour")}
@@ -3897,8 +4013,8 @@ function startTourCheckout(hid){
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
     priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
-      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back } }; },
-    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back },
+      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
+    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
   });
 }
@@ -3910,8 +4026,8 @@ function tourVoucherBody(o){
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
     <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
-    <div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>
-    <div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>
+    ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
+    ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>
   </div>`;
 }
@@ -3932,7 +4048,7 @@ function jetEstimate(q){
   const cls = fitClass(JETS, q.pax, q.cls); if (!cls) return null;
   const km = distanceKm(COORDS[q.from], COORDS[q.to]);
   const hours = km / cls.speed + 0.4;                         // + руление, набор, снижение
-  const base = hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1);
+  const base = withAdj(hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1), "JET", q.to === "TAS" ? q.from : q.to);
   return { cls, km, hours, low: amt(round(base, 100)), high: amt(round(base * 1.3, 100)), final: amt(round(base * 1.12, 100)) };
 }
 function heliEstimate(q){
@@ -3942,7 +4058,7 @@ function heliEstimate(q){
   const hours = d.tour ? 0.5 : km / cls.speed + 0.25;
   // В одну сторону вертолёт всё равно возвращается на базу — оплачивается частично.
   const legs = d.tour ? 1 : q.trip === "roundtrip" ? 2 : 1.6;
-  const base = Math.max(hours * cls.rate * legs, cls.rate * 0.5);
+  const base = withAdj(Math.max(hours * cls.rate * legs, cls.rate * 0.5), "HELI", q.to);
   return { cls, km, hours, dest:d, low: amt(round(base, 50)), high: amt(round(base * 1.25, 50)), final: amt(round(base * 1.1, 50)) };
 }
 const heliName = id => HELI_DEST.find(x => x.id === id)?.name[S.lang] ?? id;
@@ -4025,6 +4141,7 @@ function charterPage(kind){
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
   return `<div class="container section">${backLink(SEARCH_PATH, t(APP === "b2b" ? "nav_book" : "home"))}
     ${pageHead(t(isJet ? "jet_title" : "heli_title"), t(isJet ? "jet_sub" : "heli_sub"))}
+    ${svcOn(isJet ? "JET" : "HELI") ? "" : svcOffNote()}
     <div class="twocol"><div class="stack">
       <div class="card stack"><h3>${esc(t("route_when"))}</h3>
         <div class="sgrid sgrid-2">${routeFields}
@@ -4059,6 +4176,7 @@ PAGES["charter/heli"] = { render: () => charterPage("heli") };
 function sendCharterRequest(kind){
   const q = M[kind], isJet = kind === "jet", e = isJet ? jetEstimate(q) : heliEstimate(q);
   hideErr("#cherr");
+  if (!svcOn(isJet ? "JET" : "HELI")) return showErr("#cherr", t("svc_off_h"));
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
   if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));
@@ -4117,6 +4235,7 @@ function checkLines(lines, total, countKey){
 
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
+  const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   M.checkout = { ...spec, method:"payme", pstate: spec.recheck ? "checking" : "ok", pending:null,
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
@@ -4145,7 +4264,10 @@ function travellerForm(x, i, mode){
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
-    const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
+    const lines0 = c.pstate === "changed" ? c.pending.lines : c.lines, gross = c.pstate === "changed" ? c.pending.total : c.total;
+    // Скидка по промокоду или акции — отдельной строкой чека; к оплате — со скидкой.
+    const pr = checkoutPromo(c, gross), total = pr ? subA(gross, pr.off) : gross, lines = pr ? [...lines0, promoLine(pr)] : lines0;
+    c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
     else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
@@ -4167,7 +4289,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(lines, total, "checkout")}${check}
+        ${checkLines(lines, total, "checkout")}${check}${promoBox(c, pr)}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" ? "" : "disabled"}>${esc(t("pay_now"))} · ${fmt(total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></aside></div></div>`;
   },
@@ -4215,6 +4337,8 @@ Object.assign(ACT, {
     rerender();
   },
   cmethod: el => { M.checkout.method = el.dataset.v; rerender(); },
+  cpromo:  () => applyPromo(),
+  cpromox: () => { M.checkout.promoCode = null; rerender(); $("[data-pc]")?.focus(); },
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
@@ -4224,15 +4348,52 @@ Object.assign(ACT, {
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
     });
     S.travellers = S.travellers.slice(0, 10);
+    const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
+    const pr = checkoutPromo(c, c.total);
+    // Скидка изменилась, пока страница была открыта (акцию выключили) — показываем новую сумму, не списываем молча.
+    if ((pr ? pr.off.usd : 0) !== (c.shownOff || 0)) { rerender(); return toast(t("promo_changed")); }
     overlay(t("processing"));
     setTimeout(() => {
       overlay("");
-      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total,
+      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
+        ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
         method:c.method, details:c.details }, id => { M.checkout = null; go(`done/${id}`); });
     }, 1400);
   }
 });
+
+/* ---- промокод при оформлении (только сайт) ---- */
+const subA = (a, b) => ({ usd:a.usd - b.usd, uzs:a.uzs - b.uzs });
+const promoLine = pr => [pr.auto ? tf("promo_auto_line", { name:pr.name }) : tf("promo_line", { code:pr.code }), { usd:-pr.off.usd, uzs:-pr.off.uzs }];
+const checkoutPromo = (c, total) => APP === "b2c" && total?.usd > 0 ? bestPromo(c.type, total, c.promoCode || "", S.orders) : null;
+function promoBox(c, pr){
+  if (APP !== "b2c") return "";
+  const applied = c.promoCode && pr && pr.code === c.promoCode;
+  return `<div class="promo-box stack">
+    ${applied ? `<p class="promo-ok">${IC.ok}<span>${esc(tf("promo_ok", { code:c.promoCode }))}</span><button type="button" class="link" data-act="cpromox">${esc(t("promo_remove"))}</button></p>`
+      : `<label class="field"><span>${esc(t("promo_h"))}</span><span class="promo-in"><input data-pc value="${esc(c.promoIn || "")}" autocomplete="off" maxlength="20" placeholder="${esc(t("promo_ph"))}" aria-describedby="perr">
+          <button type="button" class="ghost sm" data-act="cpromo">${esc(t("promo_apply"))}</button></span></label>`}
+    ${c.promoCode && pr && pr.auto ? `<p class="small muted">${esc(t("promo_better_auto"))}</p>` : ""}
+    <div class="err" id="perr" hidden></div></div>`;
+}
+document.addEventListener("input", e => { if (e.target.dataset?.pc != null && M.checkout) M.checkout.promoIn = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset?.pc != null) { e.preventDefault(); applyPromo(); } });
+function applyPromo(){
+  const c = M.checkout; if (!c) return;
+  const code = String(c.promoIn || "").trim().toUpperCase(), total = c.pstate === "changed" ? c.pending.total : c.total;
+  hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
+  const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
+  if (!code) return bad(t("err_promo_empty"));
+  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
+  if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
+  c.promoCode = code; c.promoIn = ""; rerender();
+  // Бо́льшая акция побеждает — так и говорим, а не «промокод применён».
+  const pr = checkoutPromo(c, total);
+  toast(pr?.code === code ? tf("promo_ok", { code }) : t("promo_better_auto"));
+  ($('[data-act="cpromox"]') || $("[data-pc]"))?.focus();
+}
 
 /* ------------------------------------------------------------------ заказы */
 function createOrder(spec, then){
@@ -4240,6 +4401,7 @@ function createOrder(spec, then){
   const o = { id:uid("o"), no:makeRef(`${spec.ref}:${now}:${Math.random()}`), type:spec.type, status:spec.status, createdAt:now,
     title:spec.title, sub:spec.sub, start:spec.start, end:spec.end, total:spec.total, method:spec.method || null,
     travellers:spec.travellers, contact:spec.contact, details:spec.details, req:null, paidAt:null,
+    ...(spec.promo ? { promo:spec.promo, gross:spec.gross } : {}),
     history: spec.status === "CONFIRMED" ? [{ s:"PAID", at:now }, { s:"CONFIRMED", at:now + 1000 }] : [{ s:"NEW", at:now }] };
   S.orders.unshift(o); save(); then?.(o.id);
   return o;
@@ -4264,12 +4426,18 @@ function orderSub(o){
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
 const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
+/* Строки чека заказа. Со скидкой по промокоду строки считаются от суммы до
+   скидки (gross), а скидка идёт отдельной строкой — итог сходится с оплатой. */
 function orderLines(o){
+  const base = orderLinesBase(o.promo ? { ...o, total:o.gross || o.total } : o);
+  return o.promo ? [...base, promoLine(o.promo)] : base;
+}
+function orderLinesBase(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
   // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
   if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { px:d.px, out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];
@@ -4378,7 +4546,7 @@ Object.assign(STR, {
   book_sub:["Пять услуг Charteri по ценам для агентств. Оплата — с баланса, документы — с вашим брендом.","Charteri’ning beshta xizmati agentlik narxlarida. To‘lov — balansdan, hujjatlar — brendingiz bilan.","Charteri’s five services at agency rates. Pay from your balance; documents carry your brand."],
   booking_for:["Бронь для клиента: {name}","Mijoz uchun bron: {name}","Booking for client: {name}"],
   book_note_flights:["Цена проверяется у авиакомпании перед оплатой.","Narx to‘lovdan oldin aviakompaniyada tekshiriladi.","The fare is rechecked with the airline before payment."],
-  book_note_tours:["Тур — это рейс, отель, трансфер и страховка. Цену подтверждает туроператор перед оплатой.","Tur — reys, mehmonxona, transfer va sug‘urta. Narxni to‘lovdan oldin turoperator tasdiqlaydi.","A tour bundles flight, hotel, transfer and insurance. The tour operator confirms the price before payment."],
+  book_note_tours:["Тур — это рейс и отель одним заказом; трансфер и страховка — если входят в тур. Цену подтверждает туроператор перед оплатой.","Tur — reys va mehmonxona bitta buyurtmada; transfer va sug‘urta — agar turga kirsa. Narxni to‘lovdan oldin turoperator tasdiqlaydi.","A tour bundles the flight and hotel, plus transfer and insurance when included. The tour operator confirms the price before payment."],
   book_note_hotels:["Бесплатная отмена за 7 дней до заезда, позже поставщик удерживает 50%.","Kirishdan 7 kun oldin bekor qilish bepul, keyin yetkazib beruvchi 50% ushlab qoladi.","Free cancellation up to 7 days before check-in; after that the supplier keeps 50%."],
   book_note_jet:["Оценка — ориентир. Точную цену пришлёт оператор, оплата — после неё, с баланса.","Baho — taxminiy. Aniq narxni operator yuboradi, to‘lov — undan keyin, balansdan.","The estimate is a guide. The operator sends the exact price; you pay from the balance after that."],
   book_note_heli:["Оценка — ориентир. Точную цену пришлёт оператор, оплата — после неё, с баланса.","Baho — taxminiy. Aniq narxni operator yuboradi, to‘lov — undan keyin, balansdan.","The estimate is a guide. The operator sends the exact price; you pay from the balance after that."],
@@ -4512,6 +4680,7 @@ Object.assign(STR, {
   err_logo_read:["Не удалось прочитать картинку. Попробуйте другой файл.","Rasmni o‘qib bo‘lmadi. Boshqa faylni sinab ko‘ring.","Couldn’t read that image. Try another file."],
   brand_details:["Название и контакты","Nomi va kontaktlar","Name and contacts"],
   brand_name:["Название на документах","Hujjatlardagi nom","Name on documents"],
+  brand_website:["Сайт","Sayt","Website"],
   brand_address:["Адрес","Manzil","Address"],
   brand_color:["Фирменный цвет","Brend rangi","Brand colour"],
   brand_color_own:["Свой цвет","O‘z rangingiz","Custom colour"],
@@ -4522,6 +4691,8 @@ Object.assign(STR, {
   agency:["Агентство","Agentlik","Agency"],
   agency_legal:["Юрлицо","Yuridik shaxs","Legal entity"],
   agency_inn:["ИНН","STIR","TIN"],
+  credit_limit:["Кредитный лимит","Kredit limiti","Credit limit"],
+  credit_avail:["Доступно с кредитом: {amount}","Kredit bilan mavjud: {amount}","Available with credit: {amount}"],
   agency_email:["Почта","Pochta","Email"],
   agency_since:["В Charteri с","Charteri’da","With Charteri since"],
   agency_fee:["Сервисный сбор","Xizmat yig‘imi","Service fee"],
@@ -4532,6 +4703,7 @@ Object.assign(STR, {
   n_topup_rejected:["Пополнение на {amount} отклонено: {reason}","{amount} to‘ldirish rad etildi: {reason}","Top-up of {amount} rejected: {reason}"],
   n_adjust:["Charteri изменил баланс на {amount}: {reason}","Charteri balansni {amount}ga o‘zgartirdi: {reason}","Charteri changed the balance by {amount}: {reason}"],
   n_blocked:["Charteri приостановил работу агентства: {reason}","Charteri agentlik ishini to‘xtatdi: {reason}","Charteri blocked the agency: {reason}"],
+  n_credit:["Charteri установил кредитный лимит: {amount}","Charteri kredit limitini o‘rnatdi: {amount}","Charteri set your credit limit to {amount}"],
   n_message:["Сообщение от Charteri: {reason}","Charteri xabari: {reason}","Message from Charteri: {reason}"],
   n_unblocked:["Работа агентства возобновлена","Agentlik ishi tiklandi","The agency has been unblocked"],
   agency_note:["Реквизиты меняются через менеджера Charteri — из кабинета их не подменить.","Rekvizitlar Charteri menejeri orqali o‘zgartiriladi — kabinetdan almashtirib bo‘lmaydi.","Company details change through your Charteri manager, so they can’t be swapped from the workspace."],
@@ -4600,6 +4772,10 @@ const TOPUP_CLEAR_MS = 8000;             // банк или касса подт�
    Каждое движение денег — проводка с остатком после неё: так выписка
    сходится с балансом без пересчёта. st — состояние агентства: в кабинете это
    S, в админке — любое из агентств. */
+/* Сколько можно потратить: баланс плюс кредитный лимит, который ставит
+   Charteri в админке (баланс может уйти в минус до лимита). */
+const creditOf = (st = S) => Number.isInteger(st.agency?.credit) && st.agency.credit > 0 ? st.agency.credit : 0;
+const available = (st = S) => st.balance + creditOf(st);
 function post(kind, amount, extra = {}, st = S){
   st.balance += amount;
   st.ledger.unshift({ id:uid("l"), at:Date.now(), kind, amount, after:st.balance, ...extra });
@@ -4697,7 +4873,7 @@ function freshState(){
   const hA = hotelById("ayt-belek"), qA = { to:"AYT", depart:addDays(TODAY, -34), nights:7, adults:2, children:0 }, pA = tourPackage(hA, qA);
   paid(order({ type:"TOUR", title:"", sub:"", start:qA.depart, end:addDays(qA.depart, qA.nights), total:pA.total, ref:"seed-tour",
     travellers:[pax(cl[1])], contact:{ phone:cl[1].phone, email:"" },
-    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back } }), now - 38 * day, "cl2");
+    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back, px:pA.px } }), now - 38 * day, "cl2");
 
   // Проводки идут по времени: остаток после каждой — как в настоящей выписке.
   post("topup", 120_000_000, { method:"card" }); S.ledger[0].at = now - 8 * day;
@@ -4805,7 +4981,8 @@ function inkOn(hex){
 }
 const brandColor = (b = S.brand) => /^#[0-9a-f]{6}$/i.test(b.color || "") ? b.color : "#16275C";
 const brandStyle = (b = S.brand) => `--bc:${brandColor(b)};--bi:${inkOn(brandColor(b))}`;
-const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram].filter(Boolean).map(esc).join(" · ");
+const handle = v => "@" + String(v).trim().replace(/^@/, "");
+const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram && "Telegram " + handle(b.telegram), b.instagram && "Instagram " + handle(b.instagram), b.website].filter(Boolean).map(esc).join(" · ");
 function brandTop(kind, b = S.brand){
   return `<div class="bd-top" style="${brandStyle(b)}">${brandMark("bd-mark", b)}<span class="bd-name">${esc(b.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
 }
@@ -4824,7 +5001,6 @@ function orderDocument(o, b = S.brand){
 /* ---- сбор Charteri ----
    Ставка фиксируется в заказе (feeBps), как курс: смена сбора в админке
    меняет только новые заказы. */
-const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
 const orderFeeBps = o => o.feeBps ?? (o.fee && o.total?.uzs ? Math.round(o.fee.uzs / o.total.uzs * 10000) : prices().feeBps);
 /* Строки чека услуги и сбор отдельной строкой. */
 const feeLines = (lines, total, fee, bps) => [...lines, [tf("service_fee", { p:pctText(bps) }), fee]];
@@ -5010,6 +5186,7 @@ function balanceCard(){
   return `<aside class="balcard ${low ? "is-low" : ""}">
     <span class="lbl">${esc(t("balance_now"))}</span>
     <b class="bal-big mono">${grp(S.balance)}<small>${esc(t("cur_uzs"))}</small></b>
+    ${creditOf() ? `<p class="bal-wait">${esc(tf("credit_avail", { amount:fmtUZS(available()) }))}</p>` : ""}
     ${waitSum ? `<p class="bal-wait">${IC.clock}<span>${esc(tf("topup_waiting", { amount:fmtUZS(waitSum) }))}</span></p>` : ""}
     ${low ? `<p class="bal-wait warn">${esc(t("balance_low"))}</p>` : ""}
     <div class="row"><a class="solid" href="#/balance?topup">${IC.plus}<span>${esc(t("topup"))}</span></a><a class="ghost sm" href="#/balance">${esc(t("statement"))}</a></div>
@@ -5085,7 +5262,7 @@ function bookPage(m){
       <button type="button" class="link" data-act="forclear">${esc(t("cancel"))}</button></div>` : ""}
     <div class="bookbox"><nav class="modtabs" aria-label="${esc(t("nav_book"))}" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k =>
       `<a class="modtab" href="#/book/${k}" ${M.module === k ? 'aria-current="page"' : ""}>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></a>`).join("")}</nav>
-      ${mod.form()}</div>
+      ${modForm(mod)}</div>
     ${M.module === "flights" ? departureBoard() : `<p class="book-note">${IC.shield}<span>${esc(t("book_note_" + M.module))}</span></p>`}
   </div>`;
 }
@@ -5107,6 +5284,7 @@ const clientByPhone = phone => S.travellers.find(c => c.phone && digits(c.phone)
 /* Бронь «для клиента» (из карточки клиента): первый путешественник и
    контакты уже заполнены. */
 function startCheckout(spec){
+  const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   const cl = S.travellers.find(c => c.id === M.ui.forClient), travellers = spec.travellers.types.map(blankTraveller);
   if (cl) Object.assign(travellers[0], clientFill(cl));
   M.checkout = { ...spec, method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
@@ -5126,20 +5304,21 @@ function priceCheck(c){
 /* Сколько спишется и что останется — в сумах: баланс агентства в сумах. */
 function balanceBlock(due){
   if (!agencyActive()) return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3><div class="err">${esc(t("agency_blocked_d"))}</div></div>`;
-  const after = S.balance - due.uzs, short = after < 0;
+  const after = S.balance - due.uzs, short = after < -creditOf(), cr = creditOf();
   return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3>
     <div class="rows">
       <div><span class="k">${esc(t("balance_now"))}</span><span class="v mono">${fmtUZS(S.balance)}</span></div>
+      ${cr ? `<div><span class="k">${esc(t("credit_limit"))}</span><span class="v mono">${fmtUZS(cr)}</span></div>` : ""}
       <div><span class="k">${esc(t("will_debit"))}</span><span class="v mono">−${fmtUZS(due.uzs)}</span></div>
       <div class="tot"><span class="k">${esc(t("balance_after"))}</span><span class="v ${short ? "bad" : ""}">${fmtUZS(after)}</span></div></div>
-    ${short ? `<div class="err shortfall"><span>${esc(tf("err_short", { amount:fmtUZS(-after) }))}</span><a class="solid sm" href="#/balance?topup">${esc(t("topup"))}</a></div>` : ""}</div>`;
+    ${short ? `<div class="err shortfall"><span>${esc(tf("err_short", { amount:fmtUZS(-after - cr) }))}</span><a class="solid sm" href="#/balance?topup">${esc(t("topup"))}</a></div>` : ""}</div>`;
 }
 
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
-    const due = withFee(total), short = due.uzs > S.balance || !agencyActive();
+    const due = withFee(total), short = due.uzs > available() || !agencyActive();
     return `<div class="page"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
       <div class="twocol"><div class="stack">
@@ -5174,9 +5353,11 @@ Object.assign(ACT, {
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
+    const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
     const due = withFee(c.total);
     if (!agencyActive()) return showErr("#cerr", t("agency_blocked_d"));
-    if (due.uzs > S.balance) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) }));
+    // Кредитный лимит: платить можно до баланса плюс лимит.
+    if (due.uzs > available()) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) }));
     const phone = prettyPhone(c.contact.phone);
     c.travellers.forEach((x, i) => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
@@ -5195,7 +5376,8 @@ Object.assign(ACT, {
       for (const v of newClients) if (!S.travellers.some(x => x.id === v.id)) S.travellers.push(v);
       const due = addA(c.total, feeOf(c.total, feeBps));
       if (!agencyActive()) { rerender(); return showErr("#cerr", t("agency_blocked_d")); }
-      if (due.uzs > S.balance) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
+      if (cantBuy(c.type, c.total)) { M.checkout = null; toast(t(cantBuy(c.type, c.total))); return go(SEARCH_PATH); }
+      if (due.uzs > available()) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
       createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId, feeBps,
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone }, details:c.details },
         id => { M.checkout = null; M.ui.forClient = null; go(`done/${id}`); });
@@ -5337,7 +5519,7 @@ function orderMain(o, st){
   if (charter && st === "NEW") return `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${TYPE_ICON[o.type]}</span><h3>${esc(t("mgr_title"))}</h3>
       <p class="muted">${esc(t("mgr_body_b2b"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
   if (st === "PENDING") {
-    const due = dueOf(o), short = due.uzs > S.balance;
+    const due = dueOf(o), short = due.uzs > available();
     return `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(tf("price_ready_b2b", { p:pctText(orderFeeBps(o)) }))}</p>
       ${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), due)}<p class="fee-note">${esc(t("fee_note"))}</p></div>
       ${balanceBlock(due)}
@@ -5384,14 +5566,14 @@ Object.assign(ACT, {
   /* Списание — на свежих данных и с повторной проверкой: за секунду ожидания
      админка или другая вкладка могли изменить баланс, статус или блокировку. */
   opay: el => {
-    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING" || !agencyActive() || dueOf(o0).uzs > S.balance) return;
+    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING" || !agencyActive() || dueOf(o0).uzs > available()) return;
     overlay(t("processing_balance"));
     setTimeout(() => {
       overlay(""); refresh();
       const o = S.orders.find(x => x.id === id), due = o && dueOf(o);
       if (!o || o.status !== "PENDING" || !due) { rerender(); return toast(t("order_changed")); }
       if (!agencyActive()) { rerender(); return toast(t("agency_blocked_d")); }
-      if (due.uzs > S.balance) { rerender(); return toast(tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
+      if (due.uzs > available()) { rerender(); return toast(tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
       post("order", -due.uzs, { orderId:o.id });
       Object.assign(o, { status:"PAID", paidAt:Date.now(), method:"balance", fee:o.fee || feeOf(o.total) }); hist(o, "PAID");
       note("paid", { orderId:o.id }); save(); rerender(); toast(tf("n_paid", { no:o.no }));
@@ -5703,7 +5885,8 @@ PAGES.brand = {
         <section class="card stack"><h2>${esc(t("brand_details"))}</h2>
           ${f("name", t("brand_name"), 'maxlength="40" autocomplete="organization"')}
           <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
-          <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("address", t("brand_address"))}</div></section>
+          <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
+          <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}

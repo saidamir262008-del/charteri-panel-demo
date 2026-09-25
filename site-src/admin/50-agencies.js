@@ -124,9 +124,14 @@ PAGES["agencies/:id"] = {
             <span class="a-num a-keep mono ${l.amount > 0 ? "plus" : ""}">${l.amount > 0 ? "+" : "−"}${grp(Math.abs(l.amount))}</span><span class="a-num mono muted">${grp(l.after)}</span></div>`).join("")}</div>` : `<p class="muted">${esc(t("ledger_empty"))}</p>`}</section>
       </div>
       <aside class="stack sticky">
+        ${brandCard(a)}
         ${can("crm.view") ? `<div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("a:" + a.id, clientData("a:" + a.id)?.manager || null)}</div></div>${tasksBlock("a:" + a.id)}` : ""}
         <div class="card stack"><span class="lbl">${esc(t("balance_now"))}</span><b class="bal-big mono">${grp(st.balance)}<small>${esc(t("cur_uzs"))}</small></b>
           ${pend.length ? `<div class="tasks compact">${pend.map(p => topupRow(p, a)).join("")}</div>` : ""}</div>
+        <div class="card stack"><h3>${esc(t("credit_limit"))}</h3><p class="muted small">${esc(t("credit_d"))}</p>
+          <p class="small">${esc(t("credit_now"))}: <b class="mono">${fmtUZS(creditOf(st))}</b> · ${esc(tf("credit_avail", { amount:fmtUZS(available(st)) }))}</p>
+          ${pendingAp("credit:" + a.id) ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : `<label class="field"><span>${esc(t("credit_new"))}</span><span class="amt-in">${inpField("cr:" + a.id, { value:String(creditOf(st)), label:t("credit_new"), extra:`inputmode="numeric" ${can("finance.manage") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
+          <div class="row"><button type="button" class="solid sm" data-act="acredit" data-v="${a.id}" ${guard("finance.manage")}>${esc(t("st_save"))}</button></div>`}</div>
         <div class="card stack"><h3>${esc(t("adjust_h"))}</h3><p class="muted small">${esc(t("adjust_d"))}</p>
           <label class="field"><span>${esc(t("topup_amount"))}</span><span class="amt-in">${inpField("adj:" + a.id, { label:t("topup_amount"), ph:t("adjust_amount_ph"), extra:`inputmode="numeric" ${can("finance.manage") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
           <label class="field"><span>${esc(t("reason"))}</span>${inpField("adjwhy:" + a.id, { label:t("reason"), ph:t("adjust_ph"), extra:`maxlength="120" ${can("finance.manage") ? "" : "disabled"}` })}</label>

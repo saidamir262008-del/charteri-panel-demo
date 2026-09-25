@@ -54,6 +54,7 @@ function balanceCard(){
   return `<aside class="balcard ${low ? "is-low" : ""}">
     <span class="lbl">${esc(t("balance_now"))}</span>
     <b class="bal-big mono">${grp(S.balance)}<small>${esc(t("cur_uzs"))}</small></b>
+    ${creditOf() ? `<p class="bal-wait">${esc(tf("credit_avail", { amount:fmtUZS(available()) }))}</p>` : ""}
     ${waitSum ? `<p class="bal-wait">${IC.clock}<span>${esc(tf("topup_waiting", { amount:fmtUZS(waitSum) }))}</span></p>` : ""}
     ${low ? `<p class="bal-wait warn">${esc(t("balance_low"))}</p>` : ""}
     <div class="row"><a class="solid" href="#/balance?topup">${IC.plus}<span>${esc(t("topup"))}</span></a><a class="ghost sm" href="#/balance">${esc(t("statement"))}</a></div>

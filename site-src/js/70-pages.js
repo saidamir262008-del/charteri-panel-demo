@@ -27,13 +27,13 @@ PAGES[""] = {
         <div class="hero-grid">
           <div class="hero-copy ${swapped && !REDUCED ? "swap-in" : ""}">
             <h1 class="hero-h">${esc(t("hero_" + M.module))}</h1>
-            <p class="hero-sub">${esc(t("hero_" + M.module + "_sub"))}</p></div>
+            <p class="hero-sub">${esc(tf("hero_" + M.module + "_sub", { p:pctText(prices().svc.TOUR.pkg) }))}</p></div>
           <div class="hero-frame" id="mapframe" role="img" aria-label="${esc(mapAria())}">${GL.state === "failed" ? routeSvg() : ""}</div>
           <p class="map-attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> · <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a></p>
         </div>
         <div class="searchbox"><div class="searchbox-core">
           <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
-          <div class="${swapped && !REDUCED ? "swap-in" : ""}">${mod.form()}</div>
+          <div class="${swapped && !REDUCED ? "swap-in" : ""}">${modForm(mod)}</div>
         </div></div></div></section>
       ${departureBoard()}
       <section class="container section">
@@ -42,7 +42,7 @@ PAGES[""] = {
       <section class="band"><div class="container section">
         <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
         <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
-          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(t("svc_" + k))}</span></button>`).join("")}</div></div></section>
+          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>
       <section class="container section">
         <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
         <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(t("how_" + i + "_d"))}</p></li>`).join("")}</ol></section>

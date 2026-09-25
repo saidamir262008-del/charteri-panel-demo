@@ -840,6 +840,17 @@ input:disabled,select:disabled{opacity:.6}
   .brd-h .brd-st,.brd-h .brd-pr{display:none}
 }
 
+/* ---- услуга выключена в админке; промокод при оформлении ---- */
+.svc-off{display:flex;gap:14px;align-items:flex-start;padding:18px;border-radius:18px;background:var(--sunken);color:var(--ink)}
+.svc-off svg{width:22px;height:22px;flex:none;color:var(--muted);margin-top:2px}
+.svc-off b{display:block;margin-bottom:4px}
+.promo-box{border-top:1px solid var(--line);padding-top:12px;gap:8px}
+.promo-in{display:flex;gap:8px}
+.promo-in input{flex:1;min-width:0;text-transform:uppercase;font-family:"IBM Plex Mono",monospace}
+.promo-ok{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--mint-ink,var(--mint))}
+.promo-ok svg{width:18px;height:18px;flex:none}
+.promo-ok .link{margin-left:auto}
+
 /* ==========================================================================
    Кабинет агентства поверх оформления сайта: те же токены, шрифты и
    компоненты. Своё — каркас (тёмно-синее меню слева, прозрачная панель
@@ -1518,6 +1529,48 @@ a.arow:hover + .arow{box-shadow:none}
 .crm-task.done .chk span{text-decoration:line-through;color:var(--faint)}
 .task-form{border-top:1px dashed var(--line);padding-top:12px}
 
+/* ---- услуги и цены ---- */
+.pct-in.sm{display:inline-block;align-self:flex-start}
+.pct-in.sm input{width:92px;font-size:15px;padding-right:28px;min-height:40px}
+.pct-in.sm i{right:10px}
+.pr-table .arow{align-items:center}
+.pr-table .chk{align-items:flex-start;flex-direction:row;min-width:0}
+.pr-table .chk input{margin-top:3px}
+.pr-lbl{display:none}
+.pr-ex{line-height:1.45}
+.pr-extra{border-top:1px solid var(--line);padding-top:14px;align-items:start}
+.pr-extra .usd-in input{width:110px}
+.adj-rows{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.adj-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.adj-row .minisel{min-width:220px;min-height:40px}
+.savebar{position:sticky;bottom:12px;z-index:5;display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;margin-top:18px;padding:12px 16px;border-radius:16px;
+  background:var(--navy);color:#fff;box-shadow:0 18px 40px -18px rgba(10,20,60,.55)}
+.savebar .muted{color:#C9D6F5}
+.savebar .row{margin-left:auto;gap:12px}
+.savebar .link{color:#fff}
+.savebar .err{flex-basis:100%;margin:0}
+.pm-form{padding:14px;border-radius:14px;background:var(--sunken)}
+.pm-svc{border:0;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px;min-width:0}
+.pm-svc legend{font-size:13px;font-weight:600;margin-bottom:6px;padding:0}
+.pm-svc p{flex-basis:100%;margin:0}
+.pm-on{background:var(--mint-bg);color:var(--mint-ink)}
+.pm-off,.pm-ended,.pm-used{background:var(--sunken);color:var(--muted)}
+.pm-soon{background:var(--sky);color:var(--navy)}
+
+/* ---- документы заказа, бренд агентства ---- */
+.send-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.send-row input{flex:1 1 200px;min-height:40px;padding:7px 10px}
+.send-row .minisel{min-height:40px}
+.sent-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px}
+.sent-list li{display:flex;gap:8px;align-items:flex-start}
+.sent-list svg{width:16px;height:16px;color:var(--mint-ink);flex:none;margin-top:2px}
+.ab-prev{border-radius:14px;overflow:hidden;box-shadow:inset 0 0 0 1px var(--line)}
+.ab-prev .bd-foot{padding:10px 14px;font-size:12.5px}
+.ab-form input[type="color"]{width:64px;height:40px;padding:2px;border-radius:10px}
+.filebtn{position:relative;overflow:hidden;cursor:pointer}
+.filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.oc-form{gap:10px}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
@@ -1545,6 +1598,10 @@ a.arow:hover + .arow{box-shadow:none}
   .arow.ahead{display:none}
   .note-form{grid-template-columns:1fr}
   .ohead > .row{grid-column:1 / -1}
+  .twocol{grid-template-columns:minmax(0,1fr)}
+  .pr-lbl{display:inline;font-size:12px;color:var(--muted);margin-right:8px}
+  .pr-cell{display:flex;align-items:center;margin-top:6px}
+  .adj-row .minisel{min-width:0;flex:1 1 100%}
   /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
   .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
@@ -1567,6 +1624,8 @@ a.arow:hover + .arow{box-shadow:none}
   .whosel .minisel{max-width:150px}
   .taskchip .tc-l{display:none}
 }
+
+@media print{ .no-print{display:none!important} }
 
 </style>
 </head>
@@ -1738,6 +1797,24 @@ const STR = {
   err_contact:["Укажите телефон в формате +998 XX XXX XX XX","Telefonni +998 XX XXX XX XX formatida kiriting","Enter a phone as +998 XX XXX XX XX"],
   err_date_past:["Эта дата уже прошла","Bu sana o‘tib ketgan","This date has passed"],
   err_dob:["Укажите дату рождения","Tug‘ilgan sanani kiriting","Enter the date of birth"],
+  promo_h:["Промокод","Promokod","Promo code"],
+  promo_ph:["Например, SUMMER10","Masalan, SUMMER10","For example, SUMMER10"],
+  promo_apply:["Применить","Qo‘llash","Apply"],
+  promo_remove:["Убрать","Olib tashlash","Remove"],
+  promo_line:["Промокод {code}","Promokod {code}","Promo code {code}"],
+  promo_auto_line:["Акция: {name}","Aksiya: {name}","Offer: {name}"],
+  promo_ok:["Промокод {code} применён","{code} promokodi qo‘llandi","Promo code {code} applied"],
+  promo_better_auto:["Действует акция с большей скидкой — применена она.","Kattaroq chegirmali aksiya amalda — u qo‘llandi.","An offer with a bigger discount applies, so we used it."],
+  err_promo_empty:["Введите промокод","Promokodni kiriting","Enter a promo code"],
+  promo_changed:["Скидка изменилась — проверьте сумму и нажмите «Оплатить» ещё раз","Chegirma o‘zgardi — summani tekshirib, «To‘lash»ni yana bosing","The discount changed. Check the total and press Pay again"],
+  err_total:["Цену не удалось рассчитать. Обновите поиск.","Narxni hisoblab bo‘lmadi. Qidiruvni yangilang.","We couldn’t price this. Please search again."],
+  err_promo_unknown:["Такого промокода нет","Bunday promokod yo‘q","No such promo code"],
+  err_promo_expired:["Промокод не действует","Promokod amal qilmaydi","This promo code isn’t active"],
+  err_promo_svc:["Промокод не подходит к этой услуге","Promokod bu xizmatga mos emas","This promo code doesn’t cover this service"],
+  err_promo_min:["Промокод действует для заказа от {min}","Promokod {min} dan buyurtma uchun amal qiladi","This promo code needs an order of {min} or more"],
+  err_promo_used:["Лимит использований промокода исчерпан","Promokoddan foydalanish chegarasi tugagan","This promo code has run out"],
+  svc_off_h:["Услуга временно недоступна","Xizmat vaqtincha mavjud emas","This service is temporarily unavailable"],
+  svc_off_d:["Мы скоро её вернём. Остальные услуги работают как обычно.","Tez orada qaytaramiz. Boshqa xizmatlar odatdagidek ishlaydi.","We’ll bring it back soon. Other services work as usual."],
   err_blocked:["Бронирование с этого номера закрыто. Свяжитесь с поддержкой Charteri.","Bu raqamdan bron qilish yopilgan. Charteri qo‘llab-quvvatlash xizmatiga murojaat qiling.","Booking from this number is closed. Please contact Charteri support."],
   err_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
   err_expiry:["Паспорт истекает раньше, чем закончится поездка","Pasport muddati safar tugashidan oldin tugaydi","The passport expires before the trip ends"],
@@ -1791,7 +1868,7 @@ const STR = {
   hero_jet:["Частный самолёт — по вашему расписанию","Xususiy samolyot — sizning jadvalingiz bo‘yicha","A private jet on your schedule"],
   hero_jet_sub:["Из любого аэропорта Узбекистана. Оценка стоимости сразу, точная цена — от менеджера.","O‘zbekistonning istalgan aeroportidan. Narx darhol baholanadi, aniq narxni menejer beradi.","From any airport in Uzbekistan. An estimate right away, the exact price from a manager."],
   hero_tours:["Тур на море: перелёт, отель и трансфер","Dengizga tur: parvoz, mehmonxona va transfer","Beach holidays: flight, hotel and transfer"],
-  hero_tours_sub:["Пакетом на 7% дешевле, чем покупать всё отдельно. Страховка включена.","Paket holida alohida sotib olishdan 7% arzon. Sug‘urta kiritilgan.","7% cheaper as a package than bought separately. Insurance included."],
+  hero_tours_sub:["Пакетом на {p}% дешевле, чем покупать всё отдельно.","Paket holida alohida sotib olishdan {p}% arzon.","{p}% cheaper as a package than bought separately."],
   history:["История заказа","Buyurtma tarixi","Order history"],
   home:["На главную","Bosh sahifa","Home"],
   hotel:["Отель","Mehmonxona","Hotel"],
@@ -1854,7 +1931,7 @@ const STR = {
   orders_empty:["Заказов пока нет","Hozircha buyurtmalar yo‘q","No orders yet"],
   orders_empty_d:["Билеты, ваучеры и заявки появятся здесь","Chiptalar, vaucherlar va so‘rovlar shu yerda paydo bo‘ladi","Tickets, vouchers and requests will appear here"],
   orders_sub:["Билеты, ваучеры и заявки на частные рейсы","Chiptalar, vaucherlar va xususiy reyslarga so‘rovlar","Tickets, vouchers and private flight requests"],
-  package_discount:["Пакетная скидка 7%","Paket chegirmasi 7%","Package discount 7%"],
+  package_discount:["Пакетная скидка {p}%","Paket chegirmasi {p}%","Package discount {p}%"],
   pax_adult:["Взрослый","Katta","Adult"],
   pax_child:["Ребёнок","Bola","Child"],
   pax_infant:["Младенец","Chaqaloq","Infant"],
@@ -1905,7 +1982,7 @@ const STR = {
   svc_heli:["Горы и озёра Ташкентской области, Самарканд, обзорные полёты","Toshkent viloyati tog‘lari va ko‘llari, Samarqand, sayr parvozlari","Mountains and lakes near Tashkent, Samarkand, sightseeing flights"],
   svc_hotels:["Курортные и городские отели, фильтр по звёздам и питанию","Kurort va shahar mehmonxonalari, yulduz va ovqat bo‘yicha filtr","Resort and city hotels, filter by stars and meals"],
   svc_jet:["Бизнес-джеты от лёгких до тяжёлых, оценка стоимости сразу","Yengildan og‘irgacha biznes-jetlar, narx darhol baholanadi","Business jets from light to heavy, instant estimate"],
-  svc_tours:["Перелёт, отель и трансфер одним заказом, дешевле на 7%","Parvoz, mehmonxona va transfer bitta buyurtmada, 7% arzonroq","Flight, hotel and transfer in one booking, 7% cheaper"],
+  svc_tours:["Перелёт и отель одним заказом, дешевле на {p}%","Parvoz va mehmonxona bitta buyurtmada, {p}% arzonroq","Flight and hotel in one booking, {p}% cheaper"],
   swap:["Поменять местами","Almashtirish","Swap"],
   t_day:["День","Kunduzi","Afternoon"],
   t_evening:["Вечер","Kechqurun","Evening"],
@@ -2292,15 +2369,89 @@ const BLOCK_KEY = "charteri.ops.blocked";
 const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
-const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
-const OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+/* ---- цены и услуги: их ставит админка (PRICES_KEY) ----
+   feeBps — сервисный сбор агентств, flightMarkupBps — наценка на авиабилеты;
+   svc — по услуге: работает ли (on), поправка для сайта (b2c) и для агентств
+   (b2b) в сотых процента, у тура — скидка пакета (pkg); у трансфера и
+   страховки — цена за человека в долларах (страховка 0 — включена в тур);
+   dest — поправка по направлению, agents — индивидуальная поправка агентства;
+   promos — промокоды и акции сайта. Всё в сотых процента, от −50% до +50%. */
+const SVC_TYPES = ["FLIGHT", "TOUR", "HOTEL", "JET", "HELI"], ADDONS = ["TRANSFER", "INSURANCE"];
+const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000, pkgBps:700, transferUsd:20, insuranceUsd:0 };
+const ADJ_MAX = 5000, OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+const LIVE_AGENCY = "ag-live";
 let PRICES = null;
 function prices(){
   if (PRICES) return PRICES;
   let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
-  const ok = v => Number.isInteger(v) && v >= 0 && v <= 5000;
-  PRICES = { feeBps: ok(saved.feeBps) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps: ok(saved.flightMarkupBps) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps };
+  const ok = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi, on = v => typeof v === "boolean" ? v : true;
+  const svc = {};
+  for (const k of SVC_TYPES) { const x = saved.svc?.[k] || {};
+    svc[k] = { on:on(x.on), b2c:ok(x.b2c, -ADJ_MAX, ADJ_MAX) ? x.b2c : 0, b2b:ok(x.b2b, -ADJ_MAX, ADJ_MAX) ? x.b2b : 0 }; }
+  svc.TOUR.pkg = ok(saved.svc?.TOUR?.pkg, 0, 3000) ? saved.svc.TOUR.pkg : PRICE_DEFAULTS.pkgBps;
+  svc.TRANSFER = { on:on(saved.svc?.TRANSFER?.on), usd:ok(saved.svc?.TRANSFER?.usd, 0, 1000) ? saved.svc.TRANSFER.usd : PRICE_DEFAULTS.transferUsd };
+  svc.INSURANCE = { on:on(saved.svc?.INSURANCE?.on), usd:ok(saved.svc?.INSURANCE?.usd, 0, 1000) ? saved.svc.INSURANCE.usd : PRICE_DEFAULTS.insuranceUsd };
+  const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
+  PRICES = { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
+    svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
+    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
   return PRICES;
+}
+/* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
+   агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
+   для кабинета — ещё индивидуальная цена агентства. */
+const CHANNEL = APP === "b2c" ? "b2c" : "b2b";
+/* Поправки складываются, но итог не ниже −50% и не выше +100%: цена не может
+   стать нулевой или отрицательной, как бы ни сложились настройки. */
+function adjBps(type, dest){
+  const p = prices(), sum = (p.svc[type]?.[CHANNEL] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
+  return Math.max(-ADJ_MAX, Math.min(2 * ADJ_MAX, sum));
+}
+/* Проценты из сотых: 150 → «1,5» (в английском — «1.5»). */
+const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
+const withAdj = (usd, type, dest) => usd * (1 + adjBps(type, dest) / 10000);
+const svcOn = type => prices().svc[type]?.on !== false;
+const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
+/* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
+const modForm = mod => svcOn(mod.type) ? mod.form() : svcOffNote();
+/* Нельзя купить: услуга выключена или итог не положительный. */
+const cantBuy = (type, total) => !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
+
+/* ---- промокоды и акции (только сайт; авиабилеты, туры, отели) ----
+   Промокод вводят; акция (auto) применяется сама. Скидка одна на заказ —
+   бо́льшая; при равной побеждает промокод: его вводили специально. Сколько
+   раз код использован — по заказам сайта в этом браузере. */
+const PROMO_TYPES = ["FLIGHT", "TOUR", "HOTEL"], PROMO_MAX = 100;
+function validPromo(x){
+  return !!x && typeof x.id === "string" && /^[\w-]{1,40}$/.test(x.id) && typeof x.name === "string" && !!x.name.trim() && ["pct", "fixed"].includes(x.kind)
+    && Number.isInteger(x.value) && x.value > 0 && x.value <= (x.kind === "pct" ? 9000 : 100000)
+    && (x.auto === true || /^[A-Z0-9][A-Z0-9_-]{2,19}$/.test(x.code || ""));
+}
+/* Данные из хранилища — чужие: только известные поля в правильном виде. */
+const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+  return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+/* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
+const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
+/* Почему промокод не подходит заказу (ключ строки) или null. */
+function promoProblem(x, type, total, orders){
+  if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
+  if (!x.active) return "err_promo_expired";
+  if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
+  if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
+  if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
+  if (x.limit && promoUsed(x, orders) >= x.limit) return "err_promo_used";
+  return null;
+}
+const promoOffUsd = (x, total) => Math.max(0, Math.min(total.usd - 1, x.kind === "pct" ? Math.floor(total.usd * x.value / 10000) : x.value));
+function bestPromo(type, total, code, orders){
+  let best = null;
+  for (const x of prices().promos) {
+    if (!(x.auto || (code && x.code === code)) || promoProblem(x, type, total, orders)) continue;
+    const off = promoOffUsd(x, total);
+    if (off > 0 && (!best || off > best.off || (off === best.off && !x.auto && best.x.auto))) best = { x, off };
+  }
+  return best ? { id:best.x.id, code:best.x.code || "", name:best.x.name, auto:!!best.x.auto, off:{ usd:best.off, uzs:Math.round(total.uzs * best.off / total.usd) } } : null;
 }
 /* Каждая вкладка админки отмечается своей строкой: закрыли одну — другие на месте. */
 function opsLive(){
@@ -2402,6 +2553,9 @@ function render(scrollTop = true){
   try { html = page.render(params); }
   catch (e) { console.error(e); html = `<div class="container section"><div class="err">${esc(t("err_generic"))}</div></div>`; }
   if (html === null) return;                        // страница перенаправила
+  // Выдача и карточки выключенной в админке услуги — с объявлением сверху: купить всё равно нельзя.
+  const svcType = { flights:"FLIGHT", hotels:"HOTEL", tours:"TOUR" }[key.split("/")[0]];
+  if (svcType && key.includes("/") && !svcOn(svcType)) html = `<div class="container section" style="padding-bottom:0">${svcOffNote()}</div>` + html;
   $("#app").innerHTML = html;
   renderNav(key);
   // Новая страница открывается сверху сразу: плавная прокрутка html{scroll-behavior}
@@ -3559,7 +3713,8 @@ function generateOffers({ from, to, date, cabin }){
     const rawBase = cabin === "business" ? seed.busPrice : seed.ecoPrice;
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
-    const priceUSD = Math.round(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000));   // наценка (10%, меняется в админке), как на сервере
+    // Наценка на авиабилеты и поправка канала и направления — из админки.
+    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,
@@ -3854,14 +4009,16 @@ function flightDocument(o){
    ========================================================================== */
 "use strict";
 
-function hotelNightly(h, date){
+/* bps — поправка цены из админки: для отеля отдельно — «Отели», в туре —
+   «Туры» (её передаёт тур), плюс поправка по направлению. */
+function hotelNightly(h, date, bps = adjBps("HOTEL", h.city)){
   const month = parseYMD(date).getMonth() + 1;
   // У направлений из админки сезона нет — цена ровная весь год.
   const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
-  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
+  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12) * (1 + bps / 10000);
 }
-function hotelStay(h, checkin, nights, rooms, mult = 1){
-  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i));
+function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city)){
+  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i), bps);
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
@@ -4030,31 +4187,38 @@ function hotelVoucherBody(o){
    ========================================================================== */
 "use strict";
 
-const TOUR_DISCOUNT = 0.93;
-const TRANSFER_USD = 20;          // за человека, туда и обратно
+/* Цены пакета — из настроек админки: поправка на отель в туре, скидка
+   пакета, трансфер и страховка за человека (null — не входит, 0 — входит
+   бесплатно). Заказ хранит их снимок (px), чтобы строки чека сходились с
+   оплаченной суммой и после смены цен. У старых заказов снимка нет — они
+   считались по прежним постоянным (LEGACY_PX). */
+const LEGACY_PX = { hotel:0, pkg:700, transfer:20, insurance:0 };
+function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null }; }
 
 /* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
    от сегодняшней наценки. Без них — рейсы по текущим ценам. */
 function tourPackage(h, q, legs = null){
+  const px = legs ? legs.px || LEGACY_PX : tourPx(h);
   const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
-  const hotel = hotelStay(h, q.depart, q.nights, rooms);
-  const transfer = mulA(amt(TRANSFER_USD), people);
-  const separate = addA(flights, hotel, transfer);
-  const total = pctA(separate, TOUR_DISCOUNT);
+  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel);
+  const transfer = px.transfer == null ? null : mulA(amt(px.transfer), people);
+  const insurance = px.insurance ? mulA(amt(px.insurance), people) : null;
+  const separate = addA(flights, hotel, ...[transfer, insurance].filter(Boolean));
+  const total = pctA(separate, 1 - px.pkg / 10000);
   const saving = { usd: separate.usd - total.usd, uzs: separate.uzs - total.uzs };
   const perPerson = { usd: Math.round(total.usd / people), uzs: Math.round(total.uzs / people / 1000) * 1000 };
-  return { h, out, back, people, rooms, flights, hotel, transfer, separate, total, saving, perPerson };
+  return { h, out, back, people, rooms, flights, hotel, transfer, insurance, px, separate, total, saving, perPerson };
 }
 /* Строки чека: их сумма ровно равна итогу — скидка идёт отрицательной строкой. */
 function tourLines(p, q){
   return [
     [`${t("flight_rt")} × ${pl(p.people, "pax")}`, p.flights],
     [`${p.h.name} · ${pl(q.nights, "night")} × ${pl(p.rooms, "room")}`, p.hotel],
-    [t("transfer"), p.transfer],
-    [t("insurance"), null],
-    [t("package_discount"), { usd: -p.saving.usd, uzs: -p.saving.uzs }]
+    ...(p.transfer ? [[t("transfer"), p.transfer]] : []),
+    ...(p.px.insurance != null ? [[t("insurance"), p.insurance]] : []),     // 0 — «включено»
+    ...(p.px.pkg ? [[tf("package_discount", { p:pctText(p.px.pkg) }), { usd: -p.saving.usd, uzs: -p.saving.uzs }]] : [])
   ];
 }
 
@@ -4137,7 +4301,7 @@ function tourRow(p, i, rc){
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
       <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
       <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
-      <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
+      <div class="incl">${[t("incl_flight"), ...(p.px.transfer != null ? [t("incl_transfer")] : []), ...(p.px.insurance != null ? [t("incl_insurance")] : [])].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
       <small class="muted">${esc(t("per_person"))}</small>
@@ -4159,7 +4323,7 @@ PAGES["tours/item/:id"] = {
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
           <div class="card stack"><h3>${esc(t("tour_includes"))}</h3><div class="incl big">
-            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), t("incl_transfer_full"), t("incl_insurance_full")]
+            ${[t("incl_flight_full"), tf("incl_hotel_full", { n: pl(q.nights, "night"), b: t("board_" + h.board) }), ...(p.px.transfer != null ? [t("incl_transfer_full")] : []), ...(p.px.insurance != null ? [t("incl_insurance_full")] : [])]
               .map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div></div></div>
         <aside class="card sticky stack"><span class="lbl">${esc(t("tour_price"))}</span>
           ${checkLines(lines, p.total, "tour")}
@@ -4179,8 +4343,8 @@ function startTourCheckout(hid){
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
     priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
-      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back } }; },
-    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back },
+      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
+    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
   });
 }
@@ -4192,8 +4356,8 @@ function tourVoucherBody(o){
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
     <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
-    <div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>
-    <div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>
+    ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
+    ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>
   </div>`;
 }
@@ -4214,7 +4378,7 @@ function jetEstimate(q){
   const cls = fitClass(JETS, q.pax, q.cls); if (!cls) return null;
   const km = distanceKm(COORDS[q.from], COORDS[q.to]);
   const hours = km / cls.speed + 0.4;                         // + руление, набор, снижение
-  const base = hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1);
+  const base = withAdj(hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1), "JET", q.to === "TAS" ? q.from : q.to);
   return { cls, km, hours, low: amt(round(base, 100)), high: amt(round(base * 1.3, 100)), final: amt(round(base * 1.12, 100)) };
 }
 function heliEstimate(q){
@@ -4224,7 +4388,7 @@ function heliEstimate(q){
   const hours = d.tour ? 0.5 : km / cls.speed + 0.25;
   // В одну сторону вертолёт всё равно возвращается на базу — оплачивается частично.
   const legs = d.tour ? 1 : q.trip === "roundtrip" ? 2 : 1.6;
-  const base = Math.max(hours * cls.rate * legs, cls.rate * 0.5);
+  const base = withAdj(Math.max(hours * cls.rate * legs, cls.rate * 0.5), "HELI", q.to);
   return { cls, km, hours, dest:d, low: amt(round(base, 50)), high: amt(round(base * 1.25, 50)), final: amt(round(base * 1.1, 50)) };
 }
 const heliName = id => HELI_DEST.find(x => x.id === id)?.name[S.lang] ?? id;
@@ -4307,6 +4471,7 @@ function charterPage(kind){
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
   return `<div class="container section">${backLink(SEARCH_PATH, t(APP === "b2b" ? "nav_book" : "home"))}
     ${pageHead(t(isJet ? "jet_title" : "heli_title"), t(isJet ? "jet_sub" : "heli_sub"))}
+    ${svcOn(isJet ? "JET" : "HELI") ? "" : svcOffNote()}
     <div class="twocol"><div class="stack">
       <div class="card stack"><h3>${esc(t("route_when"))}</h3>
         <div class="sgrid sgrid-2">${routeFields}
@@ -4341,6 +4506,7 @@ PAGES["charter/heli"] = { render: () => charterPage("heli") };
 function sendCharterRequest(kind){
   const q = M[kind], isJet = kind === "jet", e = isJet ? jetEstimate(q) : heliEstimate(q);
   hideErr("#cherr");
+  if (!svcOn(isJet ? "JET" : "HELI")) return showErr("#cherr", t("svc_off_h"));
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
   if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));
@@ -4399,6 +4565,7 @@ function checkLines(lines, total, countKey){
 
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
+  const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   M.checkout = { ...spec, method:"payme", pstate: spec.recheck ? "checking" : "ok", pending:null,
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
@@ -4427,7 +4594,10 @@ function travellerForm(x, i, mode){
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
-    const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
+    const lines0 = c.pstate === "changed" ? c.pending.lines : c.lines, gross = c.pstate === "changed" ? c.pending.total : c.total;
+    // Скидка по промокоду или акции — отдельной строкой чека; к оплате — со скидкой.
+    const pr = checkoutPromo(c, gross), total = pr ? subA(gross, pr.off) : gross, lines = pr ? [...lines0, promoLine(pr)] : lines0;
+    c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
     else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
@@ -4449,7 +4619,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(lines, total, "checkout")}${check}
+        ${checkLines(lines, total, "checkout")}${check}${promoBox(c, pr)}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" ? "" : "disabled"}>${esc(t("pay_now"))} · ${fmt(total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></aside></div></div>`;
   },
@@ -4497,6 +4667,8 @@ Object.assign(ACT, {
     rerender();
   },
   cmethod: el => { M.checkout.method = el.dataset.v; rerender(); },
+  cpromo:  () => applyPromo(),
+  cpromox: () => { M.checkout.promoCode = null; rerender(); $("[data-pc]")?.focus(); },
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
@@ -4506,15 +4678,52 @@ Object.assign(ACT, {
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
     });
     S.travellers = S.travellers.slice(0, 10);
+    const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
+    const pr = checkoutPromo(c, c.total);
+    // Скидка изменилась, пока страница была открыта (акцию выключили) — показываем новую сумму, не списываем молча.
+    if ((pr ? pr.off.usd : 0) !== (c.shownOff || 0)) { rerender(); return toast(t("promo_changed")); }
     overlay(t("processing"));
     setTimeout(() => {
       overlay("");
-      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total,
+      createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
+        ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
         method:c.method, details:c.details }, id => { M.checkout = null; go(`done/${id}`); });
     }, 1400);
   }
 });
+
+/* ---- промокод при оформлении (только сайт) ---- */
+const subA = (a, b) => ({ usd:a.usd - b.usd, uzs:a.uzs - b.uzs });
+const promoLine = pr => [pr.auto ? tf("promo_auto_line", { name:pr.name }) : tf("promo_line", { code:pr.code }), { usd:-pr.off.usd, uzs:-pr.off.uzs }];
+const checkoutPromo = (c, total) => APP === "b2c" && total?.usd > 0 ? bestPromo(c.type, total, c.promoCode || "", S.orders) : null;
+function promoBox(c, pr){
+  if (APP !== "b2c") return "";
+  const applied = c.promoCode && pr && pr.code === c.promoCode;
+  return `<div class="promo-box stack">
+    ${applied ? `<p class="promo-ok">${IC.ok}<span>${esc(tf("promo_ok", { code:c.promoCode }))}</span><button type="button" class="link" data-act="cpromox">${esc(t("promo_remove"))}</button></p>`
+      : `<label class="field"><span>${esc(t("promo_h"))}</span><span class="promo-in"><input data-pc value="${esc(c.promoIn || "")}" autocomplete="off" maxlength="20" placeholder="${esc(t("promo_ph"))}" aria-describedby="perr">
+          <button type="button" class="ghost sm" data-act="cpromo">${esc(t("promo_apply"))}</button></span></label>`}
+    ${c.promoCode && pr && pr.auto ? `<p class="small muted">${esc(t("promo_better_auto"))}</p>` : ""}
+    <div class="err" id="perr" hidden></div></div>`;
+}
+document.addEventListener("input", e => { if (e.target.dataset?.pc != null && M.checkout) M.checkout.promoIn = e.target.value; });
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.dataset?.pc != null) { e.preventDefault(); applyPromo(); } });
+function applyPromo(){
+  const c = M.checkout; if (!c) return;
+  const code = String(c.promoIn || "").trim().toUpperCase(), total = c.pstate === "changed" ? c.pending.total : c.total;
+  hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
+  const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
+  if (!code) return bad(t("err_promo_empty"));
+  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
+  if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
+  c.promoCode = code; c.promoIn = ""; rerender();
+  // Бо́льшая акция побеждает — так и говорим, а не «промокод применён».
+  const pr = checkoutPromo(c, total);
+  toast(pr?.code === code ? tf("promo_ok", { code }) : t("promo_better_auto"));
+  ($('[data-act="cpromox"]') || $("[data-pc]"))?.focus();
+}
 
 /* ------------------------------------------------------------------ заказы */
 function createOrder(spec, then){
@@ -4522,6 +4731,7 @@ function createOrder(spec, then){
   const o = { id:uid("o"), no:makeRef(`${spec.ref}:${now}:${Math.random()}`), type:spec.type, status:spec.status, createdAt:now,
     title:spec.title, sub:spec.sub, start:spec.start, end:spec.end, total:spec.total, method:spec.method || null,
     travellers:spec.travellers, contact:spec.contact, details:spec.details, req:null, paidAt:null,
+    ...(spec.promo ? { promo:spec.promo, gross:spec.gross } : {}),
     history: spec.status === "CONFIRMED" ? [{ s:"PAID", at:now }, { s:"CONFIRMED", at:now + 1000 }] : [{ s:"NEW", at:now }] };
   S.orders.unshift(o); save(); then?.(o.id);
   return o;
@@ -4546,12 +4756,18 @@ function orderSub(o){
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
 const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
+/* Строки чека заказа. Со скидкой по промокоду строки считаются от суммы до
+   скидки (gross), а скидка идёт отдельной строкой — итог сходится с оплатой. */
 function orderLines(o){
+  const base = orderLinesBase(o.promo ? { ...o, total:o.gross || o.total } : o);
+  return o.promo ? [...base, promoLine(o.promo)] : base;
+}
+function orderLinesBase(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
   // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
   if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { px:d.px, out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];
@@ -4660,7 +4876,7 @@ Object.assign(STR, {
   book_sub:["Пять услуг Charteri по ценам для агентств. Оплата — с баланса, документы — с вашим брендом.","Charteri’ning beshta xizmati agentlik narxlarida. To‘lov — balansdan, hujjatlar — brendingiz bilan.","Charteri’s five services at agency rates. Pay from your balance; documents carry your brand."],
   booking_for:["Бронь для клиента: {name}","Mijoz uchun bron: {name}","Booking for client: {name}"],
   book_note_flights:["Цена проверяется у авиакомпании перед оплатой.","Narx to‘lovdan oldin aviakompaniyada tekshiriladi.","The fare is rechecked with the airline before payment."],
-  book_note_tours:["Тур — это рейс, отель, трансфер и страховка. Цену подтверждает туроператор перед оплатой.","Tur — reys, mehmonxona, transfer va sug‘urta. Narxni to‘lovdan oldin turoperator tasdiqlaydi.","A tour bundles flight, hotel, transfer and insurance. The tour operator confirms the price before payment."],
+  book_note_tours:["Тур — это рейс и отель одним заказом; трансфер и страховка — если входят в тур. Цену подтверждает туроператор перед оплатой.","Tur — reys va mehmonxona bitta buyurtmada; transfer va sug‘urta — agar turga kirsa. Narxni to‘lovdan oldin turoperator tasdiqlaydi.","A tour bundles the flight and hotel, plus transfer and insurance when included. The tour operator confirms the price before payment."],
   book_note_hotels:["Бесплатная отмена за 7 дней до заезда, позже поставщик удерживает 50%.","Kirishdan 7 kun oldin bekor qilish bepul, keyin yetkazib beruvchi 50% ushlab qoladi.","Free cancellation up to 7 days before check-in; after that the supplier keeps 50%."],
   book_note_jet:["Оценка — ориентир. Точную цену пришлёт оператор, оплата — после неё, с баланса.","Baho — taxminiy. Aniq narxni operator yuboradi, to‘lov — undan keyin, balansdan.","The estimate is a guide. The operator sends the exact price; you pay from the balance after that."],
   book_note_heli:["Оценка — ориентир. Точную цену пришлёт оператор, оплата — после неё, с баланса.","Baho — taxminiy. Aniq narxni operator yuboradi, to‘lov — undan keyin, balansdan.","The estimate is a guide. The operator sends the exact price; you pay from the balance after that."],
@@ -4794,6 +5010,7 @@ Object.assign(STR, {
   err_logo_read:["Не удалось прочитать картинку. Попробуйте другой файл.","Rasmni o‘qib bo‘lmadi. Boshqa faylni sinab ko‘ring.","Couldn’t read that image. Try another file."],
   brand_details:["Название и контакты","Nomi va kontaktlar","Name and contacts"],
   brand_name:["Название на документах","Hujjatlardagi nom","Name on documents"],
+  brand_website:["Сайт","Sayt","Website"],
   brand_address:["Адрес","Manzil","Address"],
   brand_color:["Фирменный цвет","Brend rangi","Brand colour"],
   brand_color_own:["Свой цвет","O‘z rangingiz","Custom colour"],
@@ -4804,6 +5021,8 @@ Object.assign(STR, {
   agency:["Агентство","Agentlik","Agency"],
   agency_legal:["Юрлицо","Yuridik shaxs","Legal entity"],
   agency_inn:["ИНН","STIR","TIN"],
+  credit_limit:["Кредитный лимит","Kredit limiti","Credit limit"],
+  credit_avail:["Доступно с кредитом: {amount}","Kredit bilan mavjud: {amount}","Available with credit: {amount}"],
   agency_email:["Почта","Pochta","Email"],
   agency_since:["В Charteri с","Charteri’da","With Charteri since"],
   agency_fee:["Сервисный сбор","Xizmat yig‘imi","Service fee"],
@@ -4814,6 +5033,7 @@ Object.assign(STR, {
   n_topup_rejected:["Пополнение на {amount} отклонено: {reason}","{amount} to‘ldirish rad etildi: {reason}","Top-up of {amount} rejected: {reason}"],
   n_adjust:["Charteri изменил баланс на {amount}: {reason}","Charteri balansni {amount}ga o‘zgartirdi: {reason}","Charteri changed the balance by {amount}: {reason}"],
   n_blocked:["Charteri приостановил работу агентства: {reason}","Charteri agentlik ishini to‘xtatdi: {reason}","Charteri blocked the agency: {reason}"],
+  n_credit:["Charteri установил кредитный лимит: {amount}","Charteri kredit limitini o‘rnatdi: {amount}","Charteri set your credit limit to {amount}"],
   n_message:["Сообщение от Charteri: {reason}","Charteri xabari: {reason}","Message from Charteri: {reason}"],
   n_unblocked:["Работа агентства возобновлена","Agentlik ishi tiklandi","The agency has been unblocked"],
   agency_note:["Реквизиты меняются через менеджера Charteri — из кабинета их не подменить.","Rekvizitlar Charteri menejeri orqali o‘zgartiriladi — kabinetdan almashtirib bo‘lmaydi.","Company details change through your Charteri manager, so they can’t be swapped from the workspace."],
@@ -4882,6 +5102,10 @@ const TOPUP_CLEAR_MS = 8000;             // банк или касса подт�
    Каждое движение денег — проводка с остатком после неё: так выписка
    сходится с балансом без пересчёта. st — состояние агентства: в кабинете это
    S, в админке — любое из агентств. */
+/* Сколько можно потратить: баланс плюс кредитный лимит, который ставит
+   Charteri в админке (баланс может уйти в минус до лимита). */
+const creditOf = (st = S) => Number.isInteger(st.agency?.credit) && st.agency.credit > 0 ? st.agency.credit : 0;
+const available = (st = S) => st.balance + creditOf(st);
 function post(kind, amount, extra = {}, st = S){
   st.balance += amount;
   st.ledger.unshift({ id:uid("l"), at:Date.now(), kind, amount, after:st.balance, ...extra });
@@ -4979,7 +5203,7 @@ function freshState(){
   const hA = hotelById("ayt-belek"), qA = { to:"AYT", depart:addDays(TODAY, -34), nights:7, adults:2, children:0 }, pA = tourPackage(hA, qA);
   paid(order({ type:"TOUR", title:"", sub:"", start:qA.depart, end:addDays(qA.depart, qA.nights), total:pA.total, ref:"seed-tour",
     travellers:[pax(cl[1])], contact:{ phone:cl[1].phone, email:"" },
-    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back } }), now - 38 * day, "cl2");
+    details:{ hotelId:hA.id, to:"AYT", depart:qA.depart, nights:7, adults:2, children:0, rooms:pA.rooms, out:pA.out, back:pA.back, px:pA.px } }), now - 38 * day, "cl2");
 
   // Проводки идут по времени: остаток после каждой — как в настоящей выписке.
   post("topup", 120_000_000, { method:"card" }); S.ledger[0].at = now - 8 * day;
@@ -5087,7 +5311,8 @@ function inkOn(hex){
 }
 const brandColor = (b = S.brand) => /^#[0-9a-f]{6}$/i.test(b.color || "") ? b.color : "#16275C";
 const brandStyle = (b = S.brand) => `--bc:${brandColor(b)};--bi:${inkOn(brandColor(b))}`;
-const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram].filter(Boolean).map(esc).join(" · ");
+const handle = v => "@" + String(v).trim().replace(/^@/, "");
+const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram && "Telegram " + handle(b.telegram), b.instagram && "Instagram " + handle(b.instagram), b.website].filter(Boolean).map(esc).join(" · ");
 function brandTop(kind, b = S.brand){
   return `<div class="bd-top" style="${brandStyle(b)}">${brandMark("bd-mark", b)}<span class="bd-name">${esc(b.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
 }
@@ -5106,7 +5331,6 @@ function orderDocument(o, b = S.brand){
 /* ---- сбор Charteri ----
    Ставка фиксируется в заказе (feeBps), как курс: смена сбора в админке
    меняет только новые заказы. */
-const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
 const orderFeeBps = o => o.feeBps ?? (o.fee && o.total?.uzs ? Math.round(o.fee.uzs / o.total.uzs * 10000) : prices().feeBps);
 /* Строки чека услуги и сбор отдельной строкой. */
 const feeLines = (lines, total, fee, bps) => [...lines, [tf("service_fee", { p:pctText(bps) }), fee]];
@@ -5166,7 +5390,7 @@ Object.assign(STR, {
   an_agencies:["Агентства","Agentliklar","Agencies"],
   an_customers:["Пассажиры сайта","Sayt yo‘lovchilari","Site customers"],
   an_finance:["Деньги","Moliya","Finance"],
-  an_pricing:["Цены","Narxlar","Pricing"],
+  an_pricing:["Услуги и цены","Xizmatlar va narxlar","Services and pricing"],
   an_integrations:["Интеграции","Integratsiyalar","Integrations"],
   an_staff:["Сотрудники","Xodimlar","Staff"],
   an_audit:["Журнал","Jurnal","Audit log"],
@@ -5326,8 +5550,7 @@ Object.assign(STR, {
   refund_credited:["Зачислен","O‘tkazildi","Credited"],
   refund_pending:["Ждёт","Kutmoqda","Pending"],
   refunds_none:["Возвратов не было.","Qaytimlar bo‘lmagan.","No refunds yet."],
-
-  pricing_sub:["Сбор Charteri и наценка на авиабилеты. Новые значения сразу действуют на сайте и в кабинете.","Charteri yig‘imi va aviachiptalarga ustama. Yangi qiymatlar sayt va kabinetda darhol amal qiladi.","Charteri’s fee and the flight markup. New values apply on the site and in the workspace at once."],
+  pricing_sub:["Что продаётся и по какой цене: сайт и кабинет берут эти настройки сразу, без правки кода.","Nima va qaysi narxda sotiladi: sayt va kabinet bu sozlamalarni darhol oladi, kod o‘zgartirilmaydi.","What we sell and at what price. The site and the workspace use these settings at once, with no code changes."],
   pr_fee:["Сервисный сбор агентствам","Agentliklar uchun xizmat yig‘imi","Service fee for agencies"],
   pr_fee_d:["Добавляется к каждому заказу агентства, округляется вверх до сума и не возвращается при отмене. Оплаченные заказы сохраняют свою ставку.","Har bir agentlik buyurtmasiga qo‘shiladi, so‘mgacha yuqoriga yaxlitlanadi va bekor qilinganda qaytarilmaydi. To‘langan buyurtmalar o‘z stavkasini saqlaydi.","Added to each agency order, rounded up to the whole sum, never refunded. Paid orders keep their rate."],
   pr_fee_in:["Сбор, %","Yig‘im, %","Fee, %"],
@@ -5342,7 +5565,7 @@ Object.assign(STR, {
   pr_fixed:["Задаётся договорами","Shartnomalar bilan belgilanadi","Set by contracts"],
   pr_fixed_d:["Эти условия идут от поставщиков и туроператоров, в демо они постоянные.","Bu shartlar yetkazib beruvchilar va turoperatorlardan keladi, demoda ular doimiy.","These terms come from suppliers and tour operators; in the demo they are fixed."],
   pr_tour:["Пакетная скидка тура","Tur paket chegirmasi","Tour package discount"],
-  pr_transfer:["Трансфер на человека","Bir kishi uchun transfer","Transfer per person"],
+  pr_transfer:["Трансфер в туре","Turdagi transfer","Transfer in tours"],
   pr_infant:["Младенец без места","O‘rindiqsiz chaqaloq","Infant on lap"],
   pr_charter:["Цена чартера к базовой оценке","Charter narxi bazaviy bahoga nisbatan","Charter price over base estimate"],
 
@@ -5683,7 +5906,7 @@ Object.assign(STR, {
   t_ap_withdrawn:["Запрос отозван","So‘rov qaytarib olindi","Request withdrawn"],
   apk_refund:["Возврат {amount} по заказу {no} ({src})","{no} buyurtmasi bo‘yicha {amount} qaytim ({src})","Refund {amount} on order {no} ({src})"],
   apk_adjust:["Баланс {agency}: {amount} — {reason}","{agency} balansi: {amount} — {reason}","{agency} balance: {amount}, {reason}"],
-  apk_pricing:["Изменить сбор и наценку","Yig‘im va ustamani o‘zgartirish","Change the fee and markup"],
+  apk_pricing:["Изменить цены, услуги и промокоды","Narx, xizmat va promokodlarni o‘zgartirish","Change prices, services and promo codes"],
   apk_role_new:["Новая роль «{role}»","Yangi rol «{role}»","New role “{role}”"],
   apk_role_edit:["Права роли «{role}»","«{role}» roli huquqlari","Permissions of “{role}”"],
   apk_role_del:["Удалить роль «{role}»","«{role}» rolini o‘chirish","Delete the role “{role}”"],
@@ -5698,8 +5921,8 @@ Object.assign(STR, {
   ap_rules:["Правила подтверждения","Tasdiqlash qoidalari","Approval rules"],
   ap_rules_d:["Какие операции ждут второго сотрудника. Меняет только основатель; его собственные действия выполняются сразу.","Qaysi amallar ikkinchi xodimni kutadi. Faqat asoschi o‘zgartiradi; uning o‘z amallari darhol bajariladi.","Which operations wait for a second person. Only the founder can change this, and the founder’s own actions run immediately."],
   rule_refund:["Возвраты денег","Pul qaytarish","Refunds"],
-  rule_adjust:["Ручные изменения баланса","Balansni qo‘lda o‘zgartirish","Manual balance changes"],
-  rule_pricing:["Изменения сбора и наценки","Yig‘im va ustama o‘zgarishlari","Fee and markup changes"],
+  rule_adjust:["Ручные изменения баланса и кредитного лимита","Balans va kredit limitini qo‘lda o‘zgartirish","Manual balance and credit limit changes"],
+  rule_pricing:["Изменения цен, скидок и промокодов","Narx, chegirma va promokod o‘zgarishlari","Changes to prices, discounts and promo codes"],
   rule_access:["Роли, права и новые сотрудники","Rollar, huquqlar va yangi xodimlar","Roles, permissions and new staff"],
   rule_delete:["Удаление направлений","Yo‘nalishlarni o‘chirish","Deleting destinations"],
   rule_min:["От суммы, сум","Summadan, so‘m","From amount, UZS"],
@@ -5715,7 +5938,7 @@ Object.assign(STR, {
   k_ap_none:["всё решено","hammasi hal qilingan","all decided"],
   tk_ap:["Подтверждения","Tasdiqlar","Approvals"],
   tk_ap_d:["Запросы коллег на критичные операции.","Hamkasblarning muhim amallar bo‘yicha so‘rovlari.","Colleagues’ requests for critical operations."],
-  pr_needs_ap:["Изменение подтвердит другой сотрудник","O‘zgarishni boshqa xodim tasdiqlaydi","Another staff member will approve the change"],
+  pr_needs_ap:["Изменения подтвердит другой сотрудник","O‘zgarishlarni boshqa xodim tasdiqlaydi","Another staff member will approve the changes"],
   col_balance:["Баланс","Balans","Balance"],
   dir_visible:["Показано на сайте","Saytda ko‘rsatilgan","Shown on the site"],
 
@@ -5943,7 +6166,175 @@ Object.assign(STR, {
   err_name_short:["Введите имя","Ismni kiriting","Enter a name"],
   err_note:["Напишите, о чём договорились","Nimaga kelishilganini yozing","Write what you agreed"],
   crm_none_match:["Ничего не найдено. Измените фильтр или поиск.","Hech narsa topilmadi. Filtr yoki qidiruvni o‘zgartiring.","Nothing found. Change the filter or search."],
-  crm_last_activity:["Последняя активность","Oxirgi faollik","Last activity"]
+  crm_last_activity:["Последняя активность","Oxirgi faollik","Last activity"],
+  /* ---- этап 3: услуги, цены, промокоды ---- */
+  pr_fee_h:["Сбор и наценка","Yig‘im va ustama","Fee and markup"],
+  pr_svc_h:["Услуги","Xizmatlar","Services"],
+  pr_svc_d:["Выключенная услуга пропадает из поиска на сайте и в кабинете. Поправки — к цене поставщика: плюс — наценка, минус — скидка. Сайт — цена для пассажиров, агентства — цена в кабинете (к ней добавляется сбор). У туров поправка — к отелю в пакете; перелёт тура считается по строке «Авиабилеты».","O‘chirilgan xizmat sayt va kabinetdagi qidiruvdan yo‘qoladi. Tuzatishlar yetkazib beruvchi narxiga: plyus — ustama, minus — chegirma. Sayt — yo‘lovchilar narxi, agentliklar — kabinetdagi narx (unga yig‘im qo‘shiladi). Turlarda tuzatish paketdagi mehmonxonaga; tur parvozi «Aviachiptalar» qatori bo‘yicha hisoblanadi.","A switched-off service disappears from search on the site and in the workspace. Adjustments apply to the supplier price: plus is a markup, minus a discount. Site is the passenger price; agencies is the workspace price, plus the fee. For tours the adjustment applies to the hotel in the package; the tour’s flight follows the Flights row."],
+  pr_col_svc:["Услуга","Xizmat","Service"],
+  pr_col_b2c:["Сайт (B2C)","Sayt (B2C)","Site (B2C)"],
+  pr_col_b2b:["Агентства (B2B)","Agentliklar (B2B)","Agencies (B2B)"],
+  pr_col_example:["Пример","Misol","Example"],
+  pr_col_on:["Доступность","Mavjudlik","Availability"],
+  pr_col_pkg:["Скидка пакета тура","Tur paketi chegirmasi","Tour package discount"],
+  pr_col_usd:["Цена за человека","Kishi boshiga narx","Price per person"],
+  pr_on:["включена","yoqilgan","on"],
+  pr_off:["выключена","o‘chirilgan","off"],
+  pr_svc_on:["Продаётся","Sotilmoqda","On sale"],
+  pr_svc_off:["Временно не продаётся","Vaqtincha sotilmaydi","Temporarily off"],
+  pr_example:["{base} у поставщика → сайт {site} · агентство {agency} + сбор {fee}","Yetkazib beruvchida {base} → sayt {site} · agentlik {agency} + yig‘im {fee}","{base} supplier → site {site} · agency {agency} + fee {fee}"],
+  pr_pkg_d:["Тур дешевле, чем перелёт, отель и трансфер по отдельности.","Tur parvoz, mehmonxona va transferdan alohida olingandan arzonroq.","A tour costs less than the flight, hotel and transfer bought separately."],
+  pr_insurance:["Страховка в туре","Turdagi sug‘urta","Insurance in tours"],
+  pr_transfer_d:["Аэропорт — отель — аэропорт, за человека. Выключен — трансфер не входит в тур.","Aeroport — mehmonxona — aeroport, kishi boshiga. O‘chirilgan bo‘lsa, transfer turga kirmaydi.","Airport to hotel and back, per person. Off means the tour doesn’t include it."],
+  pr_insurance_d:["За человека. 0 — страховка входит бесплатно; выключена — не входит.","Kishi boshiga. 0 — sug‘urta bepul kiradi; o‘chirilgan — kirmaydi.","Per person. 0 means included for free; off means not included."],
+  pr_dest:["Цены по направлениям","Yo‘nalishlar bo‘yicha narxlar","Prices by destination"],
+  pr_dest_d:["Поправка ко всем услугам направления: рейсы туда и обратно, отели, туры, чартеры.","Yo‘nalishning barcha xizmatlariga tuzatish: u yerga va qaytish reyslari, mehmonxonalar, turlar, charterlar.","An adjustment for every service to a destination: flights both ways, hotels, tours, charters."],
+  pr_dest_none:["Поправок по направлениям нет.","Yo‘nalishlar bo‘yicha tuzatishlar yo‘q.","No destination adjustments."],
+  pr_dest_add:["Добавить направление","Yo‘nalish qo‘shish","Add destination"],
+  pr_agents:["Индивидуальные цены агентств","Agentliklar uchun alohida narxlar","Agency-specific prices"],
+  pr_agents_d:["Поправка к ценам в кабинете агентства: минус — скидка постоянному партнёру.","Agentlik kabinetidagi narxlarga tuzatish: minus — doimiy hamkorga chegirma.","An adjustment to prices in an agency’s workspace: minus is a discount for a regular partner."],
+  pr_agents_none:["Индивидуальных цен нет.","Alohida narxlar yo‘q.","No agency-specific prices."],
+  pr_agents_add:["Добавить агентство","Agentlik qo‘shish","Add agency"],
+  pr_adj:["Поправка","Tuzatish","Adjustment"],
+  pr_row_del:["Убрать строку","Qatorni olib tashlash","Remove row"],
+  pr_unsaved:["Несохранённые изменения цен","Saqlanmagan narx o‘zgarishlari","Unsaved price changes"],
+  pr_pending:["Изменение цен ждёт подтверждения другого сотрудника.","Narx o‘zgarishi boshqa xodim tasdig‘ini kutmoqda.","A price change is waiting for another staff member’s approval."],
+  pr_promos:["Промокоды и акции","Promokodlar va aksiyalar","Promo codes and offers"],
+  pr_promos_d:["Промокод пассажир вводит при оформлении на сайте, акция применяется сама. Скидка на заказ одна — бо́льшая.","Promokodni yo‘lovchi saytda rasmiylashtirishda kiritadi, aksiya o‘zi qo‘llanadi. Buyurtmaga bitta chegirma — kattarog‘i.","Passengers enter a promo code at checkout on the site; an offer applies on its own. One discount per order, the bigger one."],
+  err_pr_pct:["Процент — число от {min} до {max}","Foiz — {min} dan {max} gacha son","Percent must be a number from {min} to {max}"],
+  err_pr_usd:["Цена — целое число долларов до 1000","Narx — 1000 gacha butun dollar","Price must be whole dollars up to 1000"],
+  err_pr_dest:["Выберите направление","Yo‘nalishni tanlang","Choose a destination"],
+  err_pr_agency:["Выберите агентство","Agentlikni tanlang","Choose an agency"],
+  err_pr_dup:["Это уже есть в списке","Bu ro‘yxatda allaqachon bor","This is already in the list"],
+  err_pr_check:["Есть ошибки в полях — проверьте","Maydonlarda xatolar bor — tekshiring","Some fields have errors. Check them"],
+  a_pricing:["Изменены цены и услуги","Narxlar va xizmatlar o‘zgartirildi","Changed prices and services"],
+  delete_cta:["Удалить","O‘chirish","Delete"],
+  pm_new:["Новый промокод","Yangi promokod","New promo code"],
+  pm_edit:["Промокод","Promokod","Promo code"],
+  pm_none:["Промокодов и акций пока нет.","Hozircha promokod va aksiyalar yo‘q.","No promo codes or offers yet."],
+  pm_col_code:["Код и название","Kod va nom","Code and name"],
+  pm_col_off:["Скидка","Chegirma","Discount"],
+  pm_col_dates:["Срок","Muddat","Dates"],
+  pm_col_used:["Использовано","Ishlatilgan","Used"],
+  pm_always:["Бессрочно","Muddatsiz","No end date"],
+  pm_auto_short:["Акция","Aksiya","Offer"],
+  pm_all_svc:["Авиабилеты, туры, отели","Aviachiptalar, turlar, mehmonxonalar","Flights, tours, hotels"],
+  pm_min_short:["от {min}","{min} dan","from {min}"],
+  pm_st_on:["Действует","Amalda","Active"],
+  pm_st_off:["Скрыт","Yashirilgan","Hidden"],
+  pm_st_soon:["Ещё не начался","Hali boshlanmagan","Not started"],
+  pm_st_ended:["Закончился","Tugagan","Ended"],
+  pm_st_used:["Исчерпан","Tugagan limit","Used up"],
+  pm_hide:["Скрыть","Yashirish","Hide"],
+  pm_show:["Включить","Yoqish","Turn on"],
+  pm_auto:["Акция без кода — применяется сама","Kodsiz aksiya — o‘zi qo‘llanadi","Offer without a code, applied automatically"],
+  pm_code:["Код","Kod","Code"],
+  pm_name:["Название","Nomi","Name"],
+  pm_kind:["Скидка","Chegirma","Discount"],
+  pm_kind_pct:["Процент","Foiz","Percent"],
+  pm_kind_fixed:["Сумма в долларах","Dollardagi summa","Amount in dollars"],
+  pm_value_pct:["Размер, %","Miqdori, %","Size, %"],
+  pm_value_usd:["Размер, $","Miqdori, $","Size, $"],
+  pm_min:["Заказ от, $","Buyurtma, $ dan","Minimum order, $"],
+  pm_limit:["Сколько раз можно использовать","Necha marta ishlatish mumkin","How many uses"],
+  pm_starts:["Начало","Boshlanishi","Starts"],
+  pm_ends:["Конец","Tugashi","Ends"],
+  pm_svc:["Для услуг","Xizmatlar uchun","For services"],
+  pm_svc_d:["Ничего не отмечено — для авиабилетов, туров и отелей. Чартеры промокоды не принимают.","Hech narsa belgilanmagan — aviachiptalar, turlar va mehmonxonalar uchun. Charterlar promokod qabul qilmaydi.","Nothing ticked means flights, tours and hotels. Charters don’t take promo codes."],
+  pm_active:["Действует","Amalda","Active"],
+  pm_done:["Готово","Tayyor","Done"],
+  pm_draft_note:["Появится на сайте после сохранения цен внизу страницы.","Sahifa pastida narxlar saqlangach saytda paydo bo‘ladi.","Goes live on the site once you save the prices at the bottom of the page."],
+  err_pm_code:["Код — 3–20 латинских букв и цифр","Kod — 3–20 lotin harfi va raqam","Use 3 to 20 Latin letters and digits"],
+  err_pm_dup:["Такой код уже есть","Bunday kod bor","This code already exists"],
+  err_pm_name:["Введите название","Nomini kiriting","Enter a name"],
+  err_pm_value:["Скидка: процент до 90 или сумма до $100 000","Chegirma: 90 gacha foiz yoki $100 000 gacha summa","Discount: up to 90% or up to $100,000"],
+  err_pm_int:["Целое число или пусто","Butun son yoki bo‘sh","A whole number or empty"],
+  err_pm_dates:["Конец раньше начала","Tugash boshlanishdan oldin","The end is before the start"],
+  pm_del_q:["Удалить промокод {code}?","{code} promokodini o‘chirasizmi?","Delete promo code {code}?"],
+  /* ---- этап 3: деньги, документы, бренд ---- */
+  fin_tx:["Операции","Operatsiyalar","Transactions"],
+  tx_no:["Операция","Operatsiya","Transaction"],
+  tx_who:["Клиент или агентство","Mijoz yoki agentlik","Customer or agency"],
+  tx_kind:["Вид","Turi","Type"],
+  tx_method:["Способ","Usul","Method"],
+  tx_staff:["Сотрудник","Xodim","Staff member"],
+  tx_k_topup:["Пополнение","To‘ldirish","Top-up"],
+  tx_k_payment:["Оплата на сайте","Saytda to‘lov","Site payment"],
+  tx_k_order:["Списание за заказ","Buyurtma uchun yechish","Order debit"],
+  tx_k_refund:["Возврат","Qaytim","Refund"],
+  tx_k_adjust:["Корректировка","Tuzatish","Adjustment"],
+  tx_st_done:["Проведено","O‘tkazildi","Posted"],
+  tx_st_pending:["Ожидает","Kutilmoqda","Pending"],
+  tx_st_rejected:["Отклонено","Rad etildi","Rejected"],
+  tx_all_kinds:["Все виды","Barcha turlar","All types"],
+  tx_all_st:["Все статусы","Barcha holatlar","All statuses"],
+  tx_search:["Номер, агентство, заказ, сотрудник","Raqam, agentlik, buyurtma, xodim","Number, agency, order, staff"],
+  tx_count:["Операций: {n} · в пользу клиентов: {plus} · списано и оплачено: {minus}","Operatsiyalar: {n} · mijozlar foydasiga: {plus} · yechilgan va to‘langan: {minus}","Transactions: {n} · to customers: {plus} · debited and paid: {minus}"],
+  tx_m_balance:["С баланса агентства","Agentlik balansidan","From agency balance"],
+  tx_missing:["Операция не найдена","Operatsiya topilmadi","Transaction not found"],
+  tx_ev_request:["Запрос на пополнение: {m}","To‘ldirish so‘rovi: {m}","Top-up requested: {m}"],
+  tx_ev_asked:["Запрос на подтверждение: {name}","Tasdiqlash so‘rovi: {name}","Approval requested by {name}"],
+  tx_ev_approved:["Подтвердил(а): {name}","Tasdiqladi: {name}","Approved by {name}"],
+  tx_ev_posted:["Проведено, остаток {after}","O‘tkazildi, qoldiq {after}","Posted, balance {after}"],
+  tx_ev_rejected:["Отклонено: {name} — {reason}","Rad etildi: {name} — {reason}","Rejected by {name}: {reason}"],
+  tx_ev_order:["Заказ оформлен","Buyurtma rasmiylashtirildi","Order placed"],
+  tx_ev_paid:["Оплачено: {m}","To‘landi: {m}","Paid: {m}"],
+  tx_ev_cancel:["Заказ отменён, к возврату","Buyurtma bekor qilindi, qaytarishga","Order cancelled, refund due"],
+  tx_ev_refunded:["Деньги возвращены","Pul qaytarildi","Money returned"],
+  doc_h:["Документы","Hujjatlar","Documents"],
+  doc_print:["Печать или PDF","Chop etish yoki PDF","Print or PDF"],
+  doc_channel:["Как отправить","Qanday yuborish","Send by"],
+  doc_to:["Кому","Kimga","To"],
+  doc_send:["Отправить клиенту","Mijozga yuborish","Send to customer"],
+  doc_send_demo:["В демо письмо не уходит: отправка записывается в историю заказа и журнал.","Demoda xat yuborilmaydi: yuborish buyurtma tarixi va jurnalga yoziladi.","In the demo nothing is sent; the send is recorded in the order history and the log."],
+  doc_ch_email:["Почта","Pochta","Email"],
+  doc_ch_sms:["SMS","SMS","SMS"],
+  doc_ch_telegram:["Telegram","Telegram","Telegram"],
+  err_doc_to_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
+  err_doc_to_sms:["Проверьте номер телефона","Telefon raqamini tekshiring","Check the phone number"],
+  err_doc_to_telegram:["Телефон или @имя в Telegram","Telefon yoki Telegramdagi @nom","A phone number or @name in Telegram"],
+  t_doc_sent:["Документ отправлен: {to}","Hujjat yuborildi: {to}","Document sent to {to}"],
+  tl_doc_sent:["Документ отправлен: {ch}, {to}","Hujjat yuborildi: {ch}, {to}","Document sent: {ch}, {to}"],
+  a_doc_sent:["Документ по заказу {no} отправлен: {ch}, {to}","{no} buyurtma hujjati yuborildi: {ch}, {to}","Order {no} document sent: {ch}, {to}"],
+  oc_edit:["Изменить контакты","Kontaktlarni o‘zgartirish","Edit contacts"],
+  t_order_saved:["Контакты заказа сохранены","Buyurtma kontaktlari saqlandi","Order contacts saved"],
+  a_order_edit:["Изменены контакты заказа {no}","{no} buyurtma kontaktlari o‘zgartirildi","Changed contacts of order {no}"],
+  ab_h:["Бренд на документах","Hujjatlardagi brend","Branding on documents"],
+  ab_d:["Билеты и ваучеры агентства выходят с его логотипом, цветом и контактами.","Agentlik chipta va vaucherlari uning logotipi, rangi va kontaktlari bilan chiqadi.","The agency’s tickets and vouchers carry its logo, colour and contacts."],
+  ab_telegram:["Telegram","Telegram","Telegram"],
+  ab_instagram:["Instagram","Instagram","Instagram"],
+  ab_website:["Сайт","Sayt","Website"],
+  ab_color:["Цвет","Rang","Colour"],
+  ab_logo_h:["Логотип","Logotip","Logo"],
+  ab_logo_yes:["есть","bor","set"],
+  ab_logo_no:["нет","yo‘q","none"],
+  ab_logo_new:["новый","yangi","new"],
+  err_ab_name:["Название — от 2 символов","Nom — kamida 2 belgi","The name needs at least 2 characters"],
+  err_ab_social:["Имя в соцсети: латиница, цифры, _ и точка","Ijtimoiy tarmoqdagi nom: lotin harflari, raqamlar, _ va nuqta","Social handle: Latin letters, digits, _ and dots"],
+  err_ab_site:["Проверьте адрес сайта","Sayt manzilini tekshiring","Check the website address"],
+  t_ab_saved:["Бренд агентства сохранён","Agentlik brendi saqlandi","Agency branding saved"],
+  a_ag_brand:["Изменён бренд агентства {agency}","{agency} agentligi brendi o‘zgartirildi","Changed branding of {agency}"],
+  credit_d:["Агентство может оплачивать заказы в минус до этой суммы. Изменение подтверждает второй сотрудник.","Agentlik buyurtmalarni shu summagacha minusga to‘lay oladi. O‘zgarishni ikkinchi xodim tasdiqlaydi.","The agency can pay for orders into a negative balance down to this amount. A second staff member approves changes."],
+  credit_now:["Сейчас","Hozir","Now"],
+  credit_new:["Новый лимит","Yangi limit","New limit"],
+  err_credit:["Лимит — целое число сумов от 0 до 1 000 000 000","Limit — 0 dan 1 000 000 000 gacha butun so‘m","The limit must be whole UZS from 0 to 1,000,000,000"],
+  t_credit:["Кредитный лимит сохранён","Kredit limiti saqlandi","Credit limit saved"],
+  apk_credit:["Кредитный лимит {agency}: {amount}","{agency} kredit limiti: {amount}","{agency} credit limit: {amount}"],
+  a_credit:["Кредитный лимит {agency}: {amount}","{agency} kredit limiti: {amount}","{agency} credit limit: {amount}"],
+  fin_tx_csv:["Операции (CSV)","Operatsiyalar (CSV)","Transactions (CSV)"],
+  fin_tx_xls:["Операции (Excel)","Operatsiyalar (Excel)","Transactions (Excel)"],
+  tx_sign:["Плюс — деньги клиенту или на его баланс (пополнение, возврат), минус — списание или оплата.","Plyus — mijozga yoki uning balansiga pul (to‘ldirish, qaytim), minus — yechish yoki to‘lov.","Plus means money to the customer or their balance (top-up, refund); minus means a debit or payment."],
+  err_pm_max:["Промокодов и акций не больше {n}","Promokod va aksiyalar {n} tadan ko‘p emas","No more than {n} promo codes and offers"],
+  pr_conflict:["Цены изменились в другой вкладке — черновик сброшен, внесите правки заново","Narxlar boshqa oynada o‘zgardi — qoralama tozalandi, o‘zgarishlarni qaytadan kiriting","Prices changed in another tab. The draft was cleared; make your changes again"],
+  pr_hidden:["направление скрыто","yo‘nalish yashirilgan","destination hidden"],
+  pr_example_tour:["{base} за отель в туре → сайт {site} · агентство {agency}","Turdagi mehmonxona uchun {base} → sayt {site} · agentlik {agency}","{base} for the tour hotel → site {site} · agency {agency}"],
+  pm_sta_off:["Скрыта","Yashirilgan","Hidden"],
+  pm_sta_soon:["Ещё не началась","Hali boshlanmagan","Not started"],
+  pm_sta_ended:["Закончилась","Tugagan","Ended"],
+  pm_sta_used:["Исчерпана","Tugagan limit","Used up"],
+  pm_edit_auto:["Акция","Aksiya","Offer"],
+  pm_del_q_auto:["Удалить акцию «{code}»?","«{code}» aksiyasini o‘chirasizmi?","Delete the offer “{code}”?"],
+  pm_auto_limit:["Лимит у акции считает заказы, к которым она применилась.","Aksiya limiti u qo‘llangan buyurtmalarni hisoblaydi.","An offer’s limit counts the orders it was applied to."]
 });
 
 /* ---- 10-ops.js ---- */
@@ -6006,8 +6397,10 @@ function auditVal(v){
   if ("t" in v) return t(v.t);
   if ("acts" in v) return v.acts.length ? v.acts.map(x => t("act_" + x)).join(", ") : "—";
   if ("uzs" in v) return (v.sign && v.uzs > 0 ? "+" : "") + fmtUZS(v.uzs);
-  if ("pct" in v) return pctText(v.pct) + "%";
+  if ("pct" in v) return (v.sign && v.pct > 0 ? "+" : "") + pctText(v.pct) + "%";
+  if ("promo" in v) { const x = v.promo; return (x.kind === "pct" ? `−${pctText(x.value)}%` : `−$${grp(x.value)}`) + (x.active ? "" : " · " + t("pm_st_off")); }
   if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
+  if ("svcs" in v) return v.svcs.length ? v.svcs.map(k => t("type_" + k)).join(", ") : t("pm_all_svc");
   if ("dest" in v) return v.dest.heli ? heliName(v.dest.code) : cityName(v.dest.code);
   return loc(v);
 }
@@ -6019,8 +6412,10 @@ function auditText(e){
   const dec = e.f === 2 ? auditVal : legacyVal;
   return e.vars?.apk ? tf("a_" + e.action, { ...auditVars(e.vars, dec), what:tf("apk_" + e.vars.apk, auditVars(e.vars.w)) }) : tf("a_" + e.action, auditVars(e.vars, dec));
 }
-/* Строка «что было → что стало»: k — ключ строки с названием поля. */
-const diffText = d => `${t(d.k)}: ${auditVal(d.from) || "—"} → ${auditVal(d.to) || "—"}`;
+/* Строка «что было → что стало». k — ключ строки с названием поля или
+   несколько ключей («Туры · Сайт»); sub — уточнение (город, агентство, код). */
+const diffLabel = d => [].concat(d.k).map(k => t(k)).join(" · ") + (d.sub ? " · " + auditVal(d.sub) : "");
+const diffText = d => `${diffLabel(d)}: ${auditVal(d.from) || "—"} → ${auditVal(d.to) || "—"}`;
 /* Служебные значения для журнала: роль, строка интерфейса, сумма. */
 const roleRef = id => ({ role:id }), strRef = key => ({ t:key }), uzsRef = (uzs, sign = false) => sign ? { uzs, sign:true } : { uzs };
 const staffName = id => O.staff.find(s => s.id === id)?.name || "—";
@@ -6154,7 +6549,7 @@ function seedAgency(spec){
       o = { type:"FLIGHT", start, end:start, total:flightFare(out, null, q).total, details:flightDetailsOf(out, null, q) };
     } else if (kind === "TOUR") {
       const h = pick(HOTELS.filter(x => RESORTS.includes(x.city))), q = { to:h.city, depart:start, nights:7, adults:2, children:0 }, p = tourPackage(h, q);
-      o = { type:"TOUR", start, end:addDays(start, 7), total:p.total, details:{ hotelId:h.id, to:h.city, depart:start, nights:7, adults:2, children:0, rooms:p.rooms, out:p.out, back:p.back } };
+      o = { type:"TOUR", start, end:addDays(start, 7), total:p.total, details:{ hotelId:h.id, to:h.city, depart:start, nights:7, adults:2, children:0, rooms:p.rooms, out:p.out, back:p.back, px:p.px } };
     } else {
       const h = pick(HOTELS), n = 3 + Math.floor(rnd() * 5);
       o = { type:"HOTEL", start, end:addDays(start, n), total:hotelStay(h, start, n, 1, 1), details:{ hotelId:h.id, room:"standard", checkin:start, checkout:addDays(start, n), nights:n, adults:2, children:0, rooms:1 } };
@@ -6243,7 +6638,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
@@ -6747,8 +7142,8 @@ function execRefund({ src, id }){
   let err = "ap_err_state";
   mutOrder(r, (o, st) => {
     if (o.status !== "CANCELLED" || !o.refund || o.refund.done) return;
-    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
-    if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
+    o.refund.done = true; o.refund.by = me().name; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
+    if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id, by:me().name }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
     audit("refund", { no:o.no, amount:uzsRef(o.refund.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_CANCELLED"), to:strRef("st_REFUNDED") }] });
   });
   return err;
@@ -6771,7 +7166,7 @@ function confirmTopup(aid, pid){
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"done", doneAt:Date.now(), by:me().name }); amount = p.amount;
     const before = st.balance;
-    post("topup", p.amount, { method:p.method }, st); note("topup_ok", { amount:p.amount }, st);
+    post("topup", p.amount, { method:p.method, topupId:p.id, by:me().name }, st); note("topup_ok", { amount:p.amount }, st);
     audit("topup_ok", { amount:uzsRef(p.amount), agency:st.agency.name }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
   }));
   if (amount) toast(tf("t_topup_ok", { amount:fmtUZS(amount) }));
@@ -6824,7 +7219,8 @@ function adjustBalance(aid, amount, reason){
   if (!amount || !Number.isFinite(amount) || Math.abs(amount) > ADJUST_MAX) { toast(t("err_amount")); return false; }
   if (!reason) { toast(t("err_reason")); return false; }
   const a = agencyById(aid); if (!a) return false;
-  if (a.st.balance + amount < 0) { toast(t("err_negative")); return false; }
+  // Списать можно до кредитного лимита; зачисление — всегда (в том числе в минусе).
+  if (amount < 0 && a.st.balance + amount < -creditOf(a.st)) { toast(t("err_negative")); return false; }
   if (needsApproval("adjust", amount)) return requestApproval("adjust", { key:uid("adj"), payload:{ aid, amount, reason }, amount,
     vars:{ agency:a.name, amount:uzsRef(amount, true), reason } });
   let err = null;
@@ -6837,7 +7233,7 @@ function adjustBalance(aid, amount, reason){
 function execAdjust({ aid, amount, reason }, ap){
   let err = "ap_err_gone";
   withAgency(aid, st => {
-    if (st.balance + amount < 0) { err = "err_negative"; return; }
+    if (amount < 0 && st.balance + amount < -creditOf(st)) { err = "err_negative"; return; }
     const before = st.balance;
     post("adjust", amount, { reason, by:ap ? staffName(ap.by) : me().name }, st); note("adjust", { amount, reason }, st); err = null;
     audit("adjust", { agency:st.agency.name, amount:uzsRef(amount, true), reason }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
@@ -6847,6 +7243,32 @@ function execAdjust({ aid, amount, reason }, ap){
 
 /* Источник заказа в журнале: агентство — названием, сайт — строкой интерфейса. */
 const srcVal = r => r.a ? r.a.name : strRef("src_site");
+
+/* Кредитный лимит: агентство может уйти в минус до этой суммы. Изменение —
+   как ручное изменение баланса: по правилу его подтверждает второй сотрудник. */
+const CREDIT_MAX = 1_000_000_000;
+function setCredit(aid, amount){
+  if (denied("finance.manage")) return false;
+  if (!Number.isInteger(amount) || amount < 0 || amount > CREDIT_MAX) { toast(t("err_credit")); return false; }
+  const a = agencyById(aid); if (!a) return false;
+  const from = Number.isInteger(a.st.agency.credit) ? a.st.agency.credit : 0;
+  if (from === amount) { toast(t("pr_same")); return false; }
+  const payload = { aid, from, to:amount }, vars = { agency:a.name, amount:uzsRef(amount) };
+  if (needsApproval("credit", amount)) return requestApproval("credit", { key:"credit:" + aid, payload, vars, amount, diff:[{ k:"credit_limit", from:uzsRef(from), to:uzsRef(amount) }] });
+  let err = null; change(() => { err = execCredit(payload); });
+  toast(err ? t(err) : t("t_credit")); return !err;
+}
+function execCredit({ aid, from, to }){
+  let err = "ap_err_gone";
+  withAgency(aid, st => {
+    const cur = Number.isInteger(st.agency.credit) ? st.agency.credit : 0;
+    if (cur !== from) { err = "ap_err_changed"; return; }
+    st.agency.credit = to; err = null;
+    note("credit", { amount:to }, st);
+    audit("credit", { agency:st.agency.name, amount:uzsRef(to) }, { module:"finance", diff:[{ k:"credit_limit", from:uzsRef(from), to:uzsRef(to) }] });
+  });
+  return err;
+}
 
 /* ---- кнопки ---- */
 const rowOf = el => findOrder(el.dataset.src, el.dataset.v);
@@ -6870,6 +7292,7 @@ Object.assign(ACT, {
   aappno:   el => { if (decideApp(el.dataset.v, false, takeInp("why:a" + el.dataset.v))) M.ui.ask["a" + el.dataset.v] = false; rerender(); },
   ablock:   el => { if (setBlocked(el.dataset.v, true, takeInp("why:b" + el.dataset.v))) M.ui.ask["b" + el.dataset.v] = false; rerender(); },
   aunblock: el => setBlocked(el.dataset.v, false),
+  acredit:  el => { const raw = String(inp("cr:" + el.dataset.v, "")).replace(/\s/g, ""); if (setCredit(el.dataset.v, /^\d+$/.test(raw) ? Number(raw) : NaN) && M.ui.inp) { delete M.ui.inp["cr:" + el.dataset.v]; rerender(); } },
   aadjust:  el => {
     const sign = el.dataset.s === "-" ? -1 : 1, n = Number(digits(inp("adj:" + el.dataset.v))), why = inp("adjwhy:" + el.dataset.v).trim();
     if (adjustBalance(el.dataset.v, sign * n, why) && M.ui.inp) { delete M.ui.inp["adj:" + el.dataset.v]; delete M.ui.inp["adjwhy:" + el.dataset.v]; rerender(); }
@@ -6949,6 +7372,7 @@ function refundAction(r){
 const AP_KINDS = {
   refund:     { rule:"refund",  perm:"finance.approve",  module:"finance",  icon:"back" },
   adjust:     { rule:"adjust",  perm:"finance.approve",  module:"finance",  icon:"wallet" },
+  credit:     { rule:"adjust",  perm:"finance.approve",  module:"finance",  icon:"wallet" },
   pricing:    { rule:"pricing", perm:"pricing.approve",  module:"pricing",  icon:"tag" },
   role_new:   { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
   role_edit:  { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
@@ -7018,6 +7442,7 @@ const canSeeAp = a => a.by === me()?.id || can(AP_KINDS[a.kind].perm);
 const AP_EXEC = {
   refund:     (p, a) => execRefund(p, a),
   adjust:     (p, a) => execAdjust(p, a),
+  credit:     (p, a) => execCredit(p, a),
   pricing:    (p, a) => execPricing(p, a),
   role_new:   (p, a) => execRoleNew(p, a),
   role_edit:  (p, a) => execRoleEdit(p, a),
@@ -7029,7 +7454,7 @@ const AP_EXEC = {
 /* Право, с которым запрос создавали. К моменту решения автор должен быть
    действующим сотрудником и сохранить это право — иначе запрос не выполняется:
    отключённый или понижённый сотрудник не проводит операцию чужими руками. */
-const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
+const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", credit:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
   role_del:"roles.delete", staff_add:"staff.create", staff_role:"staff.edit", dir_del:"services.delete" };
 function requesterBlock(a){
   const u = O.staff.find(s => s.id === a.by), p = a.payload || {};
@@ -7082,7 +7507,7 @@ function withdrawApproval(id){
    mode: decide — можно решить; mine — свой, ждёт; wait — чужой, решить нельзя
    (показываем почему); done — решённый. */
 function apDiff(a){
-  return a.diff?.length ? `<ul class="ap-diff">${a.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s> <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : "";
+  return a.diff?.length ? `<ul class="ap-diff">${a.diff.map(d => `<li><span class="muted">${esc(diffLabel(d))}:</span> <s>${esc(auditVal(d.from) || "—")}</s> <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : "";
 }
 function apRow(a, mode){
   const k = AP_KINDS[a.kind], by = O.staff.find(s => s.id === a.by);
@@ -7538,7 +7963,7 @@ function admActions(r){
           <button type="button" class="link" data-act="acancel" data-v="">${esc(t("keep_order"))}</button></div></div>`);
     }
   }
-  return rows.length ? `<section class="card stack"><h2>${esc(t("actions"))}</h2>${rows.join("")}</section>` : "";
+  return rows.length ? `<section class="card stack no-print"><h2>${esc(t("actions"))}</h2>${rows.join("")}</section>` : "";
 }
 function admPayment(r){
   const o = r.o;
@@ -7546,6 +7971,12 @@ function admPayment(r){
   if (!r.a) return `<span class="lbl">${esc(t("payment"))}</span>${checkLines(orderLines(o), o.total)}${o.method ? `<div class="rows"><div><span class="k">${esc(t("pay_method"))}</span><span class="v">${esc(methodName(o.method))}</span></div></div>` : ""}`;
   return `<span class="lbl">${esc(t("payment"))}</span>${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), dueOf(o))}
     ${o.paidAt ? `<div class="rows"><div><span class="k">${esc(t("pay_method"))}</span><span class="v">${esc(t("method_balance"))}</span></div><div><span class="k">${esc(t("paid_at"))}</span><span class="v">${esc(fdt(o.paidAt))}</span></div></div>` : ""}`;
+}
+/* История заказа: статусы, отправленные документы и правки из журнала. */
+function orderTimeline(o){
+  const items = [...o.history.map(h => ({ at:h.at, s:h.s, text:t("st_" + h.s) })), ...(o.sent || []).map(x => ({ at:x.at, s:"CONFIRMED", text:tf("tl_doc_sent", { ch:t("doc_ch_" + x.ch), to:x.to }), by:x.by })),
+    ...O.audit.filter(e => e.vars?.no === o.no && ["order_edit"].includes(e.action)).map(e => ({ at:e.at, s:"NEW", text:auditText(e), by:staffName(e.staffId) }))];
+  return items.sort((a, b) => a.at - b.at);
 }
 function admRefund(r){
   const x = r.o.refund; if (!x) return "";
@@ -7558,26 +7989,93 @@ PAGES["orders/:src/:id"] = {
     const r = findOrder(src, id);
     if (!r) return `<div class="page">${backLink("orders", t("an_orders"))}<div class="card empty"><h1 class="h-empty">${esc(t("order_missing"))}</h1></div></div>`;
     const o = r.o, st = effStatus(o), showDoc = ["CONFIRMED", "COMPLETED"].includes(st) || (st === "PAID" && !isCharter(o));
-    const req = o.req ? `<div class="reqbanner"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${o.req.note ? `<span>«${esc(o.req.note)}»</span>` : ""}
+    const req = o.req ? `<div class="reqbanner no-print"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${o.req.note ? `<span>«${esc(o.req.note)}»</span>` : ""}
       ${o.req.status ? `<span class="small">${esc(t(o.req.status === "done" ? "req_status_done" : "req_status_declined"))}${o.req.reply ? ` — ${esc(o.req.reply)}` : ""} · ${esc(o.req.by || "")}</span>` : ""}</div>` : "";
     return `<div class="page">${backLink("orders", t("an_orders"))}
       <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span> · ${esc(srcName(r))}</span>
         <h1>${esc(orderTitle(o))}</h1><p class="muted">${esc(orderSub(o))}</p></div>${pill(st)}</div>
       <div class="twocol"><div class="stack">${admActions(r)}${req}
-          ${showDoc ? orderDocument(o, r.a ? r.a.brand : null) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
+          ${showDoc ? orderDocument(o, r.a ? r.a.brand : null) + docActions(r) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
         <aside class="stack sticky">
           <div class="card stack">${admPayment(r)}</div>${admRefund(r)}
           <div class="card stack"><span class="lbl">${esc(r.a ? t("col_source") : t("customer"))}</span>
             ${r.a ? `<div class="client-mini"><span class="bmark-wrap" style="${brandStyle(r.a.brand)}">${brandMark("", r.a.brand)}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(r.a.name)}</b>
               <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
-              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("b2c.view") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+              <span class="mono small muted">${esc(o.contact.phone)}</span>${o.contact.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}</div>${can("clients") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+          ${r.a ? "" : `<div class="card stack">${contactEdit(r)}</div>`}
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
-            <ol class="timeline">${o.history.map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(t("st_" + h.s))}</b><span class="muted small">${esc(fdt(h.at))}</span></li>`).join("")}</ol></div>
+            <ol class="timeline">${orderTimeline(o).map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(h.text)}</b><span class="muted small">${esc(fdt(h.at))}${h.by ? " · " + esc(h.by) : ""}</span></li>`).join("")}</ol></div>
         </aside></div></div>`;
   },
   after(){ renderQRs(); if (M.ui.cancelFor) $(".cancelbox")?.scrollIntoView({ block:"nearest", behavior:REDUCED ? "auto" : "smooth" }); }
 };
+
+/* ---- 42-order-docs.js ---- */
+/* ==========================================================================
+   Заказ: документы (печать билета или ваучера с брендом агентства,
+   «отправить клиенту» — почтой, SMS или в Telegram) и правка контактов.
+   В демо письмо никуда не уходит: отправка записывается в историю заказа
+   и в журнал — так же её запишет сервер, когда подключат рассылку.
+   ========================================================================== */
+"use strict";
+
+const DOC_CH = ["email", "sms", "telegram"];
+const docTo = (r, ch) => ch === "email" ? r.o.contact?.email || (r.a ? r.a.email : "") || "" : r.o.contact?.phone || "";
+function docActions(r){
+  const o = r.o, ch = DOC_CH.includes(inp("dch:" + o.id)) ? inp("dch:" + o.id) : o.contact?.email ? "email" : "sms";
+  return `<section class="card stack doc-send doc-actions" aria-labelledby="doc-h-${o.id}"><div class="card-h"><h2 id="doc-h-${o.id}">${esc(t("doc_h"))}</h2>
+      <button type="button" class="ghost sm" data-act="adprint">${IC.print}<span>${esc(t("doc_print"))}</span></button></div>
+    ${can("orders.edit") ? `<div class="send-row">
+      <select class="minisel" data-inp="dch:${o.id}" aria-label="${esc(t("doc_channel"))}">${DOC_CH.map(c => `<option value="${c}" ${ch === c ? "selected" : ""}>${esc(t("doc_ch_" + c))}</option>`).join("")}</select>
+      ${inpField("dto:" + o.id, { value:docTo(r, ch), label:t("doc_to"), extra:'maxlength="80" autocomplete="off"' })}
+      <button type="button" class="solid sm" data-act="adsend" data-src="${r.src}" data-v="${o.id}">${esc(t("doc_send"))}</button></div>
+      <div class="err" id="dserr-${o.id}" hidden></div>
+      <p class="muted small">${esc(t("doc_send_demo"))}</p>` : ""}
+    ${o.sent?.length ? `<ul class="sent-list">${o.sent.map(x => `<li>${IC.ok}<span>${esc(t("doc_ch_" + x.ch))} · ${esc(x.to)} · ${esc(x.by)} · ${esc(fdt(x.at))}</span></li>`).join("")}</ul>` : ""}</section>`;
+}
+function sendDoc(r){
+  if (denied("orders.edit")) return;
+  const o = r.o, ch = DOC_CH.includes(inp("dch:" + o.id)) ? inp("dch:" + o.id) : o.contact?.email ? "email" : "sms", to = String(inp("dto:" + o.id, docTo(r, ch))).trim();
+  const ok = !!to && (ch === "email" ? validEmail(to) : ch === "sms" ? validPhone(to) : validPhone(to) || /^@[A-Za-z0-9_]{4,32}$/.test(to));
+  const fld = $(`[data-inp="${CSS.escape("dto:" + o.id)}"]`);
+  if (!ok) { fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "dserr-" + o.id); showErr("#dserr-" + o.id, t("err_doc_to_" + ch)); fld?.focus(); return; }
+  change(() => mutOrder(r, x => { (x.sent ||= []).push({ at:Date.now(), ch, to, by:me().name });
+    audit("doc_sent", { no:x.no, ch:strRef("doc_ch_" + ch), to }, { module:"orders" }); }));
+  if (M.ui.inp) delete M.ui.inp["dto:" + o.id];
+  toast(tf("t_doc_sent", { to }));
+}
+
+/* ---- контакты заказа ---- */
+function contactEdit(r){
+  const o = r.o, d = M.ui.ocEdit;
+  if (d?.id !== o.id) return can("orders.edit") ? `<button type="button" class="link" data-act="aocedit" data-src="${r.src}" data-v="${o.id}">${esc(t("oc_edit"))}</button>` : "";
+  return `<div class="stack oc-form"><label class="field"><span>${esc(t("phone_label"))}</span><input data-oc="phone" type="tel" value="${esc(d.phone)}"></label>
+    <label class="field"><span>${esc(t("agency_email"))}</span><input data-oc="email" type="email" value="${esc(d.email)}"></label><div class="err" id="ocerr" hidden></div>
+    <div class="row"><button type="button" class="solid sm" data-act="aocsave" data-src="${r.src}" data-v="${o.id}">${esc(t("st_save"))}</button><button type="button" class="link" data-act="aocclose">${esc(t("cancel"))}</button></div></div>`;
+}
+function saveContact(r){
+  if (denied("orders.edit")) return;
+  const d = M.ui.ocEdit, phone = d.phone.trim(), email = d.email.trim();
+  const bad = !validPhone(phone) ? "phone" : email && !validEmail(email) ? "email" : null;
+  if (bad) { const f = $(`[data-oc="${bad}"]`); f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", "ocerr"); showErr("#ocerr", t(bad === "phone" ? "err_phone" : "err_email")); f?.focus(); return; }
+  change(() => mutOrder(r, o => {
+    const next = { phone:prettyPhone(phone), email }, diff = [["phone", "phone_label"], ["email", "agency_email"]].filter(([k]) => (o.contact?.[k] || "") !== next[k]).map(([k, label]) => ({ k:label, from:o.contact?.[k] || "", to:next[k] }));
+    if (!diff.length) return;
+    o.contact = { ...o.contact, ...next }; audit("order_edit", { no:o.no }, { module:"orders", diff });
+  }));
+  M.ui.ocEdit = null; rerender(); toast(t("t_order_saved"));
+}
+Object.assign(ACT, {
+  adprint: () => window.print(),
+  adsend:  el => { const r = rowOf(el); if (r) sendDoc(r); },
+  aocedit: el => { const r = rowOf(el); if (!r || denied("orders.edit")) return; M.ui.ocEdit = { id:r.o.id, phone:r.o.contact?.phone || "", email:r.o.contact?.email || "" }; rerender(); $('[data-oc="phone"]')?.focus(); },
+  aocclose:() => { M.ui.ocEdit = null; rerender(); },
+  aocsave: el => { const r = rowOf(el); if (r) saveContact(r); }
+});
+document.addEventListener("input", e => { const k = e.target.dataset?.oc; if (k && M.ui.ocEdit) M.ui.ocEdit[k] = e.target.value; });
+/* Канал выбран — адрес по умолчанию меняется на почту или телефон. */
+document.addEventListener("change", e => { const k = e.target.dataset?.inp; if (k?.startsWith("dch:") && M.ui.inp) { delete M.ui.inp["dto:" + k.slice(4)]; rerender(); $(`[data-inp="${CSS.escape(k)}"]`)?.focus(); } });
 
 /* ---- 50-agencies.js ---- */
 /* ==========================================================================
@@ -7706,9 +8204,14 @@ PAGES["agencies/:id"] = {
             <span class="a-num a-keep mono ${l.amount > 0 ? "plus" : ""}">${l.amount > 0 ? "+" : "−"}${grp(Math.abs(l.amount))}</span><span class="a-num mono muted">${grp(l.after)}</span></div>`).join("")}</div>` : `<p class="muted">${esc(t("ledger_empty"))}</p>`}</section>
       </div>
       <aside class="stack sticky">
+        ${brandCard(a)}
         ${can("crm.view") ? `<div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("a:" + a.id, clientData("a:" + a.id)?.manager || null)}</div></div>${tasksBlock("a:" + a.id)}` : ""}
         <div class="card stack"><span class="lbl">${esc(t("balance_now"))}</span><b class="bal-big mono">${grp(st.balance)}<small>${esc(t("cur_uzs"))}</small></b>
           ${pend.length ? `<div class="tasks compact">${pend.map(p => topupRow(p, a)).join("")}</div>` : ""}</div>
+        <div class="card stack"><h3>${esc(t("credit_limit"))}</h3><p class="muted small">${esc(t("credit_d"))}</p>
+          <p class="small">${esc(t("credit_now"))}: <b class="mono">${fmtUZS(creditOf(st))}</b> · ${esc(tf("credit_avail", { amount:fmtUZS(available(st)) }))}</p>
+          ${pendingAp("credit:" + a.id) ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : `<label class="field"><span>${esc(t("credit_new"))}</span><span class="amt-in">${inpField("cr:" + a.id, { value:String(creditOf(st)), label:t("credit_new"), extra:`inputmode="numeric" ${can("finance.manage") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
+          <div class="row"><button type="button" class="solid sm" data-act="acredit" data-v="${a.id}" ${guard("finance.manage")}>${esc(t("st_save"))}</button></div>`}</div>
         <div class="card stack"><h3>${esc(t("adjust_h"))}</h3><p class="muted small">${esc(t("adjust_d"))}</p>
           <label class="field"><span>${esc(t("topup_amount"))}</span><span class="amt-in">${inpField("adj:" + a.id, { label:t("topup_amount"), ph:t("adjust_amount_ph"), extra:`inputmode="numeric" ${can("finance.manage") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
           <label class="field"><span>${esc(t("reason"))}</span>${inpField("adjwhy:" + a.id, { label:t("reason"), ph:t("adjust_ph"), extra:`maxlength="120" ${can("finance.manage") ? "" : "disabled"}` })}</label>
@@ -7735,6 +8238,86 @@ function ledgerLabel(l, st){
   return tf(l.kind === "refund" ? "led_refund" : "led_order", { no:o ? o.no : "—" });
 }
 ACT.agorders = el => { M.ui.aosrc = el.dataset.v; M.ui.aog = "all"; go("orders"); };
+
+/* ---- 52-agency-brand.js ---- */
+/* ==========================================================================
+   Бренд агентства из админки: логотип, название, контакты, соцсети и цвет.
+   Билеты и ваучеры агентства собираются с этим брендом (orderDocument),
+   поэтому правка сразу видна в документах — и в кабинете, и здесь.
+   ========================================================================== */
+"use strict";
+
+const AB_FIELDS = [["name", "brand_name"], ["phone", "phone_label"], ["email", "agency_email"], ["address", "brand_address"],
+  ["telegram", "ab_telegram"], ["instagram", "ab_instagram"], ["website", "ab_website"]];
+const AB_LOGO_MAX = 2 * 1024 * 1024, AB_LOGO_SIDE = 256, AB_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
+const abPreview = d => `<div class="bdoc ab-prev">${brandTop(t("doc_TOUR"), d)}${brandFoot(d)}</div>`;
+function brandCard(a){
+  const d = M.ui.abr?.id === a.id ? M.ui.abr : null, b = a.brand || {};
+  if (!d) return `<div class="card stack"><div class="card-h"><span class="lbl">${esc(t("ab_h"))}</span>
+      <button type="button" class="link" data-act="abedit" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("edit"))}</button></div>
+    ${abPreview({ ...b, name:b.name || a.name })}<p class="muted small">${esc(t("ab_d"))}</p></div>`;
+  const f = ([k, label]) => `<label class="field"><span>${esc(t(label))}</span><input data-abr="${k}" value="${esc(d[k] || "")}" maxlength="${k === "address" ? 120 : 60}" autocomplete="off"></label>`;
+  return `<div class="card stack ab-form" id="abform"><div class="card-h"><h3>${esc(t("ab_h"))}</h3>
+      <button type="button" class="iconbtn" data-act="abclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div id="abprev">${abPreview(d)}</div>
+    <div class="row" style="${brandStyle(d)}">${brandMark("logo-prev", d)}
+      <label class="ghost sm filebtn">${IC.plus}<span>${esc(t(d.logo ? "logo_replace" : "logo_upload"))}</span><input id="ablogo" type="file" accept="${AB_LOGO_TYPES.join(",")}"></label>
+      ${d.logo ? `<button type="button" class="link danger" data-act="ablogox">${esc(t("logo_remove"))}</button>` : ""}</div>
+    ${AB_FIELDS.map(f).join("")}
+    <label class="field"><span>${esc(t("ab_color"))}</span><input type="color" data-abr="color" value="${esc(brandColor(d))}"></label>
+    <div class="err" id="aberr" hidden></div>
+    <div class="row"><button type="button" class="solid sm" data-act="absave" data-v="${a.id}">${esc(t("st_save"))}</button><button type="button" class="link" data-act="abclose">${esc(t("cancel"))}</button></div></div>`;
+}
+/* Ошибка и поле. Контакты необязательны, но если есть — в правильном виде. */
+function abError(d){
+  if ((d.name || "").trim().length < 2) return ["err_ab_name", "name"];
+  if (d.phone && !validPhone(d.phone)) return ["err_phone", "phone"];
+  if (d.email && !validEmail(d.email.trim())) return ["err_email", "email"];
+  for (const k of ["telegram", "instagram"]) if (d[k] && !/^@?[A-Za-z0-9_.]{3,32}$/.test(d[k].trim())) return ["err_ab_social", k];
+  if (d.website && !/^(https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(d.website.trim())) return ["err_ab_site", "website"];
+  if (!/^#[0-9a-f]{6}$/i.test(d.color || "#16275C")) return ["err_ab_name", "color"];
+  return null;
+}
+function saveAgencyBrand(id){
+  if (denied("b2b.edit")) return;
+  const d = M.ui.abr; if (!d || d.id !== id) return;
+  const err = abError(d);
+  $$("#abform [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+  if (err) { const fld = $(`#abform [data-abr="${err[1]}"]`); fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "aberr"); showErr("#aberr", t(err[0])); fld?.focus(); return; }
+  const rec = Object.fromEntries(AB_FIELDS.map(([k]) => [k, (d[k] || "").trim()])); rec.color = d.color || "#16275C"; rec.logo = d.logo || null;
+  if (rec.phone) rec.phone = prettyPhone(rec.phone);
+  change(() => withAgency(id, st => {
+    const b = st.brand || {}, diff = [...AB_FIELDS.filter(([k]) => (b[k] || "") !== rec[k]).map(([k, label]) => ({ k:label, from:b[k] || "", to:rec[k] })),
+      ...(b.color !== rec.color ? [{ k:"ab_color", from:b.color || "", to:rec.color }] : []), ...((b.logo || null) !== rec.logo ? [{ k:"ab_logo_h", from:strRef(b.logo ? "ab_logo_yes" : "ab_logo_no"), to:strRef(rec.logo ? "ab_logo_new" : "ab_logo_no") }] : [])];
+    if (!diff.length) return;
+    st.brand = { ...b, ...rec }; audit("ag_brand", { agency:st.agency.name }, { module:"b2b", diff });
+  }));
+  M.ui.abr = null; rerender(); toast(t("t_ab_saved"));
+}
+/* Логотип — уменьшаем до 256 px и храним как PNG в данных агентства. */
+async function readLogo(file){
+  if (!AB_LOGO_TYPES.includes(file.type)) return showErr("#aberr", t("err_logo_type"));
+  if (file.size > AB_LOGO_MAX) return showErr("#aberr", t("err_logo_size"));
+  try {
+    const img = await createImageBitmap(file), k = Math.min(1, AB_LOGO_SIDE / Math.max(img.width, img.height));
+    const c = Object.assign(document.createElement("canvas"), { width:Math.round(img.width * k), height:Math.round(img.height * k) });
+    c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+    if (!M.ui.abr) return;
+    M.ui.abr.logo = c.toDataURL("image/png"); rerender(); $("#ablogo")?.focus();
+  } catch(e) { showErr("#aberr", t("err_logo_type")); }
+}
+Object.assign(ACT, {
+  abedit:  el => { const a = agencyById(el.dataset.v); if (!a || denied("b2b.edit")) return; M.ui.abr = { id:a.id, ...(a.brand || {}), name:a.brand?.name || a.name }; rerender(); $('#abform [data-abr="name"]')?.focus(); },
+  abclose: () => { M.ui.abr = null; rerender(); },
+  absave:  el => saveAgencyBrand(el.dataset.v),
+  ablogox: () => { if (M.ui.abr) { M.ui.abr.logo = null; rerender(); $("#ablogo")?.focus(); } }
+});
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.abr; if (!k || !M.ui.abr) return;
+  M.ui.abr[k] = e.target.value;
+  const p = $("#abprev"); if (p) p.innerHTML = abPreview(M.ui.abr);
+});
+document.addEventListener("change", e => { if (e.target.id === "ablogo" && e.target.files?.[0]) readLogo(e.target.files[0]); });
 
 /* ---- 55-customers.js ---- */
 /* ==========================================================================
@@ -8372,7 +8955,7 @@ document.addEventListener("change", e => {
    ========================================================================== */
 "use strict";
 
-const FIN_TABS = ["topups", "ledger", "revenue", "refunds"];
+const FIN_TABS = ["tx", "topups", "ledger", "revenue", "refunds"];
 const LEDGER_LIMIT = 200;
 
 function finTopups(){
@@ -8446,11 +9029,13 @@ function finRefunds(){
 }
 PAGES.finance = {
   render(){
-    const tab = FIN_TABS.includes(M.ui.ftab) ? M.ui.ftab : "topups";
-    const body = { topups:finTopups, ledger:finLedger, revenue:finRevenue, refunds:finRefunds }[tab]();
+    const tab = FIN_TABS.includes(M.ui.ftab) ? M.ui.ftab : "tx";
+    const body = { tx:finTx, topups:finTopups, ledger:finLedger, revenue:finRevenue, refunds:finRefunds }[tab]();
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_finance"))}</h1><p class="muted">${esc(t("finance_sub"))}</p></div>
-        ${tab !== "topups" ? `<button type="button" class="ghost sm" data-act="fcsv" ${guard("finance.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button>` : ""}</div>
+        ${tab === "tx" ? `<span class="row"><button type="button" class="ghost sm" data-act="txcsv" ${guard("finance.export")}>${IC.doc}<span>CSV</span></button>
+            <button type="button" class="ghost sm" data-act="txxls" ${guard("finance.export")}>${IC.doc}<span>Excel</span></button></span>`
+          : tab !== "topups" ? `<button type="button" class="ghost sm" data-act="fcsv" ${guard("finance.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button>` : ""}</div>
       ${seg("ftab", FIN_TABS.map(k => [k, t("fin_" + k)]), tab)}
       <section class="card stack" style="margin-top:16px">${body}</section></div>`;
   }
@@ -8476,69 +9061,428 @@ Object.assign(ACT, {
   }
 });
 
-/* ---- 70-pricing.js ---- */
+/* ---- 62-transactions.js ---- */
 /* ==========================================================================
-   Цены и интеграции. Сбор и наценку на авиабилеты меняет главный
-   администратор — сайт и кабинет берут их сразу (prices()). Интеграции —
-   честная сводка: что подключено, что на тестовых данных и какие ключи нужны.
+   Реестр операций: все движения денег в одном списке — пополнения и
+   списания агентств, оплаты и возвраты сайта, ручные корректировки. У каждой
+   операции: номер (TX-…), дата, клиент или агентство, сумма, вид, статус,
+   способ оплаты, сотрудник и полная история. Выгрузка — CSV и Excel.
+   Операции собираются из выписок агентств и заказов сайта при показе.
+   Знак суммы — для клиента: плюс — деньги ему или на его баланс
+   (пополнение, возврат), минус — списание или оплата.
    ========================================================================== */
 "use strict";
 
-const pctInput = (key, bps) => inpField(key, { value:String(bps / 100), label:t(key), extra:`inputmode="decimal" maxlength="5" ${can("pricing.edit") ? "" : "disabled"}` });
-PAGES.pricing = {
-  render(){
-    const p = prices(), sample = 5_000_000;
-    return `<div class="page narrow-page">
-      <div class="pagehead"><h1>${esc(t("an_pricing"))}</h1><p class="muted">${esc(t("pricing_sub"))}</p></div>
+const TX_KINDS = ["topup", "payment", "order", "refund", "adjust"];
+const TX_ST = ["done", "pending", "rejected"];
+const txNo = id => "TX-" + (seedFrom(String(id)) >>> 0).toString(36).toUpperCase().padStart(7, "0");
+const siteClient = o => o.travellers?.[0] ? `${o.travellers[0].given} ${o.travellers[0].surname}`.trim() : o.contact?.phone || "—";
+
+/* Все операции, новые сверху. ev — история операции для карточки. */
+function transactions(){
+  const out = [];
+  for (const a of agencies()) {
+    const st = a.st;
+    for (const l of st.ledger) {
+      const o = l.orderId ? st.orders.find(x => x.id === l.orderId) : null, tp = l.kind === "topup" ? st.topups.find(p => p.id === l.topupId) : null;
+      const ap = O.approvals.find(x => x.status === "executed" && ((l.kind === "refund" && o && x.key === `refund:${a.id}:${o.id}`) || (l.kind === "adjust" && x.kind === "adjust" && x.payload?.aid === a.id && x.payload.amount === l.amount && Math.abs(x.decidedAt - l.at) < 5000)));
+      const ev = [
+        ...(tp ? [{ at:tp.at, text:tf("tx_ev_request", { m:methodLabel(tp.method) }) }] : []),
+        ...(ap ? [{ at:ap.at, text:tf("tx_ev_asked", { name:staffName(ap.by) }) }, { at:ap.decidedAt, text:tf("tx_ev_approved", { name:staffName(ap.decidedBy) }) }] : []),
+        { at:l.at, text:tf("tx_ev_posted", { after:fmtUZS(l.after) }) + (tp?.by || l.by ? ` · ${tp?.by || l.by}` : "") }];
+      out.push({ id:l.id, at:l.at, kind:l.kind, amount:l.amount, status:"done", method:l.kind === "topup" ? l.method || tp?.method || "" : l.kind === "order" ? "balance" : "",
+        who:a.name, whoHref:`#/agencies/${a.id}`, by:tp?.by || l.by || (ap ? staffName(ap.decidedBy) : ""), note:l.reason || "", order:o, src:a.id, ev });
+    }
+    // Возврат ещё не зачислен — операция ждёт (как у сайта).
+    for (const o of st.orders) if (o.refund?.uzs > 0 && !o.refund.done) out.push({ id:"ref-" + o.id, at:o.refund.at, kind:"refund", amount:o.refund.uzs, status:"pending", method:"balance",
+      who:a.name, whoHref:`#/agencies/${a.id}`, by:"", note:"", order:o, src:a.id, ev:[{ at:o.refund.at, text:t("tx_ev_cancel") }] });
+    for (const p of st.topups) if (p.status !== "done") out.push({ id:p.id, at:p.at, kind:"topup", amount:p.amount, status:p.status, method:p.method, who:a.name, whoHref:`#/agencies/${a.id}`,
+      by:p.by || "", note:p.reason || "", src:a.id, ev:[{ at:p.at, text:tf("tx_ev_request", { m:methodLabel(p.method) }) }, ...(p.doneAt ? [{ at:p.doneAt, text:tf("tx_ev_rejected", { name:p.by || "—", reason:p.reason || "" }) }] : [])] });
+  }
+  for (const o of SITE?.orders || []) {
+    const paid = o.history?.find(h => h.s === "PAID");
+    if (paid && o.total) out.push({ id:"pay-" + o.id, at:paid.at, kind:"payment", amount:-o.total.uzs, status:"done", method:o.method || "card", who:siteClient(o),
+      whoHref:`#/customers/${digits(o.contact?.phone)}`, by:"", note:o.promo ? (o.promo.auto ? tf("promo_auto_line", { name:o.promo.name }) : tf("promo_line", { code:o.promo.code })) : "", order:o, src:"site",
+      ev:[{ at:o.createdAt, text:t("tx_ev_order") }, { at:paid.at, text:tf("tx_ev_paid", { m:methodName(o.method || "card") }) }] });
+    if (o.refund?.uzs) { const ap = O.approvals.find(x => x.status === "executed" && x.key === `refund:site:${o.id}`);
+      out.push({ id:"ref-" + o.id, at:o.refund.at, kind:"refund", amount:o.refund.uzs, status:o.refund.done ? "done" : "pending", method:o.method || "card", who:siteClient(o),
+        whoHref:`#/customers/${digits(o.contact?.phone)}`, by:o.refund.by || (ap ? staffName(ap.decidedBy) : ""), note:"", order:o, src:"site",
+        ev:[{ at:o.refund.at, text:t("tx_ev_cancel") }, ...(ap ? [{ at:ap.decidedAt, text:tf("tx_ev_approved", { name:staffName(ap.decidedBy) }) }] : []),
+          ...(o.refund.done ? [{ at:o.history?.find(h => h.s === "REFUNDED")?.at || o.refund.at, text:t("tx_ev_refunded") }] : [])] }); }
+  }
+  return out.sort((a, b) => b.at - a.at);
+}
+const txMethod = x => !x.method ? "—" : x.method === "balance" ? t("tx_m_balance") : ["cash", "bank", "card"].includes(x.method) && x.src !== "site" ? methodLabel(x.method) : methodName(x.method);
+function txRows(){
+  const k = M.ui.txk || "all", s = M.ui.txs || "all", q = (M.ui.txq || "").trim().toLowerCase(), per = M.ui.txp || "all";
+  const since = per === "today" ? new Date().setHours(0, 0, 0, 0) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
+  return transactions().filter(x => (k === "all" || x.kind === k) && (s === "all" || x.status === s) && x.at >= since
+    && (!q || [txNo(x.id), x.who, x.order?.no || "", x.by, x.note].join(" ").toLowerCase().includes(q)));
+}
+const txPill = x => `<span class="pill ${x.status === "done" ? "st-CONFIRMED" : x.status === "pending" ? "st-PENDING" : "st-CANCELLED"}">${esc(t("tx_st_" + x.status))}</span>`;
+function finTx(){
+  const k = M.ui.txk || "all", s = M.ui.txs || "all", per = M.ui.txp || "all", rows = txRows(), shown = rows.slice(0, LEDGER_LIMIT);
+  const sums = txSums(rows);
+  return `<div class="ofind au-find">
+      <select id="txk" class="minisel" aria-label="${esc(t("tx_kind"))}"><option value="all">${esc(t("tx_all_kinds"))}</option>${TX_KINDS.map(x => `<option value="${x}" ${k === x ? "selected" : ""}>${esc(t("tx_k_" + x))}</option>`).join("")}</select>
+      <select id="txs" class="minisel" aria-label="${esc(t("col_status"))}"><option value="all">${esc(t("tx_all_st"))}</option>${TX_ST.map(x => `<option value="${x}" ${s === x ? "selected" : ""}>${esc(t("tx_st_" + x))}</option>`).join("")}</select>
+      <select id="txp" class="minisel" aria-label="${esc(t("au_period"))}">${AU_PERIODS.map(x => `<option value="${x}" ${per === x ? "selected" : ""}>${esc(t("au_per_" + x))}</option>`).join("")}</select>
+      <label class="search">${IC.search}<input id="txq" type="search" value="${esc(M.ui.txq || "")}" placeholder="${esc(t("tx_search"))}" aria-label="${esc(t("tx_search"))}"></label></div>
+    <p class="muted small" id="txcount" aria-live="polite">${esc(tf("tx_count", { n:rows.length, ...sums }))}</p><p class="muted small">${esc(t("tx_sign"))}</p>
+    <div id="txlist">${txTable(shown)}</div>
+    ${rows.length > shown.length ? `<p class="muted small">${esc(tf("shown_of", { n:shown.length, total:rows.length }))}</p>` : ""}`;
+}
+function txTable(rows){
+  if (!rows.length) return `<p class="muted">${esc(t("crm_none_match"))}</p>`;
+  return `<div class="atable" style="--cols:118px 128px minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) 150px 120px">
+    <div class="arow ahead" aria-hidden="true"><span>${esc(t("tx_no"))}</span><span>${esc(t("col_date"))}</span><span>${esc(t("tx_who"))}</span><span>${esc(t("tx_kind"))}</span>
+      <span>${esc(t("tx_method"))}</span><span class="a-num">${esc(t("col_amount"))}</span><span class="a-end">${esc(t("col_status"))}</span></div>
+    ${rows.map(x => `<a class="arow" href="#/finance/tx/${encodeURIComponent(x.id)}"><span class="a-cell mono small">${esc(txNo(x.id))}</span><span class="a-cell a-sub muted small">${esc(fdt(x.at))}</span>
+      <span class="a-main"><b>${esc(x.who)}</b><span class="small muted">${esc(x.order?.no || x.note || "")}</span></span><span class="a-cell small">${esc(t("tx_k_" + x.kind))}</span>
+      <span class="a-cell small">${esc(txMethod(x))}</span><span class="a-num a-keep mono ${x.amount > 0 ? "plus" : ""}">${x.amount > 0 ? "+" : "−"}${grp(Math.abs(x.amount))}</span>
+      <span class="a-end">${txPill(x)}</span></a>`).join("")}</div>`;
+}
+const txRefresh = () => { const l = $("#txlist"); if (!l) return; const rows = txRows(); l.innerHTML = txTable(rows.slice(0, LEDGER_LIMIT));
+  const c = $("#txcount"); if (c) c.textContent = tf("tx_count", { n:rows.length, ...txSums(rows) }); };
+/* Итоги проведённых: в пользу клиентов (плюс) и списано или оплачено (минус). */
+const txSums = rows => { const d = rows.filter(x => x.status === "done");
+  return { plus:fmtUZS(d.filter(x => x.amount > 0).reduce((a, x) => a + x.amount, 0)), minus:fmtUZS(-d.filter(x => x.amount < 0).reduce((a, x) => a + x.amount, 0)) }; };
+document.addEventListener("input", e => { if (e.target.id === "txq") { M.ui.txq = e.target.value; txRefresh(); } });
+document.addEventListener("change", e => { const k = { txk:"txk", txs:"txs", txp:"txp" }[e.target.id]; if (k) { M.ui[k] = e.target.value; txRefresh(); } });
+
+/* ---- карточка операции ---- */
+PAGES["finance/tx/:id"] = {
+  render({ id }){
+    const x = transactions().find(y => y.id === decodeURIComponent(id));
+    if (!x) return `<div class="page">${backLink("finance", t("an_finance"))}<div class="card empty"><h1 class="h-empty">${esc(t("tx_missing"))}</h1></div></div>`;
+    const row = (k, v, mono) => `<div><span class="k">${esc(t(k))}</span><span class="v ${mono ? "mono" : ""}">${v || "—"}</span></div>`;
+    return `<div class="page narrow-page">${backLink("finance", t("an_finance"))}
+      <div class="ohead"><span class="oc-ic">${IC.wallet}</span><div><span class="lbl mono">${esc(txNo(x.id))}</span><h1>${esc(t("tx_k_" + x.kind))} · ${x.amount > 0 ? "+" : "−"}${esc(fmtUZS(Math.abs(x.amount)))}</h1>
+        <p class="muted">${esc(fdt(x.at))}</p></div>${txPill(x)}</div>
       <div class="stack">
-        <section class="card stack"><h2>${esc(t("pr_fee"))}</h2><p class="muted small">${esc(t("pr_fee_d"))}</p>
-          <div class="pr-row"><span class="pct-in">${pctInput("pr_fee_in", p.feeBps)}<i>%</i></span>
-            <span class="muted small">${esc(tf("pr_fee_example", { sum:fmtUZS(sample), fee:fmtUZS(Math.ceil(sample * p.feeBps / 10000)) }))}</span></div></section>
-        <section class="card stack"><h2>${esc(t("pr_markup"))}</h2><p class="muted small">${esc(t("pr_markup_d"))}</p>
-          <div class="pr-row"><span class="pct-in">${pctInput("pr_markup_in", p.flightMarkupBps)}<i>%</i></span></div></section>
-        <div class="row"><button type="button" class="solid" data-act="prsave" ${guard("pricing.edit")}>${esc(t("pr_save"))}</button>
-          ${pricingNote() ? `<span class="muted small">${esc(pricingNote())}</span>` : ""}${pendingAp("pricing") ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : ""}</div>
-        <section class="card stack"><h2>${esc(t("pr_fixed"))}</h2><div class="rows">
-          ${[["pr_tour", "−7%"], ["pr_transfer", "$20"], ["pr_infant", "10%"], ["pr_charter", "+10%"]].map(([k, v]) => `<div><span class="k">${esc(t(k))}</span><span class="v mono">${v}</span></div>`).join("")}</div>
-          <p class="muted small">${esc(t("pr_fixed_d"))}</p></section>
+        <section class="card stack"><div class="rows">
+          ${row("tx_no", esc(txNo(x.id)), true)}${row("col_date", esc(fdt(x.at)))}${row("tx_who", `<a class="link" href="${x.whoHref}">${esc(x.who)}</a>`)}
+          ${row("col_amount", esc((x.amount > 0 ? "+" : "−") + fmtUZS(Math.abs(x.amount))), true)}${row("tx_kind", esc(t("tx_k_" + x.kind)))}${row("col_status", esc(t("tx_st_" + x.status)))}
+          ${row("tx_method", esc(txMethod(x)))}${row("tx_staff", esc(x.by))}${x.order ? row("booking_ref", `<a class="link mono" href="#/orders/${x.src}/${x.order.id}">${esc(x.order.no)}</a>`) : ""}
+          ${x.note ? row("reason", esc(x.note)) : ""}</div></section>
+        <section class="card stack"><h2>${esc(t("crm_history"))}</h2>
+          <ol class="timeline">${[...x.ev].sort((a, b) => a.at - b.at).map(e => `<li><span class="tl-dot st-CONFIRMED"></span><b>${esc(e.text)}</b><span class="muted small">${esc(fdt(e.at))}</span></li>`).join("")}</ol></section>
       </div></div>`;
   }
 };
-/* Проценты с запятой или точкой, до сотых; разумные пределы — чтобы опечатка
-   не сделала сбор 300%. */
-function readPct(key, max){
-  const raw = String(inp(key, "")).replace(",", ".").trim(); if (raw === "") return null;
-  const v = Number(raw); if (!Number.isFinite(v) || v < 0 || v > max) return NaN;
-  return Math.round(v * 100);
+
+/* ---- выгрузка ----
+   Excel — таблица XML (SpreadsheetML): открывается в Excel без мастера,
+   текст остаётся текстом (формулы не выполняются). */
+const xmlEsc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" })[c]);
+function xlsDownload(rows, name){
+  const cell = v => typeof v === "number" ? `<Cell><Data ss:Type="Number">${v}</Data></Cell>` : `<Cell><Data ss:Type="String">${xmlEsc(v)}</Data></Cell>`;
+  const xml = `<?xml version="1.0" encoding="UTF-8"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">`
+    + `<Worksheet ss:Name="Charteri"><Table>${rows.map(r => `<Row>${r.map(cell).join("")}</Row>`).join("")}</Table></Worksheet></Workbook>`;
+  const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(new Blob([xml], { type:"application/vnd.ms-excel" })), download:`charteri-${name}-${TODAY}.xls` });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
-ACT.prsave = () => {
-  if (denied("pricing.edit")) return;
-  const p = prices(), fee = readPct("pr_fee_in", 10), mk = readPct("pr_markup_in", 30);
-  if (Number.isNaN(fee) || Number.isNaN(mk)) return toast(t("err_pct"));
-  const from = { feeBps:p.feeBps, flightMarkupBps:p.flightMarkupBps }, to = { feeBps:fee ?? p.feeBps, flightMarkupBps:mk ?? p.flightMarkupBps };
-  if (to.feeBps === from.feeBps && to.flightMarkupBps === from.flightMarkupBps) return toast(t("pr_same"));
-  const clear = () => { delete M.ui.inp?.pr_fee_in; delete M.ui.inp?.pr_markup_in; rerender(); };
-  if (needsApproval("pricing")) { if (requestApproval("pricing", { key:"pricing", payload:{ from, to }, diff:pricingDiff(from, to) })) clear(); return; }
+const txExportRows = () => [[t("tx_no"), t("col_date"), t("tx_who"), t("tx_kind"), t("tx_method"), t("col_amount"), t("col_status"), t("tx_staff"), t("booking_ref"), t("reason")],
+  ...txRows().map(x => [txNo(x.id), new Date(x.at).toLocaleString(LOC[S.lang]), x.who, t("tx_k_" + x.kind), txMethod(x), x.amount, t("tx_st_" + x.status), x.by, x.order?.no || "", x.note])];
+Object.assign(ACT, {
+  txcsv: () => { if (denied("finance.export")) return; csvDownload(txExportRows(), "transactions"); change(() => audit("export", { what:strRef("fin_tx_csv") }, { module:"finance" })); },
+  txxls: () => { if (denied("finance.export")) return; xlsDownload(txExportRows(), "transactions"); change(() => audit("export", { what:strRef("fin_tx_xls") }, { module:"finance" })); }
+});
+
+/* ---- 70-pricing.js ---- */
+/* ==========================================================================
+   Услуги и цены. Всё, что сайт и кабинет берут из prices(): сбор агентств,
+   наценка на авиабилеты, доступность и поправки каждой услуги для сайта
+   (B2C) и агентств (B2B), скидка тура, трансфер и страховка, поправки по
+   направлениям, индивидуальные цены агентств, промокоды и акции.
+   Правки копятся в черновике и сохраняются вместе; для всех, кроме
+   основателя, — через подтверждение (правило «Изменения цен»).
+   ========================================================================== */
+"use strict";
+
+const EX_USD = 1000;                         // пример: цена поставщика $1 000
+const cfgNow = () => { const p = prices(); return JSON.parse(JSON.stringify({ feeBps:p.feeBps, flightMarkupBps:p.flightMarkupBps, svc:p.svc, dest:p.dest, agents:p.agents, promos:p.promos })); };
+const pctIn = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
+const numIn = s => Number(String(s).trim().replace(/\s/g, "").replace(",", "."));
+/* Направления для поправок: аэропорты (кроме Ташкента) и площадки вертолётов. */
+const destOptions = () => [...AIRPORTS.filter(a => a.iata !== "TAS" && !a.hidden).map(a => [a.iata, `${cityName(a.iata)} · ${a.iata}`]),
+  ...HELI_DEST.map(d => [d.id, `${heliName(d.id)} · ${t("type_HELI")}`])];
+
+/* Черновик формы: строки, как их ввели; base — настройки на момент открытия. */
+function prDraft(){
+  if (M.ui.prf && JSON.stringify(cfgNow()) !== M.ui.prf.base && !prChanges(M.ui.prf)) M.ui.prf = null;
+  if (M.ui.prf) return M.ui.prf;
+  const p = cfgNow();
+  return (M.ui.prf = { base:JSON.stringify(p), fee:pctIn(p.feeBps), markup:pctIn(p.flightMarkupBps), pkg:pctIn(p.svc.TOUR.pkg),
+    svc:Object.fromEntries(SVC_TYPES.map(k => [k, { on:p.svc[k].on, b2c:pctIn(p.svc[k].b2c), b2b:pctIn(p.svc[k].b2b) }])),
+    TRANSFER:{ on:p.svc.TRANSFER.on, usd:String(p.svc.TRANSFER.usd) }, INSURANCE:{ on:p.svc.INSURANCE.on, usd:String(p.svc.INSURANCE.usd) },
+    dest:Object.entries(p.dest).map(([code, v]) => ({ code, v:pctIn(v) })), agents:Object.entries(p.agents).map(([id, v]) => ({ id, v:pctIn(v) })),
+    promos:p.promos.map(x => ({ ...x, svc:[...(x.svc || [])] })) });
+}
+/* Черновик → настройки. Ошибка — путь поля (для фокуса) и ключ строки. */
+function prBuild(f){
   let err = null;
-  change(() => { err = execPricing({ from, to }); });
-  clear(); toast(err ? t(err) : t("pr_saved"));
-};
-const pricingDiff = (from, to) => [["pr_fee", "feeBps"], ["pr_markup", "flightMarkupBps"]].filter(([, k]) => from[k] !== to[k])
-  .map(([label, k]) => ({ k:label, from:{ pct:from[k] }, to:{ pct:to[k] } }));
-/* Цены могли поменяться, пока запрос ждал: тогда он не выполняется. */
+  const bad = (path, key, vars = {}) => { err ||= { path, key, vars }; return NaN; };
+  const P = (raw, path, lo, hi) => { const v = numIn(raw); return String(raw).trim() === "" || !Number.isFinite(v) || v < lo || v > hi ? bad(path, "err_pr_pct", { min:lo, max:hi }) : Math.round(v * 100); };
+  const U = (raw, path) => /^\d{1,4}$/.test(String(raw).trim()) && numIn(raw) <= 1000 ? numIn(raw) : bad(path, "err_pr_usd");
+  const cfg = { feeBps:P(f.fee, "fee", 0, 10), flightMarkupBps:P(f.markup, "markup", 0, 30), svc:{}, dest:{}, agents:{}, promos:f.promos.map(x => ({ ...x })) };
+  for (const k of SVC_TYPES) cfg.svc[k] = { on:!!f.svc[k].on, b2c:P(f.svc[k].b2c, `svc.${k}.b2c`, -50, 50), b2b:P(f.svc[k].b2b, `svc.${k}.b2b`, -50, 50) };
+  cfg.svc.TOUR.pkg = P(f.pkg, "pkg", 0, 30);
+  for (const k of ADDONS) cfg.svc[k] = { on:!!f[k].on, usd:U(f[k].usd, `${k}.usd`) };
+  const codes = [...destOptions().map(([c]) => c), ...Object.keys(JSON.parse(f.base).dest)];
+  f.dest.forEach((d, i) => { if (!codes.includes(d.code)) return bad(`dest.${i}.code`, "err_pr_dest"); if (d.code in cfg.dest) return bad(`dest.${i}.code`, "err_pr_dup");
+    const v = P(d.v, `dest.${i}.v`, -50, 50); if (v) cfg.dest[d.code] = v; });
+  f.agents.forEach((a, i) => { if (!agencyById(a.id)) return bad(`agents.${i}.id`, "err_pr_agency"); if (a.id in cfg.agents) return bad(`agents.${i}.id`, "err_pr_dup");
+    const v = P(a.v, `agents.${i}.v`, -50, 50); if (v) cfg.agents[a.id] = v; });
+  return { cfg, err };
+}
+/* Что было → что стало, по строке на изменение; без языка — для журнала и запроса. */
+function configDiff(a, b){
+  const out = [], pct = v => ({ pct:v, sign:true }), onoff = v => strRef(v ? "pr_on" : "pr_off");
+  const row = (k, x, y, conv = pct, sub) => { if (JSON.stringify(x ?? null) !== JSON.stringify(y ?? null)) out.push({ k, from:x == null ? "" : conv(x), to:y == null ? "" : conv(y), ...(sub ? { sub } : {}) }); };
+  row("pr_fee", a.feeBps, b.feeBps, v => ({ pct:v })); row("pr_markup", a.flightMarkupBps, b.flightMarkupBps, v => ({ pct:v }));
+  for (const k of SVC_TYPES) { row(["type_" + k, "pr_col_on"], a.svc[k].on, b.svc[k].on, onoff); row(["type_" + k, "pr_col_b2c"], a.svc[k].b2c, b.svc[k].b2c); row(["type_" + k, "pr_col_b2b"], a.svc[k].b2b, b.svc[k].b2b); }
+  row(["type_TOUR", "pr_col_pkg"], a.svc.TOUR.pkg, b.svc.TOUR.pkg, v => ({ pct:v }));
+  for (const k of ADDONS) { row(["pr_" + k.toLowerCase(), "pr_col_on"], a.svc[k].on, b.svc[k].on, onoff); row(["pr_" + k.toLowerCase(), "pr_col_usd"], a.svc[k].usd, b.svc[k].usd, v => "$" + v); }
+  for (const c of new Set([...Object.keys(a.dest), ...Object.keys(b.dest)])) row("pr_dest", a.dest[c], b.dest[c], pct, { dest:{ code:c, heli:!AIRPORTS.some(x => x.iata === c) } });
+  for (const id of new Set([...Object.keys(a.agents), ...Object.keys(b.agents)])) row("pr_agents", a.agents[id], b.agents[id], pct, agencyById(id)?.name || id);
+  // Промокод: новый или удалённый — одной строкой; изменённый — строкой на каждое поле.
+  const pa = new Map(a.promos.map(x => [x.id, x])), pb = new Map(b.promos.map(x => [x.id, x]));
+  for (const id of new Set([...pa.keys(), ...pb.keys()])) {
+    const x = pa.get(id), y = pb.get(id), name = (y || x).code || (y || x).name;
+    if (!x || !y) { row("pr_promos", x, y, z => ({ promo:{ kind:z.kind, value:z.value, active:!!z.active } }), name); continue; }
+    for (const [, label, conv] of PROMO_DIFF) row(["pr_promos", label], conv(x), conv(y), v => v, name);
+  }
+  return out;
+}
+const PROMO_DIFF = [["value", "pm_col_off", z => ({ promo:{ kind:z.kind, value:z.value, active:true } })], ["active", "col_status", z => strRef(z.active ? "pm_st_on" : "pm_st_off")],
+  ["code", "pm_code", z => z.code || "—"], ["name", "pm_name", z => z.name], ["svc", "pm_svc", z => ({ svcs:z.svc || [] })], ["min", "pm_min", z => z.minUsd ? "$" + z.minUsd : "—"],
+  ["limit", "pm_limit", z => z.limit ? String(z.limit) : "—"], ["dates", "pm_col_dates", z => `${z.starts || "…"} — ${z.ends || "…"}`]];
+const prChanges = f => { const { cfg, err } = prBuild(f); return err ? -1 : configDiff(JSON.parse(f.base), cfg).length; };
+
+/* ---- сохранение ---- */
+function savePricing(){
+  if (denied("pricing.edit")) return;
+  const f = prDraft();
+  if (JSON.stringify(cfgNow()) !== f.base) { M.ui.prf = null; rerender(); return toast(t("pr_conflict")); }
+  const { cfg, err } = prBuild(f);
+  $$("#app [data-pf][aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+  if (err) { const fld = $(`[data-pf="${err.path}"]`); fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "prerr"); showErr("#prerr", tf(err.key, err.vars));
+    fld?.scrollIntoView({ block:"center" }); fld?.focus({ preventScroll:true }); return; }
+  const from = JSON.parse(f.base), diff = configDiff(from, cfg);
+  if (!diff.length) { M.ui.prf = null; rerender(); return toast(t("pr_same")); }
+  if (needsApproval("pricing")) { if (requestApproval("pricing", { key:"pricing", payload:{ from, to:cfg }, diff })) { M.ui.prf = null; rerender(); $("h1")?.focus(); } return; }
+  let e = null; change(() => { e = execPricing({ from, to:cfg }); });
+  M.ui.prf = null; rerender(); $("h1")?.focus(); toast(e ? t(e) : t("pr_saved"));
+}
+/* Исполнитель (см. 17-approvals.js): цены могли поменяться, пока запрос ждал. */
 function execPricing({ from, to }){
-  const p = prices();
-  if (p.feeBps !== from.feeBps || p.flightMarkupBps !== from.flightMarkupBps) return "ap_err_changed";
+  const now = cfgNow();
+  // Запрос прошлой версии хранил только сбор и наценку.
+  if (!from.svc) { if (now.feeBps !== from.feeBps || now.flightMarkupBps !== from.flightMarkupBps) return "ap_err_changed"; to = { ...now, feeBps:to.feeBps, flightMarkupBps:to.flightMarkupBps }; }
+  else if (JSON.stringify(now) !== JSON.stringify(from)) return "ap_err_changed";
   writeJSON(PRICES_KEY, to); PRICES = null;
-  for (const d of pricingDiff(from, to)) audit(d.k === "pr_fee" ? "fee" : "markup", { from:d.from, to:d.to }, { diff:[d] });
+  audit("pricing", {}, { diff:configDiff(now, to) });
   return null;
 }
-/* Строка под кнопкой: сохранить нельзя или изменение пойдёт на подтверждение. */
-const pricingNote = () => !can("pricing.edit") ? t("pr_admin_only") : needsApproval("pricing") ? t("pr_needs_ap") : "";
 
-/* ---- интеграции ----
-   Карта работает без ключа; остальное в демо — на тестовых данных. Ключи —
-   названия переменных из .env.example: сами значения живут только на сервере. */
+/* ---- разметка ---- */
+const pf = (path, val, attrs = "") => `<input data-pf="${path}" value="${esc(val)}" ${attrs}>`;
+const pctBox = (path, val, label, dis, signed) => `<span class="pct-in sm">${pf(path, val, `inputmode="${signed ? "text" : "decimal"}" maxlength="6" aria-label="${esc(label)}" ${dis}`)}<i>%</i></span>`;
+/* Пример на $1 000 поставщика: цена на сайте и для агентства (со сбором). */
+function exampleText(f, k){
+  const n = v => { const x = numIn(v); return Number.isFinite(x) ? x / 100 : 0; }, base = EX_USD * (k === "FLIGHT" ? 1 + n(f.markup) : 1);
+  const site = Math.round(base * (1 + n(f.svc[k].b2c))), ag = Math.round(base * (1 + n(f.svc[k].b2b))), fee = Math.ceil(ag * n(f.fee));
+  return tf(k === "TOUR" ? "pr_example_tour" : "pr_example", { base:"$" + grp(EX_USD), site:"$" + grp(site), agency:"$" + grp(ag), fee:"$" + grp(fee) });
+}
+function svcTable(f, dis){
+  return `<div class="atable pr-table" style="--cols:minmax(0,1.6fr) 120px 120px minmax(0,2.2fr)">
+    <div class="arow ahead" aria-hidden="true"><span>${esc(t("pr_col_svc"))}</span><span>${esc(t("pr_col_b2c"))}</span><span>${esc(t("pr_col_b2b"))}</span><span>${esc(t("pr_col_example"))}</span></div>
+    ${SVC_TYPES.map(k => `<div class="arow ${f.svc[k].on ? "" : "past"}"><label class="chk"><input type="checkbox" data-pf="svc.${k}.on" ${f.svc[k].on ? "checked" : ""} ${dis}>
+        <span class="stack" style="gap:1px"><b>${esc(t("type_" + k))}</b><span class="small muted">${esc(t(f.svc[k].on ? "pr_svc_on" : "pr_svc_off"))}</span></span></label>
+      <span class="pr-cell"><span class="pr-lbl">${esc(t("pr_col_b2c"))}</span>${pctBox(`svc.${k}.b2c`, f.svc[k].b2c, `${t("type_" + k)}: ${t("pr_col_b2c")}`, dis, true)}</span>
+      <span class="pr-cell"><span class="pr-lbl">${esc(t("pr_col_b2b"))}</span>${pctBox(`svc.${k}.b2b`, f.svc[k].b2b, `${t("type_" + k)}: ${t("pr_col_b2b")}`, dis, true)}</span>
+      <span class="small muted pr-ex" id="ex-${k}">${esc(exampleText(f, k))}</span></div>`).join("")}</div>`;
+}
+function adjRows(kind, f, dis){
+  const rows = f[kind], key = kind === "dest" ? "code" : "id";
+  // Направление скрыли или удалили, а поправка осталась — показываем её, чтобы можно было убрать.
+  const base = kind === "dest" ? destOptions() : agencies().map(a => [a.id, a.name]);
+  const opts = [...base, ...Object.keys(JSON.parse(f.base)[kind]).filter(c => !base.some(([v]) => v === c)).map(c => [c, `${c} · ${t("pr_hidden")}`])];
+  return `<div class="adj-rows">${rows.map((r, i) => `<div class="adj-row">
+      <select class="minisel" data-pf="${kind}.${i}.${key}" aria-label="${esc(t(kind === "dest" ? "crm_dest" : "customer"))}" ${dis}><option value="">—</option>${opts.map(([v, l]) => `<option value="${esc(v)}" ${r[key] === v ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>
+      ${pctBox(`${kind}.${i}.v`, r.v, t("pr_adj"), dis, true)}
+      ${dis ? "" : `<button type="button" class="iconbtn" data-act="pradjdel" data-k="${kind}" data-v="${i}" aria-label="${esc(t("pr_row_del"))}">${IC.x}</button>`}</div>`).join("")
+    || `<p class="muted small">${esc(t(kind === "dest" ? "pr_dest_none" : "pr_agents_none"))}</p>`}
+    ${dis ? "" : `<button type="button" class="ghost sm" data-act="pradjadd" data-k="${kind}">${IC.plus}<span>${esc(t(kind === "dest" ? "pr_dest_add" : "pr_agents_add"))}</span></button>`}</div>`;
+}
+function saveBar(f){
+  const n = prChanges(f); if (!n) return "";
+  return `<div class="savebar" role="region" aria-label="${esc(t("pr_unsaved"))}"><span>${esc(n < 0 ? t("err_pr_check") : tf("role_changed", { n }))}</span>
+    ${needsApproval("pricing") ? `<span class="muted small">${esc(t("pr_needs_ap"))}</span>` : ""}
+    <div class="err" id="prerr" hidden></div>
+    <span class="row"><button type="button" class="link" data-act="prreset">${esc(t("cancel"))}</button><button type="button" class="solid" data-act="prsave">${esc(t("pr_save"))}</button></span></div>`;
+}
+PAGES.pricing = {
+  render(){
+    const f = prDraft(), edit = can("pricing.edit"), dis = edit ? "" : "disabled", pend = pendingAp("pricing");
+    return `<div class="page">
+      <div class="pagehead"><h1>${esc(t("an_pricing"))}</h1><p class="muted">${esc(t("pricing_sub"))}</p></div>
+      ${pend ? `<div class="card stack"><p class="note-live">${IC.clock}<span>${esc(t("pr_pending"))}</span></p>${apDiff(pend)}</div>` : ""}
+      ${edit ? "" : `<p class="muted">${esc(t("pr_admin_only"))}</p>`}
+      <div class="stack" style="margin-top:12px">
+        <section class="card stack"><h2>${esc(t("pr_fee_h"))}</h2>
+          <div class="sgrid sgrid-2"><div class="stack" style="gap:6px"><b>${esc(t("pr_fee"))}</b><p class="muted small">${esc(t("pr_fee_d"))}</p>${pctBox("fee", f.fee, t("pr_fee"), dis)}</div>
+            <div class="stack" style="gap:6px"><b>${esc(t("pr_markup"))}</b><p class="muted small">${esc(t("pr_markup_d"))}</p>${pctBox("markup", f.markup, t("pr_markup"), dis)}</div></div></section>
+        <section class="card stack"><div class="stack" style="gap:4px"><h2>${esc(t("pr_svc_h"))}</h2><p class="muted small">${esc(t("pr_svc_d"))}</p></div>${svcTable(f, dis)}
+          <div class="sgrid sgrid-3 pr-extra">
+            <div class="stack" style="gap:6px"><b>${esc(t("pr_col_pkg"))}</b><p class="muted small">${esc(t("pr_pkg_d"))}</p>${pctBox("pkg", f.pkg, t("pr_col_pkg"), dis)}</div>
+            ${ADDONS.map(k => `<div class="stack" style="gap:6px"><label class="chk"><input type="checkbox" data-pf="${k}.on" ${f[k].on ? "checked" : ""} ${dis}><b>${esc(t("pr_" + k.toLowerCase()))}</b></label>
+              <p class="muted small">${esc(t("pr_" + k.toLowerCase() + "_d"))}</p><span class="usd-in"><i>$</i>${pf(`${k}.usd`, f[k].usd, `inputmode="numeric" maxlength="4" aria-label="${esc(t("pr_" + k.toLowerCase()))}" ${dis || (f[k].on ? "" : "disabled")}`)}</span></div>`).join("")}</div></section>
+        <section class="card stack"><div class="stack" style="gap:4px"><h2>${esc(t("pr_dest"))}</h2><p class="muted small">${esc(t("pr_dest_d"))}</p></div>${adjRows("dest", f, dis)}</section>
+        <section class="card stack"><div class="stack" style="gap:4px"><h2>${esc(t("pr_agents"))}</h2><p class="muted small">${esc(t("pr_agents_d"))}</p></div>${adjRows("agents", f, dis)}</section>
+        ${promoSection(f, dis)}
+      </div>
+      <div id="prbar">${edit ? saveBar(f) : ""}</div></div>`;
+  },
+  after(){ if (M.ui.promoEd && M.ui.peFocus) { $("#promoed input")?.focus(); M.ui.peFocus = false; } }
+};
+
+/* ---- поля ---- */
+function setPath(o, path, v){ const ks = path.split("."); let x = o; for (const k of ks.slice(0, -1)) x = x[k]; x[ks.at(-1)] = v; }
+document.addEventListener("input", e => {
+  const path = e.target.dataset?.pf; if (path == null || !M.ui.prf || e.target.type === "checkbox" || e.target.tagName === "SELECT") return;
+  setPath(M.ui.prf, path, e.target.value);
+  // Пример и полоса «сохранить» обновляются на месте, без перерисовки поля ввода.
+  for (const k of SVC_TYPES) { const ex = $("#ex-" + k); if (ex) ex.textContent = exampleText(M.ui.prf, k); }
+  const bar = $("#prbar"); if (bar && can("pricing.edit")) bar.innerHTML = saveBar(M.ui.prf);
+});
+document.addEventListener("change", e => {
+  const path = e.target.dataset?.pf; if (path == null || !M.ui.prf || (e.target.type !== "checkbox" && e.target.tagName !== "SELECT")) return;
+  setPath(M.ui.prf, path, e.target.type === "checkbox" ? e.target.checked : e.target.value);
+  rerender(); $(`[data-pf="${CSS.escape(path)}"]`)?.focus();
+});
+Object.assign(ACT, {
+  prsave:   () => savePricing(),
+  prreset:  () => { M.ui.prf = null; M.ui.promoEd = null; rerender(); $("h1")?.focus(); },
+  pradjadd: el => { const f = prDraft(), k = el.dataset.k; f[k].push(k === "dest" ? { code:"", v:"5" } : { id:"", v:"-5" }); rerender(); $(`[data-pf="${k}.${f[k].length - 1}.${k === "dest" ? "code" : "id"}"]`)?.focus(); },
+  pradjdel: el => { const f = prDraft(), k = el.dataset.k; f[k].splice(Number(el.dataset.v), 1); rerender(); $(`[data-act="pradjadd"][data-k="${k}"]`)?.focus(); }
+});
+
+/* ---- 71-promos.js ---- */
+/* ==========================================================================
+   Промокоды и акции сайта. Промокод пассажир вводит при оформлении; акция
+   (без кода) применяется сама. Скидка на заказ одна — бо́льшая (bestPromo в
+   ядре). Правки промокодов идут в тот же черновик, что и остальные цены, и
+   сохраняются общей кнопкой — с подтверждением, если оно нужно.
+   Хранение: value — сотые процента (pct) или доллары (fixed).
+   ========================================================================== */
+"use strict";
+
+const blankPromo = () => ({ id:uid("pm"), code:"", name:"", kind:"pct", value:"10", svc:[], minUsd:"", starts:TODAY, ends:"", limit:"", active:true, auto:false, isNew:true });
+/* Состояние для списка: выключен, ещё не начался, закончился, исчерпан, действует. */
+function promoState(x){
+  if (!x.active) return "off";
+  if (x.starts && TODAY < x.starts) return "soon";
+  if (x.ends && TODAY > x.ends) return "ended";
+  if (x.limit && promoUsed(x, SITE?.orders || []) >= x.limit) return "used";
+  return "on";
+}
+const promoValue = x => x.kind === "pct" ? `−${pctText(x.value)}%` : `−$${grp(x.value)}`;
+const promoDates = x => x.starts || x.ends ? `${x.starts ? fdate(x.starts) : "…"} — ${x.ends ? fdate(x.ends) : "…"}` : t("pm_always");
+
+function promoSection(f, dis){
+  const list = f.promos, ed = M.ui.promoEd;
+  return `<section class="card stack" id="promos"><div class="card-h"><div class="stack" style="gap:4px"><h2>${esc(t("pr_promos"))}</h2><p class="muted small">${esc(t("pr_promos_d"))}</p></div>
+      ${dis ? "" : `<button type="button" class="ghost sm" data-act="pmnew">${IC.plus}<span>${esc(t("pm_new"))}</span></button>`}</div>
+    ${ed ? promoForm(ed) : ""}
+    ${list.length ? `<div class="atable" style="--cols:minmax(0,1.6fr) 90px minmax(0,1.3fr) minmax(0,1.3fr) 90px 130px auto">
+      <div class="arow ahead" aria-hidden="true"><span>${esc(t("pm_col_code"))}</span><span>${esc(t("pm_col_off"))}</span><span>${esc(t("crm_service"))}</span><span>${esc(t("pm_col_dates"))}</span>
+        <span class="a-num">${esc(t("pm_col_used"))}</span><span>${esc(t("col_status"))}</span><span></span></div>
+      ${list.map(x => { const st = promoState(x), used = promoUsed(x, SITE?.orders || []);
+        return `<div class="arow ${st === "on" ? "" : "past"}"><span class="a-main"><b class="${x.auto ? "" : "mono"}">${esc(x.auto ? t("pm_auto_short") : x.code)}</b><span class="small muted">${esc(x.name)}</span></span>
+          <span class="a-cell mono a-sub">${esc(promoValue(x))}</span>
+          <span class="a-cell small wrap">${esc(x.svc?.length ? x.svc.map(k => t("type_" + k)).join(", ") : t("pm_all_svc"))}${x.minUsd ? ` · ${esc(tf("pm_min_short", { min:"$" + grp(x.minUsd) }))}` : ""}</span>
+          <span class="a-cell small">${esc(promoDates(x))}</span>
+          <span class="a-num mono small">${used}${x.limit ? " / " + x.limit : ""}</span>
+          <span><span class="pill pm-${st}">${esc(t((x.auto && st !== "on" ? "pm_sta_" : "pm_st_") + st))}</span></span>
+          <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${dis ? "" : `<button type="button" class="link" data-act="pmedit" data-v="${esc(x.id)}">${esc(t("edit"))}</button>
+            <button type="button" class="link" data-act="pmtoggle" data-v="${esc(x.id)}">${esc(t(x.active ? "pm_hide" : "pm_show"))}</button>
+            <button type="button" class="link danger" data-act="pmdel" data-v="${esc(x.id)}" aria-label="${esc(t("delete_cta"))}: ${esc(x.code || x.name)}">${esc(t("delete_cta"))}</button>`}</span></div>`; }).join("")}</div>`
+      : `<p class="muted">${esc(t("pm_none"))}</p>`}</section>`;
+}
+function promoForm(d){
+  const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-pe="${k}" value="${esc(d[k])}" ${attrs}></label>`;
+  return `<div class="stack cl-edit pm-form" id="promoed"><h3>${esc(t(d.isNew ? "pm_new" : d.auto ? "pm_edit_auto" : "pm_edit"))}</h3>
+    <label class="chk"><input type="checkbox" data-pe="auto" ${d.auto ? "checked" : ""}><span>${esc(t("pm_auto"))}</span></label>
+    <div class="sgrid sgrid-3">
+      ${d.auto ? "" : f("code", "pm_code", 'maxlength="20" autocomplete="off" style="text-transform:uppercase"')}
+      ${f("name", "pm_name", 'maxlength="60" autocomplete="off"')}
+      <label class="field"><span>${esc(t("pm_kind"))}</span><select data-pe="kind"><option value="pct" ${d.kind === "pct" ? "selected" : ""}>${esc(t("pm_kind_pct"))}</option><option value="fixed" ${d.kind === "fixed" ? "selected" : ""}>${esc(t("pm_kind_fixed"))}</option></select></label>
+      ${f("value", d.kind === "pct" ? "pm_value_pct" : "pm_value_usd", 'inputmode="decimal" maxlength="6"')}
+      ${f("minUsd", "pm_min", 'inputmode="numeric" maxlength="6" placeholder="$"')}
+      ${f("limit", "pm_limit", 'inputmode="numeric" maxlength="6"')}
+      ${f("starts", "pm_starts", 'type="date"')}${f("ends", "pm_ends", 'type="date"')}
+    </div>
+    <fieldset class="pm-svc"><legend>${esc(t("pm_svc"))}</legend>${PROMO_TYPES.map(k => `<label class="chk"><input type="checkbox" data-pe-svc="${k}" ${d.svc.includes(k) ? "checked" : ""}><span>${esc(t("type_" + k))}</span></label>`).join("")}
+      <p class="muted small">${esc(t("pm_svc_d"))}</p></fieldset>
+    <label class="chk"><input type="checkbox" data-pe="active" ${d.active ? "checked" : ""}><span>${esc(t("pm_active"))}</span></label>
+    ${d.auto ? `<p class="muted small">${esc(t("pm_auto_limit"))}</p>` : ""}
+    <div class="err" id="pmerr" hidden></div>
+    <div class="row"><button type="button" class="solid sm" data-act="pmdone">${esc(t("pm_done"))}</button><button type="button" class="link" data-act="pmclose">${esc(t("cancel"))}</button>
+      <span class="muted small">${esc(t("pm_draft_note"))}</span></div></div>`;
+}
+/* Черновик промокода → запись. Ошибка — поле и ключ строки. */
+function promoRead(d, all){
+  const n = v => numIn(v), int = v => String(v).trim() === "" ? 0 : /^\d{1,6}$/.test(String(v).trim()) ? Number(v) : NaN;
+  const code = String(d.code || "").trim().toUpperCase(), value = d.kind === "pct" ? Math.round(n(d.value) * 100) : n(d.value);
+  if (!d.auto && !/^[A-Z0-9][A-Z0-9_-]{2,19}$/.test(code)) return { err:["err_pm_code", "code"] };
+  if (!d.auto && all.some(x => x.id !== d.id && x.code === code)) return { err:["err_pm_dup", "code"] };
+  if (d.name.trim().length < 2) return { err:["err_pm_name", "name"] };
+  if (!Number.isInteger(value) || value <= 0 || value > (d.kind === "pct" ? 9000 : 100000)) return { err:["err_pm_value", "value"] };
+  const minUsd = int(d.minUsd), limit = int(d.limit);
+  if (Number.isNaN(minUsd)) return { err:["err_pm_int", "minUsd"] };
+  if (Number.isNaN(limit)) return { err:["err_pm_int", "limit"] };
+  if (d.starts && d.ends && d.ends < d.starts) return { err:["err_pm_dates", "ends"] };
+  return { rec:{ id:d.id, code:d.auto ? "" : code, name:d.name.trim(), kind:d.kind, value, svc:PROMO_TYPES.filter(k => d.svc.includes(k)), minUsd, limit,
+    starts:d.starts || "", ends:d.ends || "", active:!!d.active, auto:!!d.auto } };
+}
+Object.assign(ACT, {
+  pmnew:    () => { if (denied("pricing.edit")) return; if (prDraft().promos.length >= PROMO_MAX) return toast(tf("err_pm_max", { n:PROMO_MAX })); M.ui.promoEd = blankPromo(); M.ui.peFocus = true; rerender(); },
+  pmedit:   el => { const x = prDraft().promos.find(p => p.id === el.dataset.v); if (!x) return;
+    M.ui.promoEd = { ...x, value:x.kind === "pct" ? pctIn(x.value) : String(x.value), minUsd:x.minUsd ? String(x.minUsd) : "", limit:x.limit ? String(x.limit) : "", svc:[...(x.svc || [])], isNew:false }; M.ui.peFocus = true; rerender(); },
+  pmclose:  () => { M.ui.promoEd = null; rerender(); $('[data-act="pmnew"]')?.focus(); },
+  pmdone:   () => {
+    const d = M.ui.promoEd, f = prDraft(); if (!d) return;
+    const { rec, err } = promoRead(d, f.promos);
+    $$("#promoed [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+    if (err) { const fld = $(`#promoed [data-pe="${err[1]}"]`); fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "pmerr"); showErr("#pmerr", t(err[0])); fld?.focus({ preventScroll:true }); return; }
+    const i = f.promos.findIndex(x => x.id === rec.id); if (i >= 0) f.promos[i] = rec; else f.promos.unshift(rec);
+    M.ui.promoEd = null; rerender(); $("#prbar .solid")?.focus();
+  },
+  pmtoggle: el => { const x = prDraft().promos.find(p => p.id === el.dataset.v); if (!x) return; x.active = !x.active; rerender(); $(`[data-act="pmtoggle"][data-v="${CSS.escape(x.id)}"]`)?.focus(); },
+  pmdel:    el => { const f = prDraft(), x = f.promos.find(p => p.id === el.dataset.v); if (!x || !confirm(tf(x.auto ? "pm_del_q_auto" : "pm_del_q", { code:x.code || x.name }))) return;
+    f.promos = f.promos.filter(p => p.id !== x.id); rerender(); $('[data-act="pmnew"]')?.focus(); }
+});
+document.addEventListener("input", e => { const k = e.target.dataset?.pe; if (k && M.ui.promoEd && e.target.type !== "checkbox") M.ui.promoEd[k] = e.target.value; });
+document.addEventListener("change", e => {
+  const d = M.ui.promoEd; if (!d) return;
+  const k = e.target.dataset?.pe, s = e.target.dataset?.peSvc;
+  if (s) { d.svc = e.target.checked ? [...new Set([...d.svc, s])] : d.svc.filter(x => x !== s); return; }
+  if (!k) return;
+  if (e.target.type === "checkbox") { d[k] = e.target.checked; if (k === "auto") { rerender(); $('#promoed [data-pe="auto"]')?.focus(); } return; }
+  d[k] = e.target.value;
+  if (k === "kind") { rerender(); $('#promoed [data-pe="kind"]')?.focus(); }
+});
+
+/* ---- 72-integrations.js ---- */
+/* ==========================================================================
+   Интеграции — честная сводка: что подключено, что на тестовых данных и
+   какие ключи нужны. Ключи — названия переменных из .env.example: сами
+   значения живут только на сервере.
+   ========================================================================== */
+"use strict";
+
 const INTEGRATIONS = [
   ["samo", "ok_test", "SAMO_API_URL, SAMO_API_TOKEN", "INTEGRATION.md · 4"],
   ["hotels", "none", "HOTEL_SUPPLIER_URL, HOTEL_SUPPLIER_KEY_ID, HOTEL_SUPPLIER_API_KEY", "INTEGRATION.md · 5"],
@@ -9185,8 +10129,8 @@ Object.assign(ACT, {
 /* Раздел старых записей (без поля module) — по действию. */
 const AUDIT_MODULE = {
   price:"orders", confirm:"orders", cancel:"orders", refund:"finance", req_done:"b2c", req_declined:"b2c", topup_ok:"finance", topup_rejected:"finance",
-  app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
-  fee:"pricing", markup:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
+  app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", credit:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
+  fee:"pricing", markup:"pricing", pricing:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
   staff_add:"staff", staff_off:"staff", staff_on:"staff", staff_role:"staff", staff_edit:"staff", role_new:"roles", role_edit:"roles", role_delete:"roles",
   rules:"settings", reset:"settings", export:"finance", switch:"session", signin:"session", signout:"session"
 };
@@ -9211,7 +10155,7 @@ function auditList(){
       <span role="columnheader">${esc(t("col_action"))}</span><span role="columnheader">${esc(t("col_where"))}</span></div>
     ${rows.slice(0, AU_SHOW).map(e => `<div class="arow" role="row"><span class="a-cell a-sub muted small" role="cell">${esc(fdt(e.at))}</span>
       <span class="a-cell a-sub wrap" role="cell">${esc(staffName(e.staffId))}<br><span class="muted small">${esc(auditRole(e))}</span></span>
-      <span class="a-key" role="cell"><span>${esc(auditText(e))}</span>${e.diff?.length ? `<ul class="ap-diff">${e.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s>
+      <span class="a-key" role="cell"><span>${esc(auditText(e))}</span>${e.diff?.length ? `<ul class="ap-diff">${e.diff.map(d => `<li><span class="muted">${esc(diffLabel(d))}:</span> <s>${esc(auditVal(d.from) || "—")}</s>
         <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : ""}
         <span class="muted small">${esc(t("m_" + auditModule(e)))}</span></span>
       <span class="a-cell small muted" role="cell"><span class="mono">${esc(e.ip || "—")}</span><br>${esc(e.dev || "")}</span></div>`).join("")}</div>
@@ -9247,7 +10191,7 @@ ACT.aucsv = () => {
   const when = ms => new Date(ms).toLocaleString(LOC[S.lang]), rows = auditRows();
   const out = [[t("col_date"), t("col_staff"), t("staff_role"), t("col_section"), t("col_action"), t("col_was"), t("col_now"), "IP", t("au_device")],
     ...rows.map(e => [when(e.at), staffName(e.staffId), auditRole(e), t("m_" + auditModule(e)), auditText(e),
-      (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];
+      (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];
   const blob = new Blob([csvText(out)], { type:"text/csv;charset=utf-8" });
   const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-audit-${TODAY}.csv` });
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);

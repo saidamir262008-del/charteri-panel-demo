@@ -71,8 +71,8 @@ function execRefund({ src, id }){
   let err = "ap_err_state";
   mutOrder(r, (o, st) => {
     if (o.status !== "CANCELLED" || !o.refund || o.refund.done) return;
-    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
-    if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
+    o.refund.done = true; o.refund.by = me().name; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
+    if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id, by:me().name }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
     audit("refund", { no:o.no, amount:uzsRef(o.refund.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_CANCELLED"), to:strRef("st_REFUNDED") }] });
   });
   return err;
@@ -95,7 +95,7 @@ function confirmTopup(aid, pid){
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"done", doneAt:Date.now(), by:me().name }); amount = p.amount;
     const before = st.balance;
-    post("topup", p.amount, { method:p.method }, st); note("topup_ok", { amount:p.amount }, st);
+    post("topup", p.amount, { method:p.method, topupId:p.id, by:me().name }, st); note("topup_ok", { amount:p.amount }, st);
     audit("topup_ok", { amount:uzsRef(p.amount), agency:st.agency.name }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
   }));
   if (amount) toast(tf("t_topup_ok", { amount:fmtUZS(amount) }));
@@ -148,7 +148,8 @@ function adjustBalance(aid, amount, reason){
   if (!amount || !Number.isFinite(amount) || Math.abs(amount) > ADJUST_MAX) { toast(t("err_amount")); return false; }
   if (!reason) { toast(t("err_reason")); return false; }
   const a = agencyById(aid); if (!a) return false;
-  if (a.st.balance + amount < 0) { toast(t("err_negative")); return false; }
+  // Списать можно до кредитного лимита; зачисление — всегда (в том числе в минусе).
+  if (amount < 0 && a.st.balance + amount < -creditOf(a.st)) { toast(t("err_negative")); return false; }
   if (needsApproval("adjust", amount)) return requestApproval("adjust", { key:uid("adj"), payload:{ aid, amount, reason }, amount,
     vars:{ agency:a.name, amount:uzsRef(amount, true), reason } });
   let err = null;
@@ -161,7 +162,7 @@ function adjustBalance(aid, amount, reason){
 function execAdjust({ aid, amount, reason }, ap){
   let err = "ap_err_gone";
   withAgency(aid, st => {
-    if (st.balance + amount < 0) { err = "err_negative"; return; }
+    if (amount < 0 && st.balance + amount < -creditOf(st)) { err = "err_negative"; return; }
     const before = st.balance;
     post("adjust", amount, { reason, by:ap ? staffName(ap.by) : me().name }, st); note("adjust", { amount, reason }, st); err = null;
     audit("adjust", { agency:st.agency.name, amount:uzsRef(amount, true), reason }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
@@ -171,6 +172,32 @@ function execAdjust({ aid, amount, reason }, ap){
 
 /* Источник заказа в журнале: агентство — названием, сайт — строкой интерфейса. */
 const srcVal = r => r.a ? r.a.name : strRef("src_site");
+
+/* Кредитный лимит: агентство может уйти в минус до этой суммы. Изменение —
+   как ручное изменение баланса: по правилу его подтверждает второй сотрудник. */
+const CREDIT_MAX = 1_000_000_000;
+function setCredit(aid, amount){
+  if (denied("finance.manage")) return false;
+  if (!Number.isInteger(amount) || amount < 0 || amount > CREDIT_MAX) { toast(t("err_credit")); return false; }
+  const a = agencyById(aid); if (!a) return false;
+  const from = Number.isInteger(a.st.agency.credit) ? a.st.agency.credit : 0;
+  if (from === amount) { toast(t("pr_same")); return false; }
+  const payload = { aid, from, to:amount }, vars = { agency:a.name, amount:uzsRef(amount) };
+  if (needsApproval("credit", amount)) return requestApproval("credit", { key:"credit:" + aid, payload, vars, amount, diff:[{ k:"credit_limit", from:uzsRef(from), to:uzsRef(amount) }] });
+  let err = null; change(() => { err = execCredit(payload); });
+  toast(err ? t(err) : t("t_credit")); return !err;
+}
+function execCredit({ aid, from, to }){
+  let err = "ap_err_gone";
+  withAgency(aid, st => {
+    const cur = Number.isInteger(st.agency.credit) ? st.agency.credit : 0;
+    if (cur !== from) { err = "ap_err_changed"; return; }
+    st.agency.credit = to; err = null;
+    note("credit", { amount:to }, st);
+    audit("credit", { agency:st.agency.name, amount:uzsRef(to) }, { module:"finance", diff:[{ k:"credit_limit", from:uzsRef(from), to:uzsRef(to) }] });
+  });
+  return err;
+}
 
 /* ---- кнопки ---- */
 const rowOf = el => findOrder(el.dataset.src, el.dataset.v);
@@ -194,6 +221,7 @@ Object.assign(ACT, {
   aappno:   el => { if (decideApp(el.dataset.v, false, takeInp("why:a" + el.dataset.v))) M.ui.ask["a" + el.dataset.v] = false; rerender(); },
   ablock:   el => { if (setBlocked(el.dataset.v, true, takeInp("why:b" + el.dataset.v))) M.ui.ask["b" + el.dataset.v] = false; rerender(); },
   aunblock: el => setBlocked(el.dataset.v, false),
+  acredit:  el => { const raw = String(inp("cr:" + el.dataset.v, "")).replace(/\s/g, ""); if (setCredit(el.dataset.v, /^\d+$/.test(raw) ? Number(raw) : NaN) && M.ui.inp) { delete M.ui.inp["cr:" + el.dataset.v]; rerender(); } },
   aadjust:  el => {
     const sign = el.dataset.s === "-" ? -1 : 1, n = Number(digits(inp("adj:" + el.dataset.v))), why = inp("adjwhy:" + el.dataset.v).trim();
     if (adjustBalance(el.dataset.v, sign * n, why) && M.ui.inp) { delete M.ui.inp["adj:" + el.dataset.v]; delete M.ui.inp["adjwhy:" + el.dataset.v]; rerender(); }

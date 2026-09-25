@@ -13,7 +13,7 @@ function jetEstimate(q){
   const cls = fitClass(JETS, q.pax, q.cls); if (!cls) return null;
   const km = distanceKm(COORDS[q.from], COORDS[q.to]);
   const hours = km / cls.speed + 0.4;                         // + руление, набор, снижение
-  const base = hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1);
+  const base = withAdj(hours * cls.rate * (q.trip === "roundtrip" ? 2 : 1), "JET", q.to === "TAS" ? q.from : q.to);
   return { cls, km, hours, low: amt(round(base, 100)), high: amt(round(base * 1.3, 100)), final: amt(round(base * 1.12, 100)) };
 }
 function heliEstimate(q){
@@ -23,7 +23,7 @@ function heliEstimate(q){
   const hours = d.tour ? 0.5 : km / cls.speed + 0.25;
   // В одну сторону вертолёт всё равно возвращается на базу — оплачивается частично.
   const legs = d.tour ? 1 : q.trip === "roundtrip" ? 2 : 1.6;
-  const base = Math.max(hours * cls.rate * legs, cls.rate * 0.5);
+  const base = withAdj(Math.max(hours * cls.rate * legs, cls.rate * 0.5), "HELI", q.to);
   return { cls, km, hours, dest:d, low: amt(round(base, 50)), high: amt(round(base * 1.25, 50)), final: amt(round(base * 1.1, 50)) };
 }
 const heliName = id => HELI_DEST.find(x => x.id === id)?.name[S.lang] ?? id;
@@ -106,6 +106,7 @@ function charterPage(kind){
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
   return `<div class="container section">${backLink(SEARCH_PATH, t(APP === "b2b" ? "nav_book" : "home"))}
     ${pageHead(t(isJet ? "jet_title" : "heli_title"), t(isJet ? "jet_sub" : "heli_sub"))}
+    ${svcOn(isJet ? "JET" : "HELI") ? "" : svcOffNote()}
     <div class="twocol"><div class="stack">
       <div class="card stack"><h3>${esc(t("route_when"))}</h3>
         <div class="sgrid sgrid-2">${routeFields}
@@ -140,6 +141,7 @@ PAGES["charter/heli"] = { render: () => charterPage("heli") };
 function sendCharterRequest(kind){
   const q = M[kind], isJet = kind === "jet", e = isJet ? jetEstimate(q) : heliEstimate(q);
   hideErr("#cherr");
+  if (!svcOn(isJet ? "JET" : "HELI")) return showErr("#cherr", t("svc_off_h"));
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
   if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));

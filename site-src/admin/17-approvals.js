@@ -14,6 +14,7 @@
 const AP_KINDS = {
   refund:     { rule:"refund",  perm:"finance.approve",  module:"finance",  icon:"back" },
   adjust:     { rule:"adjust",  perm:"finance.approve",  module:"finance",  icon:"wallet" },
+  credit:     { rule:"adjust",  perm:"finance.approve",  module:"finance",  icon:"wallet" },
   pricing:    { rule:"pricing", perm:"pricing.approve",  module:"pricing",  icon:"tag" },
   role_new:   { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
   role_edit:  { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
@@ -83,6 +84,7 @@ const canSeeAp = a => a.by === me()?.id || can(AP_KINDS[a.kind].perm);
 const AP_EXEC = {
   refund:     (p, a) => execRefund(p, a),
   adjust:     (p, a) => execAdjust(p, a),
+  credit:     (p, a) => execCredit(p, a),
   pricing:    (p, a) => execPricing(p, a),
   role_new:   (p, a) => execRoleNew(p, a),
   role_edit:  (p, a) => execRoleEdit(p, a),
@@ -94,7 +96,7 @@ const AP_EXEC = {
 /* Право, с которым запрос создавали. К моменту решения автор должен быть
    действующим сотрудником и сохранить это право — иначе запрос не выполняется:
    отключённый или понижённый сотрудник не проводит операцию чужими руками. */
-const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
+const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", credit:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
   role_del:"roles.delete", staff_add:"staff.create", staff_role:"staff.edit", dir_del:"services.delete" };
 function requesterBlock(a){
   const u = O.staff.find(s => s.id === a.by), p = a.payload || {};
@@ -147,7 +149,7 @@ function withdrawApproval(id){
    mode: decide — можно решить; mine — свой, ждёт; wait — чужой, решить нельзя
    (показываем почему); done — решённый. */
 function apDiff(a){
-  return a.diff?.length ? `<ul class="ap-diff">${a.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s> <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : "";
+  return a.diff?.length ? `<ul class="ap-diff">${a.diff.map(d => `<li><span class="muted">${esc(diffLabel(d))}:</span> <s>${esc(auditVal(d.from) || "—")}</s> <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : "";
 }
 function apRow(a, mode){
   const k = AP_KINDS[a.kind], by = O.staff.find(s => s.id === a.by);

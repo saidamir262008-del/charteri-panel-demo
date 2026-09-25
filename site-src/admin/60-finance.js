@@ -4,7 +4,7 @@
    ========================================================================== */
 "use strict";
 
-const FIN_TABS = ["topups", "ledger", "revenue", "refunds"];
+const FIN_TABS = ["tx", "topups", "ledger", "revenue", "refunds"];
 const LEDGER_LIMIT = 200;
 
 function finTopups(){
@@ -78,11 +78,13 @@ function finRefunds(){
 }
 PAGES.finance = {
   render(){
-    const tab = FIN_TABS.includes(M.ui.ftab) ? M.ui.ftab : "topups";
-    const body = { topups:finTopups, ledger:finLedger, revenue:finRevenue, refunds:finRefunds }[tab]();
+    const tab = FIN_TABS.includes(M.ui.ftab) ? M.ui.ftab : "tx";
+    const body = { tx:finTx, topups:finTopups, ledger:finLedger, revenue:finRevenue, refunds:finRefunds }[tab]();
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_finance"))}</h1><p class="muted">${esc(t("finance_sub"))}</p></div>
-        ${tab !== "topups" ? `<button type="button" class="ghost sm" data-act="fcsv" ${guard("finance.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button>` : ""}</div>
+        ${tab === "tx" ? `<span class="row"><button type="button" class="ghost sm" data-act="txcsv" ${guard("finance.export")}>${IC.doc}<span>CSV</span></button>
+            <button type="button" class="ghost sm" data-act="txxls" ${guard("finance.export")}>${IC.doc}<span>Excel</span></button></span>`
+          : tab !== "topups" ? `<button type="button" class="ghost sm" data-act="fcsv" ${guard("finance.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button>` : ""}</div>
       ${seg("ftab", FIN_TABS.map(k => [k, t("fin_" + k)]), tab)}
       <section class="card stack" style="margin-top:16px">${body}</section></div>`;
   }

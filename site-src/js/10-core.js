@@ -77,15 +77,89 @@ const BLOCK_KEY = "charteri.ops.blocked";
 const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
-const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
-const OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+/* ---- цены и услуги: их ставит админка (PRICES_KEY) ----
+   feeBps — сервисный сбор агентств, flightMarkupBps — наценка на авиабилеты;
+   svc — по услуге: работает ли (on), поправка для сайта (b2c) и для агентств
+   (b2b) в сотых процента, у тура — скидка пакета (pkg); у трансфера и
+   страховки — цена за человека в долларах (страховка 0 — включена в тур);
+   dest — поправка по направлению, agents — индивидуальная поправка агентства;
+   promos — промокоды и акции сайта. Всё в сотых процента, от −50% до +50%. */
+const SVC_TYPES = ["FLIGHT", "TOUR", "HOTEL", "JET", "HELI"], ADDONS = ["TRANSFER", "INSURANCE"];
+const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000, pkgBps:700, transferUsd:20, insuranceUsd:0 };
+const ADJ_MAX = 5000, OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+const LIVE_AGENCY = "ag-live";
 let PRICES = null;
 function prices(){
   if (PRICES) return PRICES;
   let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
-  const ok = v => Number.isInteger(v) && v >= 0 && v <= 5000;
-  PRICES = { feeBps: ok(saved.feeBps) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps: ok(saved.flightMarkupBps) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps };
+  const ok = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi, on = v => typeof v === "boolean" ? v : true;
+  const svc = {};
+  for (const k of SVC_TYPES) { const x = saved.svc?.[k] || {};
+    svc[k] = { on:on(x.on), b2c:ok(x.b2c, -ADJ_MAX, ADJ_MAX) ? x.b2c : 0, b2b:ok(x.b2b, -ADJ_MAX, ADJ_MAX) ? x.b2b : 0 }; }
+  svc.TOUR.pkg = ok(saved.svc?.TOUR?.pkg, 0, 3000) ? saved.svc.TOUR.pkg : PRICE_DEFAULTS.pkgBps;
+  svc.TRANSFER = { on:on(saved.svc?.TRANSFER?.on), usd:ok(saved.svc?.TRANSFER?.usd, 0, 1000) ? saved.svc.TRANSFER.usd : PRICE_DEFAULTS.transferUsd };
+  svc.INSURANCE = { on:on(saved.svc?.INSURANCE?.on), usd:ok(saved.svc?.INSURANCE?.usd, 0, 1000) ? saved.svc.INSURANCE.usd : PRICE_DEFAULTS.insuranceUsd };
+  const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
+  PRICES = { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
+    svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
+    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
   return PRICES;
+}
+/* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
+   агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
+   для кабинета — ещё индивидуальная цена агентства. */
+const CHANNEL = APP === "b2c" ? "b2c" : "b2b";
+/* Поправки складываются, но итог не ниже −50% и не выше +100%: цена не может
+   стать нулевой или отрицательной, как бы ни сложились настройки. */
+function adjBps(type, dest){
+  const p = prices(), sum = (p.svc[type]?.[CHANNEL] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
+  return Math.max(-ADJ_MAX, Math.min(2 * ADJ_MAX, sum));
+}
+/* Проценты из сотых: 150 → «1,5» (в английском — «1.5»). */
+const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
+const withAdj = (usd, type, dest) => usd * (1 + adjBps(type, dest) / 10000);
+const svcOn = type => prices().svc[type]?.on !== false;
+const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
+/* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
+const modForm = mod => svcOn(mod.type) ? mod.form() : svcOffNote();
+/* Нельзя купить: услуга выключена или итог не положительный. */
+const cantBuy = (type, total) => !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
+
+/* ---- промокоды и акции (только сайт; авиабилеты, туры, отели) ----
+   Промокод вводят; акция (auto) применяется сама. Скидка одна на заказ —
+   бо́льшая; при равной побеждает промокод: его вводили специально. Сколько
+   раз код использован — по заказам сайта в этом браузере. */
+const PROMO_TYPES = ["FLIGHT", "TOUR", "HOTEL"], PROMO_MAX = 100;
+function validPromo(x){
+  return !!x && typeof x.id === "string" && /^[\w-]{1,40}$/.test(x.id) && typeof x.name === "string" && !!x.name.trim() && ["pct", "fixed"].includes(x.kind)
+    && Number.isInteger(x.value) && x.value > 0 && x.value <= (x.kind === "pct" ? 9000 : 100000)
+    && (x.auto === true || /^[A-Z0-9][A-Z0-9_-]{2,19}$/.test(x.code || ""));
+}
+/* Данные из хранилища — чужие: только известные поля в правильном виде. */
+const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
+  return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+/* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
+const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
+/* Почему промокод не подходит заказу (ключ строки) или null. */
+function promoProblem(x, type, total, orders){
+  if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
+  if (!x.active) return "err_promo_expired";
+  if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
+  if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
+  if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
+  if (x.limit && promoUsed(x, orders) >= x.limit) return "err_promo_used";
+  return null;
+}
+const promoOffUsd = (x, total) => Math.max(0, Math.min(total.usd - 1, x.kind === "pct" ? Math.floor(total.usd * x.value / 10000) : x.value));
+function bestPromo(type, total, code, orders){
+  let best = null;
+  for (const x of prices().promos) {
+    if (!(x.auto || (code && x.code === code)) || promoProblem(x, type, total, orders)) continue;
+    const off = promoOffUsd(x, total);
+    if (off > 0 && (!best || off > best.off || (off === best.off && !x.auto && best.x.auto))) best = { x, off };
+  }
+  return best ? { id:best.x.id, code:best.x.code || "", name:best.x.name, auto:!!best.x.auto, off:{ usd:best.off, uzs:Math.round(total.uzs * best.off / total.usd) } } : null;
 }
 /* Каждая вкладка админки отмечается своей строкой: закрыли одну — другие на месте. */
 function opsLive(){
@@ -187,6 +261,9 @@ function render(scrollTop = true){
   try { html = page.render(params); }
   catch (e) { console.error(e); html = `<div class="container section"><div class="err">${esc(t("err_generic"))}</div></div>`; }
   if (html === null) return;                        // страница перенаправила
+  // Выдача и карточки выключенной в админке услуги — с объявлением сверху: купить всё равно нельзя.
+  const svcType = { flights:"FLIGHT", hotels:"HOTEL", tours:"TOUR" }[key.split("/")[0]];
+  if (svcType && key.includes("/") && !svcOn(svcType)) html = `<div class="container section" style="padding-bottom:0">${svcOffNote()}</div>` + html;
   $("#app").innerHTML = html;
   renderNav(key);
   // Новая страница открывается сверху сразу: плавная прокрутка html{scroll-behavior}

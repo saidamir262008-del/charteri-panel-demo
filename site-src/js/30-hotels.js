@@ -4,14 +4,16 @@
    ========================================================================== */
 "use strict";
 
-function hotelNightly(h, date){
+/* bps — поправка цены из админки: для отеля отдельно — «Отели», в туре —
+   «Туры» (её передаёт тур), плюс поправка по направлению. */
+function hotelNightly(h, date, bps = adjBps("HOTEL", h.city)){
   const month = parseYMD(date).getMonth() + 1;
   // У направлений из админки сезона нет — цена ровная весь год.
   const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
-  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
+  return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12) * (1 + bps / 10000);
 }
-function hotelStay(h, checkin, nights, rooms, mult = 1){
-  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i));
+function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city)){
+  let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i), bps);
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);

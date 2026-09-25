@@ -89,7 +89,7 @@ function orderMain(o, st){
   if (charter && st === "NEW") return `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${TYPE_ICON[o.type]}</span><h3>${esc(t("mgr_title"))}</h3>
       <p class="muted">${esc(t("mgr_body_b2b"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
   if (st === "PENDING") {
-    const due = dueOf(o), short = due.uzs > S.balance;
+    const due = dueOf(o), short = due.uzs > available();
     return `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(tf("price_ready_b2b", { p:pctText(orderFeeBps(o)) }))}</p>
       ${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), due)}<p class="fee-note">${esc(t("fee_note"))}</p></div>
       ${balanceBlock(due)}
@@ -136,14 +136,14 @@ Object.assign(ACT, {
   /* Списание — на свежих данных и с повторной проверкой: за секунду ожидания
      админка или другая вкладка могли изменить баланс, статус или блокировку. */
   opay: el => {
-    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING" || !agencyActive() || dueOf(o0).uzs > S.balance) return;
+    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING" || !agencyActive() || dueOf(o0).uzs > available()) return;
     overlay(t("processing_balance"));
     setTimeout(() => {
       overlay(""); refresh();
       const o = S.orders.find(x => x.id === id), due = o && dueOf(o);
       if (!o || o.status !== "PENDING" || !due) { rerender(); return toast(t("order_changed")); }
       if (!agencyActive()) { rerender(); return toast(t("agency_blocked_d")); }
-      if (due.uzs > S.balance) { rerender(); return toast(tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
+      if (due.uzs > available()) { rerender(); return toast(tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
       post("order", -due.uzs, { orderId:o.id });
       Object.assign(o, { status:"PAID", paidAt:Date.now(), method:"balance", fee:o.fee || feeOf(o.total) }); hist(o, "PAID");
       note("paid", { orderId:o.id }); save(); rerender(); toast(tf("n_paid", { no:o.no }));
