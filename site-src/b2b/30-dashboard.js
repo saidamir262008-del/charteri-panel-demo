@@ -5,8 +5,6 @@
    ========================================================================== */
 "use strict";
 
-const TYPE_ICON = { FLIGHT:IC.flights, TOUR:IC.tours, HOTEL:IC.hotels, JET:IC.jet, HELI:IC.heli };
-
 /* Откуда и куда летит клиент — для карты и выбора поездки кликом по городу. */
 function tripRoute(o){
   const d = o.details;

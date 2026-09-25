@@ -29,7 +29,7 @@ function generateOffers({ from, to, date, cabin }){
     const rawBase = cabin === "business" ? seed.busPrice : seed.ecoPrice;
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
-    const priceUSD = Math.round(Math.max(90, rawBase+jitter+stopDiscount) * 1.1);   // +10% наценка, как на сервере
+    const priceUSD = Math.round(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,
@@ -283,13 +283,17 @@ function startFlightCheckout(){
     lines, total, recheck: true,
     details: flightDetailsOf(out, back, f),
     ref: makeRef(out.id + out.date),
-    /* Демонстрация «Цена изменилась»: срабатывает на рейсах в Анталию, чтобы
-       экран можно было показать по заказу, а не случайно посреди показа. */
-    priceChange: out.to === "AYT" ? () => {
-      const usd = Math.round(out.priceUSD * 1.045), newOut = { ...out, priceUSD:usd, priceUZS:toUzs(usd) };
-      const r = flightLines(newOut, back, f);
-      return { total:r.total, lines:r.lines, details:flightDetailsOf(newOut, back, f) };
-    } : null
+    /* Перепроверка цены: рейс берётся заново по текущей наценке (её могли
+       сменить в админке после выбора). Демонстрация «Цена изменилась» на рейсах
+       в Анталию — чтобы экран можно было показать по заказу, а не случайно. */
+    priceChange: () => {
+      const fresh = x => x && (generateOffers({ from:x.from, to:x.to, date:x.date, cabin:x.cabin }).find(y => y.id === x.id) || x);
+      let newOut = fresh(out); const newBack = fresh(back);
+      if (out.to === "AYT") { const usd = Math.round(newOut.priceUSD * 1.045); newOut = { ...newOut, priceUSD:usd, priceUZS:toUzs(usd) }; }
+      if (newOut.priceUSD === out.priceUSD && (!back || newBack.priceUSD === back.priceUSD)) return null;
+      const r = flightLines(newOut, newBack, f);
+      return { total:r.total, lines:r.lines, details:flightDetailsOf(newOut, newBack, f) };
+    }
   });
 }
 

@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 """
-Собирает два приложения Charteri из одних модулей, каждое — в один HTML-файл:
+Собирает три приложения Charteri из одних модулей, каждое — в один HTML-файл:
 
-  ../b2c/index.html   сайт для пассажиров
-  ../index.html       кабинет агентства
+  ../b2c/index.html     сайт для пассажиров
+  ../index.html         кабинет агентства
+  ../admin/index.html   админка Charteri (операторы, касса, бухгалтерия)
 
-  python3 build.py            оба
-  python3 build.py b2b        только кабинет
+  python3 build.py              все три
+  python3 build.py b2b admin    только перечисленные
 
 Общие модули лежат в js/ (данные, поиск, отели, туры, чартеры, оформление,
 карта, табло, фото). Страницы сайта — js/70-pages.js и js/99-boot.js, в кабинет
-они не входят. Страницы кабинета — b2b/*.js, его оформление — b2b/panel.css
-поверх общего styles.css.
+и админку они не входят. Страницы кабинета — b2b/*.js, его оформление —
+b2b/panel.css поверх общего styles.css. Админка берёт из кабинета только общие
+части (строки, состояние и деньги, документы с брендом) и свои страницы admin/*.js.
 
 Перед сборкой проверяет, что каждый ключ строки, который встречается в коде
 приложения, есть в словаре мобильного приложения (00-data.js) или в строках
@@ -28,6 +30,10 @@ APPS = {
     "b2b": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in ("70-pages.js", "99-boot.js")]
                      + sorted((here / "b2b").glob("*.js")),
             "css": ["styles.css", "b2b/panel.css"], "shell": "b2b/shell.html", "out": here.parent / "index.html"},
+    "admin": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in ("70-pages.js", "99-boot.js")]
+                       + [here / "b2b" / n for n in ("01-strings-b2b.js", "10-state.js", "15-common.js")]
+                       + sorted((here / "admin").glob("*.js")),
+              "css": ["styles.css", "b2b/panel.css", "admin/admin.css"], "shell": "admin/shell.html", "out": here.parent / "admin" / "index.html"},
 }
 
 # ---- словарь -------------------------------------------------------------------------
@@ -48,8 +54,10 @@ def calls(src, name):
         out.append(src[m.end():j - 1]); i = j
     return out
 
+STRING_FILES = ("00-data.js", "01-strings.js", "01-strings-b2b.js", "01-strings-admin.js")
+
 def check_strings(files, known):
-    code = "\n".join(p.read_text() for p in files if p.name not in ("00-data.js", "01-strings.js", "01-strings-b2b.js"))
+    code = "\n".join(p.read_text() for p in files if p.name not in STRING_FILES)
     used = set()
     for arg in calls(code, "t") + calls(code, "tf"):
         first = arg.split(",")[0] if "?" not in arg.split(",")[0] else arg
@@ -78,7 +86,7 @@ logo_js = "/* ---- логотипы (build.py) ---- */\nconst LOGOS = " + json.d
 # ---- сборка ------------------------------------------------------------------------
 def build(name):
     app = APPS[name]
-    known = app_keys | str_keys(here / "js/01-strings.js") | (str_keys(here / "b2b/01-strings-b2b.js") if name == "b2b" else set())
+    known = app_keys | set().union(*(str_keys(p) for p in app["files"] if p.name in STRING_FILES))
     n_used, n_pref = check_strings(app["files"], known)
     js = f'"use strict";\nconst APP = "{name}";\n' + "\n".join(f"/* ---- {p.name} ---- */\n" + p.read_text() for p in app["files"])
     js = js.replace("/* ---- 10-core.js ---- */", logo_js + "/* ---- 10-core.js ---- */", 1)

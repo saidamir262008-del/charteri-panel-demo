@@ -5,23 +5,6 @@
    ========================================================================== */
 "use strict";
 
-Object.assign(IC, {
-  home:   svg('<path d="M4 11l8-6.5 8 6.5"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/>'),
-  search: svg('<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>'),
-  users:  svg('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c1.2-3.2 3.6-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.9c1.9.6 3.3 2.1 4 4.6"/>'),
-  wallet: svg('<rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18"/><path d="M16 15h2"/><path d="M6 6l9-3 1.5 3"/>'),
-  brush:  svg('<path d="M14.5 4.5l5 5-8 8-5-5z"/><path d="M6.5 12.5l-2 2c-1 1-1 3 0 4s3 1 4 0l2-2"/>'),
-  gear:   svg('<circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/><circle cx="12" cy="12" r="7"/>'),
-  bell:   svg('<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>'),
-  plus:   svg('<path d="M12 5v14M5 12h14"/>'),
-  out:    svg('<path d="M14 5h4a1.5 1.5 0 0 1 1.5 1.5v11A1.5 1.5 0 0 1 18 19h-4"/><path d="M10 8l-4 4 4 4M6 12h9"/>'),
-  menu:   svg('<path d="M4 7h16M4 12h16M4 17h16"/>'),
-  close:  svg('<path d="M6 6l12 12M18 6L6 18"/>'),
-  print:  svg('<path d="M7 9V4h10v5"/><rect x="4" y="9" width="16" height="8" rx="2"/><path d="M7 14h10v6H7z"/>'),
-  doc:    svg('<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>'),
-  upload: svg('<path d="M12 16V5M7.5 9.5L12 5l4.5 4.5"/><path d="M5 17v2h14v-2"/>'),
-  x:      svg('<path d="M7 7l10 10M17 7L7 17"/>')
-});
 
 /* Разделы меню. Бронирование раскрывается пятью услугами сайта. */
 const NAV = [["", "nav_dash", "home"], ["book", "nav_book", "search"], ["orders", "nav_orders", "bag"],
@@ -40,11 +23,6 @@ function navModule(key){
   if (head === "book") return M.module;
   return null;
 }
-const monogram = name => (name || "").split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join("").toUpperCase() || "A";
-/* Логотип — только PNG, который кабинет сам сделал из загруженного файла. */
-const brandMark = (cls = "") => /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(S.brand.logo || "")
-  ? `<span class="bmark ${cls}"><img src="${S.brand.logo}" alt=""></span>`
-  : `<span class="bmark mono-mark ${cls}">${esc(monogram(S.brand.name))}</span>`;
 
 function renderNav(key){
   const app = document.body;
@@ -59,7 +37,7 @@ function renderNav(key){
         ${k === "book" && sec === "book" ? `<div class="side-sub">${MODULE_ORDER.map(m => `<a class="side-sublink" href="#/book/${m}" ${mod === m ? 'aria-current="true"' : ""}>${esc(t(MODULES[m].label))}</a>`).join("")}</div>` : ""}`).join("")}
     </nav>
     <a class="side-agency" href="#/brand" style="${brandStyle()}">${brandMark()}<span class="stack" style="gap:1px;min-width:0"><b>${esc(S.agency.name)}</b>
-      <span class="side-status">${IC.ok}${esc(t("agency_verified"))}</span></span></a>
+      ${agencyActive() ? `<span class="side-status">${IC.ok}${esc(t("agency_verified"))}</span>` : `<span class="side-status is-off">${IC.lock}${esc(t("agency_blocked"))}</span>`}</span></a>
   </div>`;
   const title = t(NAV.find(([k]) => k === sec)?.[1] || "nav_dash");
   $("#top").innerHTML = `<div class="top-in">
@@ -74,19 +52,10 @@ function renderNav(key){
         <button type="button" class="iconbtn" data-act="bell" aria-expanded="${!!M.ui.bell}" aria-controls="bellpanel" aria-label="${esc(t("notifications"))}">${IC.bell}${unread() ? `<i class="badge">${unread()}</i>` : ""}</button>
         ${M.ui.bell ? bellPanel() : ""}
       </div>
-    </div></div>`;
+    </div></div>
+    ${agencyActive() ? "" : `<div class="blockbar" role="status">${IC.lock}<span>${esc(t("agency_blocked_d"))}</span></div>`}`;
   $("#footer").innerHTML = `<div class="foot-in"><p class="small">${esc(t("panel_foot"))}</p><p class="small">${esc(t("credits"))}</p></div>`;
   syncDrawer();
-}
-/* На телефоне меню — выезжающая панель. Закрытая, она уезжает за край и
-   выключается целиком (inert): Tab и экранный диктор её не видят. */
-const DRAWER_MQ = window.matchMedia("(max-width: 1024px)");
-function syncDrawer(){ const nav = $("#nav"); if (nav) nav.inert = DRAWER_MQ.matches && !document.body.classList.contains("nav-open"); }
-DRAWER_MQ.addEventListener("change", () => { document.body.classList.remove("nav-open"); syncDrawer(); });
-function closeDrawer(){
-  if (!document.body.classList.contains("nav-open")) return;
-  document.body.classList.remove("nav-open"); syncDrawer();
-  $('[data-act="navopen"]')?.focus({ preventScroll:true });
 }
 const waitingCount = () => S.orders.filter(o => o.status === "PENDING").length;
 
@@ -101,21 +70,17 @@ function bellPanel(){
 }
 
 Object.assign(ACT, {
-  navopen: () => { document.body.classList.add("nav-open"); syncDrawer(); $("#nav .side-link")?.focus({ preventScroll:true }); },
-  navclose: () => closeDrawer(),
   bell: () => { M.ui.bell = !M.ui.bell; renderNav(matchRoute(currentParts()).key); },
   bellread: () => { S.notes.forEach(n => n.read = true); save(); renderNav(matchRoute(currentParts()).key); },
   bellgo: el => { M.ui.bell = false; S.notes.forEach(n => n.read = true); save(); location.hash = el.getAttribute("href"); }
 });
-/* Клик вне панели уведомлений закрывает её; ссылка меню на телефоне закрывает меню. */
+/* Клик вне панели уведомлений закрывает её. */
 document.addEventListener("click", e => {
   if (M.ui.bell && e.target.isConnected && !e.target.closest(".bellwrap")) { M.ui.bell = false; renderNav(matchRoute(currentParts()).key); }
-  if (e.target.closest(".side-link, .side-sublink, .side-agency")) { document.body.classList.remove("nav-open"); syncDrawer(); }
 });
-/* Escape закрывает меню и уведомления; фокус возвращается на кнопку, которая их открыла. */
+/* Escape закрывает уведомления; фокус возвращается на колокольчик. */
 document.addEventListener("keydown", e => {
   if (e.key !== "Escape") return;
-  closeDrawer();
   if (M.ui.bell) { M.ui.bell = false; renderNav(matchRoute(currentParts()).key); $('[data-act="bell"]')?.focus({ preventScroll:true }); }
 });
 document.addEventListener("change", e => { if (e.target.id === "langSel") { S.lang = e.target.value; save(); rerender(); $("#langSel")?.focus({ preventScroll:true }); } });

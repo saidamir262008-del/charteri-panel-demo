@@ -77,7 +77,8 @@ PAGES.checkout = {
     const c = M.checkout; if (!c || c.pstate !== "checking") return;
     setTimeout(() => {
       if (M.checkout !== c || c.pstate !== "checking") return;
-      if (c.priceChange && !c.accepted) { c.pending = c.priceChange(); c.pstate = "changed"; } else c.pstate = "ok";
+      const change = c.priceChange && !c.accepted ? c.priceChange() : null;
+      if (change) { c.pending = change; c.pstate = "changed"; } else c.pstate = "ok";
       if (currentParts()[0] === "checkout") rerender();
     }, 1100);
   }
@@ -166,7 +167,7 @@ const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
 function orderLines(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q), q); }
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];
@@ -178,7 +179,8 @@ function tickCharter(){
   const now = Date.now(); let changed = false;
   for (const o of S.orders) {
     if (o.type !== "JET" && o.type !== "HELI") continue;
-    if (o.status === "NEW" && now - o.createdAt >= 5000) { o.status = "PENDING"; o.total = o.details.quote; hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
+    // Пока открыта админка, цену ставит оператор, а не таймер.
+    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = o.details.quote; hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= 2500) { o.status = "CONFIRMED"; hist(o, "CONFIRMED"); changed = true; toast(tf("toast_confirmed", { no:o.no })); }
   }
   if (changed) { save(); if (currentParts()[0] === "orders") rerender(); }

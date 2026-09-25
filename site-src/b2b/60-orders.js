@@ -64,7 +64,7 @@ function refundCard(o){
     <div class="rows">
       <div><span class="k">${esc(t("service_cost"))}</span><span class="v mono">${fmtUZS(o.total.uzs)}</span></div>
       <div><span class="k">${esc(tf("penalty_rate", { p:Math.round(r.rate * 100) }))}</span><span class="v mono">−${fmtUZS(r.penalty)}</span></div>
-      <div><span class="k">${esc(t("service_fee"))}</span><span class="v">${esc(t("fee_kept"))}</span></div>
+      <div><span class="k">${esc(tf("service_fee", { p:pctText(orderFeeBps(o)) }))}</span><span class="v">${esc(t("fee_kept"))}</span></div>
       <div class="tot"><span class="k">${esc(t("refund_to_balance"))}</span><span class="v">${fmtUZS(r.uzs)}</span></div></div>
     ${r.done ? "" : `<p class="pcheck wait"><span class="spin"></span>${esc(t("refund_wait_d"))}</p>`}</div>`;
 }
@@ -78,7 +78,7 @@ function cancelBox(o){
       <div><span class="k">${esc(t("days_left"))}</span><span class="v">${esc(pl(Math.max(0, p.days), "day"))}</span></div>
       <div><span class="k">${esc(t("service_cost"))}</span><span class="v mono">${fmtUZS(o.total.uzs)}</span></div>
       <div><span class="k">${esc(tf("penalty_rate", { p:Math.round(p.rate * 100) }))}</span><span class="v mono">−${fmtUZS(p.penalty)}</span></div>
-      <div><span class="k">${esc(t("service_fee"))}</span><span class="v">${esc(t("fee_kept"))}</span></div>
+      <div><span class="k">${esc(tf("service_fee", { p:pctText(orderFeeBps(o)) }))}</span><span class="v">${esc(t("fee_kept"))}</span></div>
       <div class="tot"><span class="k">${esc(t("refund_to_balance"))}</span><span class="v">${fmtUZS(p.refund)}</span></div></div>
     <p class="small muted">${esc(t(RULE_KEY(o)))}</p>
     <div class="row"><button type="button" class="solid danger-solid" data-act="ocancelgo" data-v="${o.id}">${esc(tf("cancel_cta", { amount:fmtUZS(p.refund) }))}</button>
@@ -90,10 +90,10 @@ function orderMain(o, st){
       <p class="muted">${esc(t("mgr_body_b2b"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
   if (st === "PENDING") {
     const due = dueOf(o), short = due.uzs > S.balance;
-    return `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(t("price_ready_b2b"))}</p>
-      ${checkLines(feeLines(orderLines(o), o.total), due)}<p class="fee-note">${esc(t("fee_note"))}</p></div>
+    return `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(tf("price_ready_b2b", { p:pctText(orderFeeBps(o)) }))}</p>
+      ${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), due)}<p class="fee-note">${esc(t("fee_note"))}</p></div>
       ${balanceBlock(due)}
-      <button type="button" class="cta" data-act="opay" data-v="${o.id}" ${short ? "disabled" : ""}>${esc(t("pay_balance_cta"))} · ${fmt(due)}</button>`;
+      <button type="button" class="cta" data-act="opay" data-v="${o.id}" ${short || !agencyActive() ? "disabled" : ""}>${esc(t("pay_balance_cta"))} · ${fmt(due)}</button>`;
   }
   if (st === "PAID") return `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${IC.shield}</span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body_b2b"))}</p></div>`;
   if (st === "CANCELLED" || st === "REFUNDED") return refundCard(o) || `<div class="card stack"><h3>${esc(t("st_CANCELLED"))}</h3><p class="muted">${esc(t("cancelled_unpaid"))}</p></div>`;
@@ -112,7 +112,7 @@ PAGES["orders/:id"] = {
       <div class="twocol"><div class="stack">${orderMain(o, st)}${M.ui.cancelFor === o.id ? cancelBox(o) : ""}</div>
         <aside class="stack sticky">
           <div class="card stack">
-            ${due ? `<span class="lbl">${esc(t("payment"))}</span>${checkLines(feeLines(orderLines(o), o.total), due)}`
+            ${due ? `<span class="lbl">${esc(t("payment"))}</span>${checkLines(feeLines(orderLines(o), o.total, o.fee || feeOf(o.total), orderFeeBps(o)), due)}`
               : `<span class="lbl">${esc(t("estimate"))}</span><b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b>`}
             ${o.paidAt ? `<div class="rows"><div><span class="k">${esc(t("pay_method"))}</span><span class="v">${esc(t("method_balance"))}</span></div>
               <div><span class="k">${esc(t("paid_at"))}</span><span class="v">${esc(fdt(o.paidAt))}</span></div></div>` : ""}
@@ -133,12 +133,17 @@ PAGES["orders/:id"] = {
 
 Object.assign(ACT, {
   ogroup: el => { M.ui.ogroup = el.dataset.v; flip(rerender); },
+  /* Списание — на свежих данных и с повторной проверкой: за секунду ожидания
+     админка или другая вкладка могли изменить баланс, статус или блокировку. */
   opay: el => {
-    const o = S.orders.find(x => x.id === el.dataset.v); if (!o || o.status !== "PENDING") return;
-    const due = dueOf(o); if (due.uzs > S.balance) return;
+    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING" || !agencyActive() || dueOf(o0).uzs > S.balance) return;
     overlay(t("processing_balance"));
     setTimeout(() => {
-      overlay("");
+      overlay(""); refresh();
+      const o = S.orders.find(x => x.id === id), due = o && dueOf(o);
+      if (!o || o.status !== "PENDING" || !due) { rerender(); return toast(t("order_changed")); }
+      if (!agencyActive()) { rerender(); return toast(t("agency_blocked_d")); }
+      if (due.uzs > S.balance) { rerender(); return toast(tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
       post("order", -due.uzs, { orderId:o.id });
       Object.assign(o, { status:"PAID", paidAt:Date.now(), method:"balance", fee:o.fee || feeOf(o.total) }); hist(o, "PAID");
       note("paid", { orderId:o.id }); save(); rerender(); toast(tf("n_paid", { no:o.no }));
@@ -148,7 +153,7 @@ Object.assign(ACT, {
   /* Оплаченный заказ: штраф поставщика удерживается, остаток вернётся на баланс,
      когда поставщик подтвердит возврат. Заявка без оплаты просто закрывается. */
   ocancelgo: el => {
-    const o = S.orders.find(x => x.id === el.dataset.v); if (!o) return;
+    refresh(); const o = S.orders.find(x => x.id === el.dataset.v); if (!o || !["NEW", "PENDING", "PAID", "CONFIRMED"].includes(o.status)) { rerender(); return; }
     M.ui.cancelFor = null;
     if (["PAID", "CONFIRMED"].includes(o.status)) {
       const p = penaltyOf(o);

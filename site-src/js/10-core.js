@@ -23,17 +23,73 @@ const daysBetween = (a, b) => Math.round((parseYMD(b) - parseYMD(a)) / 864e5);
 const TODAY = ymd(new Date());
 
 /* ---- сохраняемое состояние ---- */
-/* APP подставляет build.py: "b2c" — сайт для пассажиров, "b2b" — кабинет агентства.
-   Демо обоих живут на одном домене, поэтому хранилища у них разные. */
-const LS_KEY = APP === "b2b" ? "charteri.panel.demo.v2" : "charteri.site.demo.v1";
+/* APP подставляет build.py: "b2c" — сайт для пассажиров, "b2b" — кабинет агентства,
+   "admin" — админка Charteri. Демо живут на одном домене и видят данные друг
+   друга: админка работает с данными кабинета (S) и читает данные сайта. */
+const CAB_KEY = "charteri.panel.demo.v2", SITE_KEY = "charteri.site.demo.v1";
+const LS_KEY = APP === "b2c" ? SITE_KEY : CAB_KEY;
 /* Где форма поиска: на сайте — главная, в кабинете — страница «Бронирование». */
-const SEARCH_PATH = APP === "b2b" ? "book" : "";
+const SEARCH_PATH = APP === "b2c" ? "" : "book";
 let S;
-function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
+/* rev растёт с каждой записью: другая вкладка видит, что данные новые. */
+function save(){ try { S.rev = (S.rev || 0) + 1; localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
 function loadState(){
   try { const r = JSON.parse(localStorage.getItem(LS_KEY)); if (r && r.v === 1) return r; } catch(e) {}
   return null;
 }
+/* Перед любым изменением денег — свежие данные из хранилища: другая вкладка
+   (кабинет ↔ админка) могла записать их только что, а событие storage ещё в пути. */
+function refresh(){ const f = loadState(); if (f) S = f; return S; }
+/* Другая вкладка записала данные — берём их и перерисовываем. Сброс демо
+   (ключ удалён) — перезагружаемся, чтобы не записать старые данные обратно. */
+window.addEventListener("storage", e => {
+  if (e.key !== LS_KEY) return;
+  if (e.newValue === null) { location.reload(); return; }
+  let next; try { next = JSON.parse(e.newValue); } catch(err) { return; }
+  if (!next || next.v !== 1) return;
+  S = next; onExternalChange();
+});
+/* Если человек печатает — перерисовываем только меню, чтобы не сбить ввод;
+   иначе перерисовываем страницу и возвращаем фокус на тот же элемент. */
+function onExternalChange(){
+  const f = document.activeElement;
+  if (f && f.matches?.("input, textarea, select") && $("#app")?.contains(f)) { renderNav(matchRoute(currentParts()).key); return; }
+  const key = focusKey(f); rerender(); refocus(key);
+}
+/* Как найти «тот же» элемент после перерисовки: по id, действию или ссылке. */
+function focusKey(el){
+  if (!el || el === document.body || !el.isConnected) return null;
+  if (el.id) return "#" + CSS.escape(el.id);
+  if (el.dataset?.act) return ["act", "v", "k", "src", "ag", "s"].filter(k => el.dataset[k] != null)
+    .map(k => `[data-${k}="${CSS.escape(el.dataset[k])}"]`).join("");
+  if (el.matches?.("a[href]")) return `a[href="${CSS.escape(el.getAttribute("href"))}"]`;
+  return null;
+}
+function refocus(key){ if (key) $(key)?.focus({ preventScroll:true }); }
+
+/* ---- общие настройки Charteri из админки ----
+   Сбор и наценку меняет админка; сайт и кабинет берут их отсюда.
+   Пока админка открыта, она раз в несколько секунд отмечается в OPS_HB —
+   тогда демо не отвечает за оператора само (цена чартера, пополнения, возвраты). */
+const PRICES_KEY = "charteri.ops.prices", OPS_HB = "charteri.ops.hb", APPS_KEY = "charteri.ops.apps";
+const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
+const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
+const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
+const OPS_LIVE_MS = 90000;               // фоновую вкладку браузер будит редко — окно с запасом
+let PRICES = null;
+function prices(){
+  if (PRICES) return PRICES;
+  let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
+  const ok = v => Number.isInteger(v) && v >= 0 && v <= 5000;
+  PRICES = { feeBps: ok(saved.feeBps) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps: ok(saved.flightMarkupBps) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps };
+  return PRICES;
+}
+/* Каждая вкладка админки отмечается своей строкой: закрыли одну — другие на месте. */
+function opsLive(){
+  const hb = readJSON(OPS_HB, {}), now = Date.now();
+  return typeof hb === "object" && hb !== null && Object.values(hb).some(ts => now - Number(ts) < OPS_LIVE_MS);
+}
+window.addEventListener("storage", e => { if (e.key === PRICES_KEY) { PRICES = null; if (S) onExternalChange(); } });
 
 /* ---- язык ---- */
 const LIDX = { ru:0, uz:1, en:2 };
@@ -108,18 +164,21 @@ function matchRoute(parts){
     const kp = key.split("/").filter(Boolean);
     if (kp.length !== parts.length) continue;
     const params = {}; let ok = true;
-    kp.forEach((seg, i) => { if (seg.startsWith(":")) params[seg.slice(1)] = decodeURIComponent(parts[i]); else if (seg !== parts[i]) ok = false; });
+    kp.forEach((seg, i) => { if (seg.startsWith(":")) params[seg.slice(1)] = safeDecode(parts[i]); else if (seg !== parts[i]) ok = false; });
     if (ok) return { key, params };
   }
   return { key: "", params: {} };
 }
+/* Битая %-последовательность в ссылке не должна ронять страницу. */
+function safeDecode(s){ try { return decodeURIComponent(s); } catch(e) { return s; } }
 function go(path){ const h = "#/" + path; if (location.hash === h) render(true); else location.hash = h; }
 /* routeGuard — необязательный хук приложения: вернуть ключ страницы, на которую
    нужно попасть вместо запрошенной (кабинет агентства без входа — на вход). */
 function render(scrollTop = true){
   applyTheme();
   const m = matchRoute(currentParts()), guard = typeof routeGuard === "function" ? routeGuard(m.key) : null;
-  const { key, params } = guard ? { key:guard, params:{} } : m;
+  // "" — тоже перенаправление (на главную); «не перенаправлять» — только null.
+  const { key, params } = guard != null ? { key:guard, params:{} } : m;
   const page = PAGES[key] || PAGES[""];
   let html;
   try { html = page.render(params); }
@@ -168,7 +227,7 @@ function toast(msg){
   toast.t = setTimeout(() => { h.firstChild?.classList.add("out"); toast.u = setTimeout(() => h.innerHTML = "", 180); }, 2800);
 }
 function overlay(msg){ $("#overlay").innerHTML = msg ? `<div class="overlay"><div class="box"><span class="spin"></span>${esc(msg)}</div></div>` : ""; }
-function showErr(sel, msg){ const e = $(sel); if (!e) return; e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); shake(e); }
+function showErr(sel, msg){ const e = $(sel); if (!e) return; e.setAttribute("role", "alert"); e.hidden = false; e.textContent = msg; e.scrollIntoView({ block:"center", behavior:"smooth" }); shake(e); }
 function hideErr(sel){ const e = $(sel); if (e) { e.hidden = true; e.textContent = ""; } }
 
 /* ---- привязка полей к состоянию: data-bind="flights.from" ---- */
@@ -195,12 +254,17 @@ document.addEventListener("click", e => {
   if (!el || el.disabled) return;
   const fn = ACT[el.dataset.act]; if (!fn) return;
   e.preventDefault();
-  const had = document.activeElement === el;
-  const twin = `[data-act="${el.dataset.act}"]${el.dataset.v != null ? `[data-v="${CSS.escape(el.dataset.v)}"]` : ""}`;
+  const had = document.activeElement === el, twin = focusKey(el);
   fn(el, e);
-  // Перерисовка заменила нажатую кнопку — фокус переходит на её копию,
-  // иначе клавиатура начинала бы снова с начала страницы.
-  if (had && !el.isConnected) $(twin)?.focus({ preventScroll:true });
+  // Перерисовка заменила нажатую кнопку — фокус переходит на её копию, а если
+  // её больше нет (задача решена) — на заголовок страницы. Если обработчик сам
+  // поставил фокус (поле причины), его не трогаем.
+  if (!had || el.isConnected) return;
+  const a = document.activeElement;
+  if (a && a !== document.body && a.isConnected) return;
+  const same = twin && $(twin);
+  if (same) same.focus({ preventScroll:true });
+  else { const h = $("#app h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll:true }); } }
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
    выпадающие панели оставались открытыми после перерисовки. */

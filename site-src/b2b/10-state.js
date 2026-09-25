@@ -2,63 +2,69 @@
    Кабинет агентства: состояние, деньги, лента событий, жизнь заказов.
 
    Агентство платит за услуги с баланса в сумах. К стоимости услуги Charteri
-   добавляет сервисный сбор 3%, который виден до оплаты и не возвращается при
-   отмене (спецификация, §4). Заказ хранит стоимость услуги (total) и сбор (fee)
+   добавляет сервисный сбор (3%, ставку меняет админка — prices()), который
+   виден до оплаты и не возвращается при отмене (спецификация, §4). Заказ хранит стоимость услуги (total) и сбор (fee)
    отдельно: строки чека собираются из деталей, как на сайте, а сбор — своей строкой.
    ========================================================================== */
 "use strict";
 
-const FEE_BPS = 300;
 /* Сбор округляется вверх до целого: в сумах — до сума, в долларах — до доллара. */
-const feeOf = a => ({ usd: Math.ceil(a.usd * FEE_BPS / 10000), uzs: Math.ceil(a.uzs * FEE_BPS / 10000) });
+const feeOf = (a, bps = prices().feeBps) => ({ usd: Math.ceil(a.usd * bps / 10000), uzs: Math.ceil(a.uzs * bps / 10000) });
 const withFee = a => addA(a, feeOf(a));
 /* Баланс агентства — всегда в сумах, в какой бы валюте ни смотрели цены. */
 const fmtUZS = n => (n < 0 ? "−" : "") + grp(Math.abs(n)) + NB + t("cur_uzs");
 const PAID_TO_CONFIRMED_MS = 2500;       // поставщик подтверждает бронь
+/* Эти три шага — работа оператора Charteri. Пока открыта админка (opsLive),
+   их делает человек, а не таймер. */
 const PRICE_READY_MS = 5000;             // оператор Charteri выставляет цену чартера
-const REFUND_MS = 3000;                  // поставщик возвращает деньги после отмены
+const REFUND_MS = 3000;                  // возврат зачисляют после ответа поставщика
 const TOPUP_CLEAR_MS = 8000;             // банк или касса подтверждают пополнение
 
 /* ---- баланс и проводки ----
    Каждое движение денег — проводка с остатком после неё: так выписка
-   сходится с балансом без пересчёта. */
-function post(kind, amount, extra = {}){
-  S.balance += amount;
-  S.ledger.unshift({ id:uid("l"), at:Date.now(), kind, amount, after:S.balance, ...extra });
+   сходится с балансом без пересчёта. st — состояние агентства: в кабинете это
+   S, в админке — любое из агентств. */
+function post(kind, amount, extra = {}, st = S){
+  st.balance += amount;
+  st.ledger.unshift({ id:uid("l"), at:Date.now(), kind, amount, after:st.balance, ...extra });
 }
 /* ---- лента событий ---- */
-function note(kind, extra = {}){
-  S.notes.unshift({ id:uid("n"), at:Date.now(), kind, read:false, ...extra });
-  S.notes = S.notes.slice(0, 40);
+function note(kind, extra = {}, st = S){
+  st.notes.unshift({ id:uid("n"), at:Date.now(), kind, read:false, ...extra });
+  st.notes = st.notes.slice(0, 40);
 }
+/* Заблокированное агентство не платит и не пополняет баланс: решение Charteri в админке. */
+const agencyActive = () => S.agency.status !== "blocked";
 const unread = () => S.notes.filter(n => !n.read).length;
 function noteText(n){
   const o = n.orderId && S.orders.find(x => x.id === n.orderId);
-  return tf("n_" + n.kind, { no: o ? o.no : "", title: o ? orderTitle(o) : "", amount: n.amount != null ? fmtUZS(n.amount) : "" });
+  return tf("n_" + n.kind, { no: o ? o.no : "", title: o ? orderTitle(o) : "", amount: n.amount != null ? fmtUZS(n.amount) : "", reason: n.reason || "" });
 }
 
 /* ---- жизнь заказов и пополнений: раз в секунду ----
    Заменяет таймер сайта: здесь подтверждаются все типы заказов, а не только чартеры. */
 function tickCharter(){
-  const now = Date.now(); let changed = false;
+  // Свежие данные: админка могла записать их между тиками.
+  refresh();
+  const now = Date.now(), auto = !opsLive(); let changed = false;
   for (const o of S.orders) {
     const charter = o.type === "JET" || o.type === "HELI";
-    if (charter && o.status === "NEW" && now - o.createdAt >= PRICE_READY_MS) {
-      o.status = "PENDING"; o.total = o.details.quote; o.fee = feeOf(o.total); hist(o, "PENDING"); changed = true;
+    if (auto && charter && o.status === "NEW" && now - o.createdAt >= PRICE_READY_MS) {
+      o.status = "PENDING"; o.total = o.details.quote; o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); hist(o, "PENDING"); changed = true;
       note("price_ready", { orderId:o.id }); toast(tf("toast_priced", { no:o.no }));
     }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= PAID_TO_CONFIRMED_MS) {
       o.status = "CONFIRMED"; hist(o, "CONFIRMED"); changed = true;
       note("confirmed", { orderId:o.id }); toast(tf("n_confirmed", { no:o.no, title:orderTitle(o) }));
     }
-    if (o.status === "CANCELLED" && o.refund && !o.refund.done && now - o.refund.at >= REFUND_MS) {
+    if (auto && o.status === "CANCELLED" && o.refund && !o.refund.done && now - o.refund.at >= REFUND_MS) {
       o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED"); changed = true;
       if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id });
       note("refunded", { orderId:o.id, amount:o.refund.uzs });
     }
   }
   for (const p of S.topups) {
-    if (p.status === "pending" && now - p.at >= TOPUP_CLEAR_MS) {
+    if (auto && p.status === "pending" && now - p.at >= TOPUP_CLEAR_MS) {
       p.status = "done"; post("topup", p.amount, { method:p.method }); changed = true;
       note("topup_ok", { amount:p.amount }); toast(tf("n_topup_ok", { amount:fmtUZS(p.amount) }));
     }

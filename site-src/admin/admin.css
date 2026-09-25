@@ -1,0 +1,166 @@
+/* ==========================================================================
+   Админка поверх каркаса кабинета (b2b/panel.css): графитовое меню вместо
+   синего — чтобы сотрудник Charteri не спутал админку с кабинетом агентства.
+   Таблицы — одна сетка .atable, колонки задаются переменной --cols.
+   ========================================================================== */
+:root{--chart:#2F6FE0;--chart-hi:#255FC9;--mint-ink:#0B7A52}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}}
+:root[data-theme="dark"]{--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}
+body.adm{--side-bg:linear-gradient(180deg,#1E2129 0%,#121419 100%)}
+body.adm .card h2{font-size:18px;letter-spacing:-.2px}
+.arow.ahead > *{font-size:11px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---- меню и верхняя панель ---- */
+.side-me{margin-top:auto;display:flex;align-items:center;gap:11px;padding:12px;border-radius:16px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.side-me b{color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.side-me .avatar{background:linear-gradient(155deg,#3B4252,#262B36)}
+.side-role{font-size:12px;color:#A9C6FF}
+.live-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--mint-ink);padding:5px 10px;border-radius:999px;background:var(--mint-bg);white-space:nowrap}
+.live-pill i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
+.taskchip{display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:0 12px;border-radius:12px;font-weight:600;font-size:14px;color:var(--muted);
+  background:var(--sunken);white-space:nowrap;transition:background-color 200ms ease,color 200ms ease}
+.taskchip svg{width:18px;height:18px}
+.taskchip.has{background:var(--warn-bg);color:var(--warn)}
+.taskchip:hover{color:var(--ink)}
+.whosel .minisel{max-width:230px}
+
+/* ---- обзор ---- */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.kpi{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border);
+  transition:transform 160ms var(--ease-out)}
+a.kpi:hover{box-shadow:var(--lift-shadow)}
+a.kpi:active{transform:scale(.985)}
+.kpi-l{font-size:13px;color:var(--muted);font-weight:500}
+.kpi-v{font-size:clamp(20px,2vw,24px);color:var(--navy);font-weight:600;letter-spacing:-.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-s{font-size:12.5px;color:var(--faint)}
+
+/* График: столбцы одного цвета, скруглён только верх; сетка — волосяные линии. */
+.fchart{position:relative}
+.fchart svg{display:block;width:100%;height:auto;overflow:visible}
+.fc-grid{stroke:var(--line);stroke-width:1}
+.fc-y,.fc-x{fill:var(--muted);font:500 11px "IBM Plex Sans",system-ui,sans-serif}
+.fc-bar path{fill:var(--chart);transition:fill 160ms ease}
+.fc-bar .fc-hit{fill:transparent}
+.fc-bar:hover path,.fc-bar:focus path{fill:var(--chart-hi)}
+.fc-bar:focus{outline:none}
+.fc-bar:focus-visible .fc-hit{stroke:var(--blue);stroke-width:2}
+.fc-tip{position:absolute;transform:translate(-50%,-100%);pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 11px;border-radius:10px;
+  background:var(--ink);color:var(--paper);font-size:12px;white-space:nowrap;box-shadow:0 10px 24px -12px rgba(0,0,0,.5)}
+.fc-tip b{font-size:14px;font-family:"IBM Plex Mono",monospace}
+
+/* ---- очередь задач ---- */
+.note-live{display:flex;gap:8px;align-items:center;font-size:13.5px;color:var(--warn);background:var(--warn-bg);padding:10px 12px;border-radius:12px;margin-bottom:14px}
+.note-live svg{width:18px;height:18px;flex:none}
+.tasks{display:flex;flex-direction:column}
+.task{display:grid;grid-template-columns:40px minmax(0,1fr) auto auto;gap:12px 14px;align-items:center;padding:12px 0;border-top:1px solid var(--line)}
+.tasks > .task:first-child{border-top:0}
+.task-ic{width:40px;height:40px;border-radius:12px;background:var(--sky);color:var(--blue);display:grid;place-items:center}
+.task-ic.warn{background:var(--warn-bg);color:var(--warn)}
+.task-ic svg{width:20px;height:20px}
+.task-main{display:flex;flex-direction:column;gap:2px;min-width:0}
+.task-main b{color:var(--navy)}
+.task-main a:hover b{color:var(--blue)}
+.task-amt{color:var(--navy);white-space:nowrap}
+.task-act{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.task-wide{grid-template-columns:40px minmax(0,1fr) minmax(0,1.1fr)}
+.task-act.reply input{min-height:38px;padding:7px 10px;font-size:14px;flex:1 1 180px}
+.why{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.why input{min-height:36px;padding:6px 10px;font-size:14px;width:220px}
+.price-in{flex-wrap:nowrap}
+.usd-in{position:relative;display:block}
+.usd-in i{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-weight:600}
+.usd-in input{width:120px;min-height:36px;padding:6px 10px 6px 22px;font-family:"IBM Plex Mono",monospace;font-size:15px}
+.tasks.compact .task{grid-template-columns:minmax(0,1fr) auto;padding:10px 0}
+.tasks.compact .task-ic{display:none}
+.tasks.compact .task-act{grid-column:1 / -1;justify-content:flex-start}
+/* Кнопка без права: заметно выключена и подписана словами, не только подсказкой. */
+button:disabled{cursor:not-allowed}
+.solid:disabled,.ghost:disabled,.link:disabled{opacity:.55;filter:saturate(.2)}
+.solid:disabled:hover{background:var(--blue)}
+button[data-nr]::after{content:" · " attr(data-nr);font-weight:500;font-size:.9em}
+.h-empty{font-size:20px}
+.a-key{white-space:normal}
+.matrix-wrap{max-width:100%;min-width:0}
+.card{min-width:0}
+.taskchip b{font-family:"IBM Plex Mono",monospace}
+
+/* ---- таблицы ---- */
+.atable{display:flex;flex-direction:column}
+.arow{display:grid;grid-template-columns:var(--cols);gap:14px;align-items:center;padding:11px 10px;border-radius:14px;transition:background-color 160ms ease}
+.arow + .arow{box-shadow:0 -1px 0 var(--line)}
+a.arow:hover{background:var(--sunken);box-shadow:none}
+a.arow:hover + .arow{box-shadow:none}
+.arow.ahead{padding-block:4px 8px;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+.arow.total{font-size:15px;color:var(--navy)}
+.arow.past{opacity:.7}
+.a-main{display:flex;flex-direction:column;min-width:0}
+.a-main b{color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a-main .mono{font-size:12px;color:var(--faint)}
+.a-with-mark{flex-direction:row;align-items:center;gap:12px}
+.a-cell{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.a-num{text-align:right;white-space:nowrap;font-size:14px}
+.a-num.plus{color:var(--mint-ink)}
+.a-end{text-align:right;justify-self:end}
+.warn-t{color:var(--warn)}
+.src-site{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--sky);color:var(--navy)}
+.bmark-wrap{display:inline-grid;flex:none}
+.bmark-wrap .bmark{box-shadow:inset 0 0 0 1px var(--line)}
+.bmark-wrap.big .bmark{width:52px;height:52px;border-radius:16px;font-size:18px}
+.blockbar.inline{border-radius:14px;margin-bottom:18px;border:0}
+.rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+
+/* ---- цены ---- */
+.pr-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.pct-in{position:relative;display:block}
+.pct-in input{width:120px;padding-right:32px;font-family:"IBM Plex Mono",monospace;font-size:18px;font-weight:600}
+.pct-in i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-weight:600}
+
+/* ---- права ролей ---- */
+.matrix-wrap{overflow-x:auto}
+.matrix{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
+.matrix th,.matrix td{padding:9px 10px;border-top:1px solid var(--line);text-align:center}
+.matrix thead th{border-top:0;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
+.matrix tbody th{text-align:left;font-weight:500}
+.matrix .yes{display:inline-grid;color:var(--mint)}
+.matrix .yes svg{width:18px;height:18px}
+.matrix .no{color:var(--faint)}
+
+/* ---- вход ---- */
+.adm-auth .auth-side{background:radial-gradient(120% 95% at 72% 28%,#2A2F3B 0%,#1B1E26 55%,#111318 100%)}
+.adm-auth .auth-side::before{border-color:rgba(255,255,255,.14)}
+
+/* ---- узкая колонка ---- */
+@container main (max-width:1020px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rev-grid{grid-template-columns:1fr}
+}
+@container main (max-width:760px){
+  .task,.task-wide{grid-template-columns:40px minmax(0,1fr)}
+  .task-amt{grid-column:2}
+  .task-act{grid-column:1 / -1;justify-content:flex-start}
+  /* Строка таблицы — в две колонки: слева главное (a-main/a-key) и строка
+     под ним (a-sub), справа ключевая сумма (a-keep) и статус. */
+  .arow{grid-template-columns:minmax(0,1fr) auto!important;grid-auto-flow:row dense;row-gap:2px}
+  .arow > *{grid-column:1}
+  .arow > .a-keep,.arow > .a-end{grid-column:2;text-align:right;justify-self:end}
+  .arow > .or-ic,.arow > .a-cell:not(.a-key):not(.a-sub),.arow > .a-num:not(.a-keep){display:none}
+  .arow > .a-sub{font-size:12px;color:var(--muted)}
+  .arow.ahead{display:none}
+}
+@container main (max-width:720px){
+  .ofind{flex-wrap:wrap}
+  .ofind .search{flex:1 1 100%}
+}
+@container main (max-width:560px){
+  .kpis{grid-template-columns:1fr;gap:10px}
+  .kpi{flex-direction:row;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:12px;padding:12px 16px}
+  .kpi-s{flex-basis:100%}
+  .why input,.usd-in input{width:100%}
+}
+@media (max-width:600px){
+  .live-pill{display:none}
+  body.adm .top-title{display:none}
+  .whosel .minisel{max-width:150px}
+  .taskchip .tc-l{display:none}
+}

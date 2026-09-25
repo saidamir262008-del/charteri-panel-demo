@@ -7,9 +7,9 @@
    ========================================================================== */
 /* --faint темнее, чем на сайте: в кабинете им набраны подписи колонок и
    реквизиты, мелкий текст должен читаться (контраст 4,5:1 на белом). */
-:root{--side:252px;--side-bg:linear-gradient(180deg,#172962 0%,#0F1B48 100%);--pagepad:28px;--faint:#6E7380}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--side-bg:linear-gradient(180deg,#141B2E 0%,#0E1322 100%);--faint:#8C93A2}}
-:root[data-theme="dark"]{--side-bg:linear-gradient(180deg,#141B2E 0%,#0E1322 100%);--faint:#8C93A2}
+:root{--mint-ink:#0B7A52;--side:252px;--side-bg:linear-gradient(180deg,#172962 0%,#0F1B48 100%);--pagepad:28px;--faint:#6E7380}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--mint-ink:var(--mint);--side-bg:linear-gradient(180deg,#141B2E 0%,#0E1322 100%);--faint:#8C93A2}}
+:root[data-theme="dark"]{--mint-ink:var(--mint);--side-bg:linear-gradient(180deg,#141B2E 0%,#0E1322 100%);--faint:#8C93A2}
 
 body.b2b{display:grid;grid-template-columns:var(--side) minmax(0,1fr);min-height:100dvh}
 .main{min-width:0;display:flex;flex-direction:column;min-height:100dvh}
@@ -47,6 +47,10 @@ body.b2b #nav{position:sticky;top:0;height:100dvh;margin:0;width:auto;border-rad
 .side-agency b{color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .side-status{display:flex;align-items:center;gap:4px;font-size:12px;color:#7FE0B5}
 .side-status svg{width:14px;height:14px;flex:none}
+.side-status.is-off{color:#FF9B9B}
+/* Charteri заблокировал агентство — полоса под верхней панелью на всех страницах. */
+.blockbar{display:flex;align-items:center;gap:10px;padding:10px var(--pagepad);background:var(--coral-bg);color:var(--coral);font-weight:600;font-size:14px;border-top:1px solid color-mix(in srgb,var(--coral) 25%,transparent)}
+.blockbar svg{width:18px;height:18px;flex:none}
 .scrim{display:none}
 
 /* ---- знак агентства: логотип или монограмма в фирменном цвете ---- */
@@ -283,7 +287,7 @@ a.orow:hover + .orow{box-shadow:none}
 .l-op .small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .l-amt,.l-after{text-align:right;white-space:nowrap}
 .l-amt{font-weight:600}
-.l-amt.plus{color:var(--mint)}
+.l-amt.plus{color:var(--mint-ink,#0B7A52)}
 .l-after{color:var(--muted)}
 
 /* ---- клиенты ---- */

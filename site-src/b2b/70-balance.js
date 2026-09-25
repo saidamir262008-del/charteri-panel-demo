@@ -14,6 +14,7 @@ const ledgerTitle = l => {
   const o = l.orderId && S.orders.find(x => x.id === l.orderId);
   const m = l.method || "bank";
   if (l.kind === "topup") return `${t("led_topup")} · ${t("topup_m_" + m)}`;
+  if (l.kind === "adjust") return tf("led_adjust", { reason:l.reason || "" });
   return tf(l.kind === "refund" ? "led_refund" : "led_order", { no:o ? o.no : "—" });
 };
 function ledgerRows(){
@@ -83,6 +84,7 @@ Object.assign(ACT, {
   tugo: () => {
     const amount = readAmount(), m = M.ui.tuMethod || "card";
     hideErr("#tuerr");
+    if (!agencyActive()) return showErr("#tuerr", t("agency_blocked_d"));
     if (amount < TOPUP_MIN || amount > TOPUP_MAX) return showErr("#tuerr", tf("err_topup", { min:fmtUZS(TOPUP_MIN), max:fmtUZS(TOPUP_MAX) }));
     if (m === "card") {
       overlay(t("processing"));
@@ -98,10 +100,9 @@ Object.assign(ACT, {
   },
   /* Выписка для бухгалтерии: CSV с BOM, чтобы Excel открыл кириллицу. */
   csv: () => {
-    const q = v => `"${String(v).replace(/"/g, '""')}"`;
     const rows = [[t("col_date"), t("col_operation"), t("col_amount"), t("col_after")],
       ...S.ledger.map(l => [new Date(l.at).toLocaleString(LOC[S.lang]), ledgerTitle(l), l.amount, l.after])];
-    const blob = new Blob(["﻿" + rows.map(r => r.map(q).join(";")).join("\r\n")], { type:"text/csv;charset=utf-8" });
+    const blob = new Blob([csvText(rows)], { type:"text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-statement-${TODAY}.csv` });
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }

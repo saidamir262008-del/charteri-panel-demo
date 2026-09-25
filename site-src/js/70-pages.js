@@ -98,12 +98,23 @@ PAGES["orders/:id"] = {
         <button type="button" class="cta" data-act="opay" data-v="${o.id}">${esc(t("pay_now"))} · ${fmt(o.total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></div>`;
     else if (charter && st === "PAID") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${IC.shield}</span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body"))}</p></div>`;
+    // Отменённый заказ — без билета и QR: документ больше не действует.
+    else if (st === "CANCELLED" || st === "REFUNDED") main = `<div class="card stack"><h3>${esc(t("site_cancel_h"))}</h3><p class="muted">${esc(t("site_cancel_d"))}</p>
+        ${o.refund ? `<div class="rows"><div><span class="k">${esc(tf("site_penalty", { p:Math.round(o.refund.rate * 100) }))}</span><span class="v mono">−${grp(o.refund.penalty)} ${esc(t("cur_uzs"))}</span></div>
+          <div class="tot"><span class="k">${esc(t(o.refund.done ? "site_refund_done" : "site_refund_wait"))}</span><span class="v">${grp(o.refund.uzs)} ${esc(t("cur_uzs"))}</span></div></div>` : ""}</div>`;
     else main = orderDocument(o);
 
     let req = "";
-    if (o.req) req = `<div class="reqbanner"><div class="rb-h"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${`<span class="pill st-PENDING">${esc(t("req_status_new"))}</span>`}</div>
-        ${o.req.note ? `<span class="muted">«${esc(o.req.note)}»</span>` : ""}<span class="small muted">${esc(t("req_local_note"))}</span></div>`;
-    else if (st === "CONFIRMED" && o.start >= TODAY) req = M.ui.reqFor === o.id
+    // Ответ оператора приходит из админки: «выполнено» или «отказано» с пояснением.
+    // После ответа можно отправить новую просьбу.
+    const canAsk = st === "CONFIRMED" && o.start >= TODAY;
+    if (o.req) req = `<div class="reqbanner"><div class="rb-h"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${
+        o.req.status === "done" ? `<span class="pill st-CONFIRMED">${esc(t("req_status_done"))}</span>`
+        : o.req.status === "declined" ? `<span class="pill st-CANCELLED">${esc(t("req_status_declined"))}</span>`
+        : `<span class="pill st-PENDING">${esc(t("req_status_new"))}</span>`}</div>
+        ${o.req.note ? `<span class="muted">«${esc(o.req.note)}»</span>` : ""}
+        ${o.req.reply ? `<span><b>${esc(t("req_reply"))}:</b> ${esc(o.req.reply)}</span>` : o.req.status ? "" : `<span class="small muted">${esc(t("req_local_note"))}</span>`}</div>`;
+    if ((!o.req || o.req.status) && canAsk) req += M.ui.reqFor === o.id
       ? `<div class="card stack"><h3>${esc(t("request_change"))}</h3><span class="lbl">${esc(t("req_kind_label"))}</span>
           ${seg("oreqkind", REQ_KINDS.map(k => [k, t("req_kind_" + k)]), M.ui.reqKind || "change_date")}
           <label class="field"><span>${esc(t("req_note"))}</span><textarea data-bind="ui.reqNote" placeholder="${esc(t("req_note_ph"))}">${esc(M.ui.reqNote || "")}</textarea></label>
@@ -129,10 +140,18 @@ PAGES["orders/:id"] = {
 Object.assign(ACT, {
   ofilter:  el => { M.ui.ofilter = el.dataset.v; flip(rerender); },
   opm:      el => { M.ui.opm = el.dataset.v; rerender(); },
+  /* Отметка об оплате — на свежих данных: за время ожидания оператор мог
+     изменить или отменить заказ в админке. */
   opay:     el => {
-    const o = S.orders.find(x => x.id === el.dataset.v); if (!o || o.status !== "PENDING") return;
+    const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING") return;
+    const method = M.ui.opm || "payme";
     overlay(t("processing"));
-    setTimeout(() => { overlay(""); Object.assign(o, { status:"PAID", paidAt:Date.now(), method:M.ui.opm || "payme" }); hist(o, "PAID"); save(); rerender(); }, 1400);
+    setTimeout(() => {
+      overlay(""); refresh();
+      const o = S.orders.find(x => x.id === id);
+      if (!o || o.status !== "PENDING") { rerender(); return toast(t("order_changed")); }
+      Object.assign(o, { status:"PAID", paidAt:Date.now(), method }); hist(o, "PAID"); save(); rerender();
+    }, 1400);
   },
   oreq:     el => { M.ui.reqFor = el.dataset.v || null; M.ui.reqKind = "change_date"; M.ui.reqNote = ""; rerender(); },
   oreqkind: el => { M.ui.reqKind = el.dataset.v; rerender(); },

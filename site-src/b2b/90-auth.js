@@ -34,10 +34,10 @@ PAGES.auth = {
   render(){
     const tab = M.ui.authTab || "login";
     return `<div class="auth">
-      <section class="auth-side" aria-hidden="true">
-        <span class="wordmark">CHARTERI<b>.UZ</b></span>
+      <section class="auth-side">
+        <span class="wordmark" aria-hidden="true">CHARTERI<b>.UZ</b></span>
         <div class="auth-copy"><h1>${esc(t("auth_h"))}</h1><p>${esc(t("auth_p"))}</p></div>
-        <ul class="auth-mods">${MODULE_ORDER.map(k => `<li>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></li>`).join("")}</ul>
+        <ul class="auth-mods" aria-hidden="true">${MODULE_ORDER.map(k => `<li>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></li>`).join("")}</ul>
       </section>
       <section class="auth-main"><div class="card stack authcard">
         ${seg("authtab", [["login", t("auth_login")], ["reg", t("auth_reg")]], tab)}
@@ -67,7 +67,11 @@ Object.assign(ACT, {
     if (r.person.trim().length < 2) return showErr("#rerr", t("err_your_name"));
     if (!validPhone(r.phone)) return showErr("#rerr", t("err_phone"));
     if (!r.email || !validEmail(r.email)) return showErr("#rerr", t("err_email"));
-    r.phone = prettyPhone(r.phone); M.ui.regDone = true; rerender();
+    r.phone = prettyPhone(r.phone); M.ui.regDone = true;
+    // Заявка уходит оператору Charteri: в демо — в общее хранилище, её видит админка.
+    const apps = readJSON(APPS_KEY, []);
+    writeJSON(APPS_KEY, [{ id:uid("ap"), at:Date.now(), company:r.company.trim(), inn:digits(r.inn), person:r.person.trim(), phone:r.phone, email:r.email.trim(), status:"pending" }, ...(Array.isArray(apps) ? apps : [])].slice(0, 50));
+    rerender();
   },
   /* Модерация в демо не ждёт: входим в готовое демо-агентство. */
   regdemo: () => { S.session = { phone:M.ui.reg.phone, at:Date.now() }; M.ui.regDone = false; M.ui.authTab = "login"; save();

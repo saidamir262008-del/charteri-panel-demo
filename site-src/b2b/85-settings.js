@@ -9,9 +9,9 @@ PAGES.settings = {
     return `<div class="page narrow-page">
       <div class="pagehead"><h1>${esc(t("nav_settings"))}</h1></div>
       <div class="stack">
-        <section class="card stack"><div class="card-h"><h2>${esc(t("agency"))}</h2><span class="pill st-CONFIRMED">${esc(t("agency_verified"))}</span></div>
+        <section class="card stack"><div class="card-h"><h2>${esc(t("agency"))}</h2>${agencyActive() ? `<span class="pill st-CONFIRMED">${esc(t("agency_verified"))}</span>` : `<span class="pill st-REFUNDED">${esc(t("agency_blocked"))}</span>`}</div>
           <div class="rows">${row("agency_legal", a.legal)}${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}
-            ${row("agency_since", fdateY(a.since))}${row("agency_fee", t("agency_fee_v"))}</div>
+            ${row("agency_since", fdateY(a.since))}${row("agency_fee", tf("agency_fee_v", { p:pctText(prices().feeBps) }))}</div>
           <p class="muted small">${esc(t("agency_note"))}</p></section>
         <section class="card stack"><h2>${esc(t("settings"))}</h2>
           <div class="setrow"><span>${esc(t("language"))}</span>${seg("setlang", [["uz","O‘zbekcha"],["ru","Русский"],["en","English"]], S.lang)}</div>

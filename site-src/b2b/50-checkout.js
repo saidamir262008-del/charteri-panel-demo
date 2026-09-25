@@ -29,6 +29,7 @@ function priceCheck(c){
 }
 /* Сколько спишется и что останется — в сумах: баланс агентства в сумах. */
 function balanceBlock(due){
+  if (!agencyActive()) return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3><div class="err">${esc(t("agency_blocked_d"))}</div></div>`;
   const after = S.balance - due.uzs, short = after < 0;
   return `<div class="card stack"><h3>${esc(t("pay_from_balance"))}</h3>
     <div class="rows">
@@ -37,14 +38,12 @@ function balanceBlock(due){
       <div class="tot"><span class="k">${esc(t("balance_after"))}</span><span class="v ${short ? "bad" : ""}">${fmtUZS(after)}</span></div></div>
     ${short ? `<div class="err shortfall"><span>${esc(tf("err_short", { amount:fmtUZS(-after) }))}</span><a class="solid sm" href="#/balance?topup">${esc(t("topup"))}</a></div>` : ""}</div>`;
 }
-/* Строки чека услуги и сбор Charteri отдельной строкой. */
-const feeLines = (lines, total) => [...lines, [t("service_fee"), feeOf(total)]];
 
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
-    const due = withFee(total), short = due.uzs > S.balance;
+    const due = withFee(total), short = due.uzs > S.balance || !agencyActive();
     return `<div class="page"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
       <div class="twocol"><div class="stack">
@@ -59,7 +58,7 @@ PAGES.checkout = {
       </div>
       <aside class="card sticky stack">
         <span class="lbl">${esc(t("doc_" + c.type))}</span><b>${esc(c.title)}</b><span class="muted small">${esc(c.sub)}</span>
-        ${checkLines(feeLines(lines, total), due, "checkout")}
+        ${checkLines(feeLines(lines, total, feeOf(total), prices().feeBps), due, "checkout")}
         <p class="fee-note">${esc(t("fee_note"))}</p>
         ${priceCheck(c)}
         <button type="button" class="cta" data-act="cpay" ${c.pstate === "ok" && !short ? "" : "disabled"}>${esc(t("pay_balance_cta"))} · ${fmt(due)}</button>
@@ -79,6 +78,7 @@ Object.assign(ACT, {
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
     const due = withFee(c.total);
+    if (!agencyActive()) return showErr("#cerr", t("agency_blocked_d"));
     if (due.uzs > S.balance) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) }));
     const phone = prettyPhone(c.contact.phone);
     c.travellers.forEach((x, i) => {
@@ -88,10 +88,18 @@ Object.assign(ACT, {
       x.fromId = id;
     });
     const clientId = c.travellers[0].fromId || c.clientId || clientByPhone(phone)?.id || null;
+    const newClients = S.travellers.filter(v => c.travellers.some(x => x.fromId === v.id));
+    // Ставка сбора — та, что была на экране при нажатии «Оплатить».
+    const feeBps = prices().feeBps;
     overlay(t("processing_balance"));
     setTimeout(() => {
-      overlay("");
-      createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId,
+      overlay(""); refresh();
+      // Новые клиенты из оформления — в свежие данные, если их там ещё нет.
+      for (const v of newClients) if (!S.travellers.some(x => x.id === v.id)) S.travellers.push(v);
+      const due = addA(c.total, feeOf(c.total, feeBps));
+      if (!agencyActive()) { rerender(); return showErr("#cerr", t("agency_blocked_d")); }
+      if (due.uzs > S.balance) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) })); }
+      createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId, feeBps,
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone }, details:c.details },
         id => { M.checkout = null; M.ui.forClient = null; go(`done/${id}`); });
     }, 1100);
@@ -105,7 +113,8 @@ function createOrder(spec, then){
   // Заявка на чартер идёт мимо оформления — клиента берём из «брони для клиента».
   const forClient = isCharter(spec) ? S.travellers.find(c => c.id === M.ui.forClient)?.id : null;
   const o = { id:uid("o"), no:makeRef(`${spec.ref}:${now}:${Math.random()}`), type:spec.type, status:spec.status, createdAt:now,
-    title:spec.title, sub:spec.sub, start:spec.start, end:spec.end, total:spec.total, fee:spec.total ? feeOf(spec.total) : null,
+    title:spec.title, sub:spec.sub, start:spec.start, end:spec.end, total:spec.total,
+    fee:spec.total ? feeOf(spec.total, spec.feeBps ?? prices().feeBps) : null, feeBps:spec.total ? spec.feeBps ?? prices().feeBps : null,
     method:paid ? "balance" : null, travellers:spec.travellers, contact:spec.contact, details:spec.details, req:null,
     paidAt:paid ? now : null, clientId:spec.clientId || forClient || clientByPhone(spec.contact.phone)?.id || null,
     history:[{ s:paid ? "PAID" : "NEW", at:now }] };
@@ -115,31 +124,6 @@ function createOrder(spec, then){
   if (forClient) M.ui.forClient = null;
   save(); then?.(o.id);
   return o;
-}
-
-/* ---------------------------------------------------- документы с брендом */
-/* Текст на фирменной плашке — белый или тёмный, смотря по яркости цвета. */
-function inkOn(hex){
-  const n = parseInt(String(hex).slice(1), 16);
-  if (!/^#[0-9a-f]{6}$/i.test(hex)) return "#fff";
-  const lin = c => { c /= 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
-  const L = 0.2126 * lin(n >> 16 & 255) + 0.7152 * lin(n >> 8 & 255) + 0.0722 * lin(n & 255);
-  return L > 0.42 ? "#16181D" : "#fff";
-}
-const brandColor = () => /^#[0-9a-f]{6}$/i.test(S.brand.color || "") ? S.brand.color : "#16275C";
-const brandStyle = () => `--bc:${brandColor()};--bi:${inkOn(brandColor())}`;
-const brandContacts = () => [S.brand.phone, S.brand.email, S.brand.telegram].filter(Boolean).map(esc).join(" · ");
-function brandTop(kind){
-  return `<div class="bd-top" style="${brandStyle()}">${brandMark("bd-mark")}<span class="bd-name">${esc(S.brand.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
-}
-function brandFoot(){
-  return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(S.brand.name)}</b><span>${brandContacts()}</span>${S.brand.address ? `<span>${esc(S.brand.address)}</span>` : ""}</div>
-    <span class="bd-pw">${esc(t("powered_by"))} <span class="wordmark dark">CHARTERI<b>.UZ</b></span></span></div>`;
-}
-function orderDocument(o){
-  if (o.type === "FLIGHT") return `<div class="bdoc">${brandTop(t("doc_FLIGHT"))}${flightDocument(o)}${brandFoot()}</div>`;
-  const body = { TOUR:tourVoucherBody, HOTEL:hotelVoucherBody, JET:charterVoucherBody, HELI:charterVoucherBody }[o.type](o);
-  return `<article class="voucher bdoc-v rise">${brandTop(t("doc_" + o.type))}<div class="v-body">${body}</div><div class="perf"></div>${qrStub(o)}${brandFoot()}</article>`;
 }
 
 /* ------------------------------------------------------------------ успех */

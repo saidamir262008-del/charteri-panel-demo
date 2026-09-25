@@ -9,8 +9,10 @@
 const TOUR_DISCOUNT = 0.93;
 const TRANSFER_USD = 20;          // за человека, туда и обратно
 
-function tourPackage(h, q){
-  const out = baseOffer("TAS", q.to, q.depart), back = baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
+/* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
+   от сегодняшней наценки. Без них — рейсы по текущим ценам. */
+function tourPackage(h, q, legs = null){
+  const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
   const hotel = hotelStay(h, q.depart, q.nights, rooms);
@@ -149,6 +151,9 @@ function startTourCheckout(hid){
     start: q.depart, end: addDays(q.depart, q.nights),
     travellers: { mode:"full", types },
     lines: tourLines(p, q), total: p.total, recheck: true,
+    /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
+    priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
+      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back } }; },
     details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
   });
