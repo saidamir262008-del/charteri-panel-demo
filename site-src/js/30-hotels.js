@@ -6,7 +6,8 @@
 
 function hotelNightly(h, date){
   const month = parseYMD(date).getMonth() + 1;
-  const season = HIGH_SEASON[h.city].includes(month) ? 1.18 : 1;
+  // У направлений из админки сезона нет — цена ровная весь год.
+  const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
   return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
 }
 function hotelStay(h, checkin, nights, rooms, mult = 1){
@@ -14,8 +15,15 @@ function hotelStay(h, checkin, nights, rooms, mult = 1){
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
+/* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
+   заказа, а не падаем: один такой заказ не должен ломать список. */
+const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
+/* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
+const joinPlace = (parts, sep = " · ") => parts.filter(Boolean).join(sep);
+/* Оценки гостей у отеля из админки ещё нет — значок не выдумываем. */
+const ratingTag = h => h.rating ? `<span class="rating">${h.rating.toFixed(1)}</span>` : "";
 
 M.hotels = { city:"AYT", checkin:addDays(TODAY,14), checkout:addDays(TODAY,21), adults:2, children:0, rooms:1,
   stars:[], boards:[], maxNight:0, sort:"price", searched:false };
@@ -77,7 +85,7 @@ PAGES["hotels/results"] = {
     const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
@@ -105,8 +113,8 @@ function hotelRow(x, i, n, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(cityName(h.city))} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, cityName(h.city), beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       ${amenityChips(h)}
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(x.stay)}</span>
@@ -116,14 +124,14 @@ function hotelRow(x, i, n, rc){
 }
 PAGES["hotels/item/:id"] = {
   render({ id }){
-    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.hotels, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(cityName(h.city))}, ${esc(countryName(h.city))} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, `${cityName(h.city)}, ${countryName(h.city)}`, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="card stack" style="margin-top:20px">
         <div class="leg-h"><h2>${esc(t("rooms_title"))}</h2><span class="muted small">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.rooms, "room"))}</span></div>
@@ -151,9 +159,9 @@ function startHotelCheckout(hid, rid){
   });
 }
 function hotelVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId), lead = o.travellers[0];
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o), lead = o.travellers[0];
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
     <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>

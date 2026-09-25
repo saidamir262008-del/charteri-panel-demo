@@ -102,6 +102,8 @@ function decideApp(id, ok, reason = ""){
   if (denied("agencies.moderate")) return false;
   if (!ok && !reason) { toast(t("err_reason")); return false; }
   const apps = loadApps(), a = apps.find(x => x.id === id); if (!a || a.status !== "pending") return false;
+  // Агентство с тем же ИНН уже есть (создали вручную) — второе не открываем.
+  if (ok && agencies().some(x => digits(x.inn) === digits(a.inn))) { toast(t("err_ag_inn_dup")); return false; }
   Object.assign(a, { status:ok ? "approved" : "rejected", reason, decidedAt:Date.now(), by:me().name });
   writeJSON(APPS_KEY, apps);
   change(() => {

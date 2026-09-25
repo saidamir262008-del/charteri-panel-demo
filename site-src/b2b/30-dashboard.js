@@ -12,14 +12,14 @@ function tripRoute(o){
   if (o.type === "FLIGHT") return { local:false, from:d.out.from, to:d.out.to };
   if (o.type === "JET")    return { local:false, from:d.from, to:d.to };
   if (o.type === "TOUR")   return { local:false, from:"TAS", to:d.to };
-  return { local:false, from:"TAS", to:hotelById(d.hotelId).city };
+  return { local:false, from:"TAS", to:hotelById(d.hotelId)?.city || d.to || "IST" };
 }
 const selectedTrip = () => { const trips = upcomingTrips(); return trips.find(o => o.id === M.ui.trip) || trips[0] || null; };
 
 /* Карта сайта берёт маршрут из формы поиска — в кабинете из выбранной поездки. */
 function mapState(){
   const o = selectedTrip();
-  return o ? tripRoute(o) : { local:false, from:"TAS", to:"IST" };
+  return o ? safeRoute(tripRoute(o)) : { local:false, from:"TAS", to:"IST" };
 }
 function glPick(id){
   const o = upcomingTrips().find(x => tripRoute(x).to === id);

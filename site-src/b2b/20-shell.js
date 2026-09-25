@@ -63,7 +63,7 @@ function bellPanel(){
   const list = S.notes.slice(0, 8);
   return `<div class="bellpanel" id="bellpanel">
     <div class="bell-h"><b>${esc(t("notifications"))}</b>${unread() ? `<button type="button" class="link" data-act="bellread">${esc(t("mark_read"))}</button>` : ""}</div>
-    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + n.orderId : "balance"}" data-act="bellgo">
+    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + n.orderId : n.kind === "message" ? "" : "balance"}" data-act="bellgo">
       <span class="bell-dot"></span><span class="stack" style="gap:2px;min-width:0"><span>${esc(noteText(n))}</span><span class="muted small">${esc(fdt(n.at))}</span></span></a>`).join("")
       : `<p class="muted small" style="padding:12px 16px">${esc(t("notes_empty"))}</p>`}
   </div>`;

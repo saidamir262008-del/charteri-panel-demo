@@ -19,21 +19,24 @@ let O = null, SITE = null;
    Главный администратор может всё. Остальные — по списку прав. */
 const ROLES = ["admin", "operator", "cashier", "accountant"];
 const PERMS = {
-  operator:   ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "agencies", "agencies.moderate", "customers", "requests.resolve", "integrations", "audit"],
+  operator:   ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "agencies", "agencies.moderate", "agencies.message", "customers", "requests.resolve", "catalog", "integrations", "audit"],
   cashier:    ["tasks", "orders", "agencies", "finance", "topups.confirm", "refunds.credit"],
   accountant: ["orders", "agencies", "finance", "finance.export", "audit"]
 };
 /* Права, которые есть в админке, — для таблицы на странице «Сотрудники». */
 const PERM_LIST = ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "refunds.credit", "agencies", "agencies.moderate",
-  "agencies.block", "balance.adjust", "customers", "requests.resolve", "finance", "topups.confirm", "finance.export", "pricing.edit", "integrations", "staff", "audit", "demo.reset"];
-const me = () => O?.staff.find(s => s.id === O.session?.staffId) || null;
+  "agencies.create", "agencies.edit", "agencies.message", "agencies.block", "balance.adjust", "customers", "requests.resolve", "finance", "topups.confirm",
+  "finance.export", "pricing.edit", "catalog", "catalog.edit", "integrations", "staff", "staff.edit", "audit", "demo.reset"];
+/* Вошедший сотрудник — только активный: отключённый теряет доступ сразу. */
+const me = () => O?.staff.find(s => s.id === O.session?.staffId && s.active !== false) || null;
+const activeStaff = () => O.staff.filter(s => s.active !== false);
 const can = p => { const r = me()?.role; return r === "admin" || !!PERMS[r]?.includes(p); };
 /* Кнопка без права не прячется: она выключена и подписана «нет прав». */
 const guard = p => can(p) ? "" : `disabled aria-disabled="true" title="${esc(t("no_rights"))}" data-nr="${esc(t("no_rights_short"))}"`;
 const denied = p => { if (can(p)) return false; toast(t("no_rights")); return true; };
 
 /* ---- хранилища ---- */
-function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) ? r : null; }
+function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateStaff(r) : null; }
 function saveOps(){ O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
 const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
@@ -43,7 +46,10 @@ function audit(action, vars = {}){
   O.audit.unshift({ id:uid("a"), at:Date.now(), staffId:O.session?.staffId || null, action, vars });
   O.audit = O.audit.slice(0, 400);
 }
-const auditText = e => tf("a_" + e.action, e.vars || {});
+/* Значения журнала: название на трёх языках — по языку экрана, роль — ключом
+   ("role:operator"). Старые записи со строками показываются как есть. */
+const auditVal = v => v && typeof v === "object" ? v[S.lang] || v.ru || "" : typeof v === "string" && v.startsWith("role:") ? roleName(v.slice(5)) : v;
+const auditText = e => tf("a_" + e.action, Object.fromEntries(Object.entries(e.vars || {}).map(([k, v]) => [k, auditVal(v)])));
 const staffName = id => O.staff.find(s => s.id === id)?.name || "—";
 
 /* ---- изменения ----
@@ -123,8 +129,15 @@ const STAFF = [
   { id:"st1", name:"Dilnoza Rahimova", role:"admin",      phone:"+998 90 000 00 01" },
   { id:"st2", name:"Jasur Aliyev",     role:"operator",   phone:"+998 90 000 00 02" },
   { id:"st3", name:"Kamola Nazarova",  role:"cashier",    phone:"+998 90 000 00 03" },
-  { id:"st4", name:"Rustam Ergashev",  role:"accountant", phone:"+998 90 000 00 04" }
+  { id:"st4", name:"Rustam Ergashev",  role:"accountant", phone:"+998 90 000 00 04" },
+  { id:"st5", name:"Ammar Temurov",    role:"admin",      phone:"+998 90 000 00 05" }
 ];
+/* Сотрудники из демо, которых ещё нет в сохранённой админке (добавлены после
+   её первого запуска), — дописываются; удалённые вручную остаются удалёнными. */
+function migrateStaff(o){
+  for (const s of STAFF) if (!o.staff.some(x => x.id === s.id) && !(o.removedStaff || []).includes(s.id)) o.staff.push({ ...s });
+  return o;
+}
 const PAX_NAMES = [["SAIDOV","OTABEK"],["RAHIMOVA","SHAHNOZA"],["KIM","VIKTORIYA"],["QODIROV","SARDOR"],["ORTIQOVA","LOBAR"],["NURMATOV","ILHOM"],["HAMIDOVA","FERUZA"],["ABDULLAEV","TIMUR"],["ZOKIROVA","DILFUZA"],["ISMOILOV","AKMAL"]];
 
 /* Агентство с заказами за последние 40 дней. Цены — те же функции, что на
@@ -234,7 +247,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", orders:"orders", "orders/:src/:id":"orders", agencies:"agencies", "agencies/:id":"agencies",
-  customers:"customers", "customers/:phone":"customers", finance:"finance", pricing:null, integrations:"integrations", staff:"staff", audit:"audit", settings:null, denied:null };
+  customers:"customers", "customers/:phone":"customers", finance:"finance", pricing:null, directions:"catalog", integrations:"integrations", staff:"staff", audit:"audit", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
   if (key === "auth") return "";

@@ -142,6 +142,7 @@ function sendCharterRequest(kind){
   hideErr("#cherr");
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
+  if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));
   if (q.date < TODAY) return showErr("#cherr", t("err_date_past"));
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));

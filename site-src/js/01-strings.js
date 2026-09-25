@@ -176,6 +176,7 @@ const STR = {
   site_penalty:["Штраф поставщика, {p}%","Yetkazib beruvchi jarimasi, {p}%","Supplier penalty, {p}%"],
   site_refund_wait:["Вернётся на карту","Kartaga qaytadi","Will return to your card"],
   site_refund_done:["Возвращено на карту","Kartaga qaytarildi","Returned to your card"],
+  dir_gone:["Это направление больше недоступно. Выберите другое.","Bu yo‘nalish endi mavjud emas. Boshqasini tanlang.","This destination is no longer available. Please choose another."],
   req_status_done:["Выполнено","Bajarildi","Done"],
   req_status_declined:["Отказано","Rad etildi","Declined"],
   req_reply:["Ответ Charteri","Charteri javobi","Charteri’s reply"],

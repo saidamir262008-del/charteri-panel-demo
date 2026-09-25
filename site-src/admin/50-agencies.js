@@ -15,7 +15,9 @@ PAGES.agencies = {
     const tab = M.ui.agTab || "list", apps = loadApps(), pending = apps.filter(x => x.status === "pending");
     const list = agencies();
     return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_agencies"))}</h1><p class="muted">${esc(t("agencies_sub"))}</p></div>
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_agencies"))}</h1><p class="muted">${esc(t("agencies_sub"))}</p></div>
+        <button type="button" class="solid" data-act="agnew" ${guard("agencies.create")}>${IC.plus}<span>${esc(t("ag_new"))}</span></button></div>
+      ${agForm(null)}
       ${seg("agtab", [["list", t("ag_tab_list")], ["apps", t("ag_tab_apps") + (pending.length ? ` · ${pending.length}` : "")]], tab)}
       <div class="card stack" style="margin-top:16px">${tab === "list" ? `<div class="atable" style="--cols:${AG_COLS}">
         <div class="arow ahead" aria-hidden="true"><span>${esc(t("col_agency"))}</span><span>${esc(t("col_status"))}</span><span class="a-num">${esc(t("balance_now"))}</span>
@@ -35,6 +37,60 @@ PAGES.agencies = {
 };
 ACT.agtab = el => { M.ui.agTab = el.dataset.v; rerender(); };
 
+/* ---- новое агентство и правка реквизитов ----
+   Новое — сразу рабочее, с нулевым балансом: так бывает, когда договор
+   подписан в офисе, без заявки с сайта. */
+const AG_FIELDS = [["name", "reg_company", 'maxlength="40" autocomplete="off"'], ["legal", "agency_legal", 'maxlength="60" autocomplete="off"'],
+  ["inn", "agency_inn", 'inputmode="numeric" maxlength="11" autocomplete="off"'], ["phone", "phone_label", 'type="tel" placeholder="+998" autocomplete="off"'], ["email", "agency_email", 'type="email" autocomplete="off"']];
+function agForm(a){
+  const d = M.ui.agDraft; if (!d || (a ? d.id !== a.id : d.id)) return "";
+  return `<section class="card stack cl-edit" id="agedit"><div class="card-h"><h2>${esc(t(a ? "ag_edit" : "ag_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="agclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-2">${AG_FIELDS.map(([k, label, extra]) => `<label class="field"><span>${esc(t(label))}</span><input data-ag="${k}" value="${esc(d[k] || "")}" ${extra}></label>`).join("")}</div>
+    <div class="err" id="agerr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="agsave">${esc(t(a ? "client_save" : "ag_create"))}</button><button type="button" class="link" data-act="agclose">${esc(t("cancel"))}</button></div></section>`;
+}
+function agError(d){
+  if (d.name.trim().length < 2) return "err_company";
+  if (!/^\d{9}$/.test(digits(d.inn))) return "err_inn";
+  if (!validPhone(d.phone)) return "err_phone";
+  if (!d.email.trim() || !validEmail(d.email.trim())) return "err_email";
+  if (agencies().some(x => x.id !== d.id && digits(x.inn) === digits(d.inn))) return "err_ag_inn_dup";
+  if (!d.id && loadApps().some(x => x.status === "pending" && digits(x.inn) === digits(d.inn))) return "err_ag_inn_app";
+  return null;
+}
+const fmtInn = v => digits(v).replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+Object.assign(ACT, {
+  agnew:   () => { if (denied("agencies.create")) return; M.ui.agDraft = { id:null, name:"", legal:"", inn:"", phone:"", email:"" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
+  agedit:  el => { if (denied("agencies.edit")) return; const a = agencyById(el.dataset.v); if (!a) return;
+    M.ui.agDraft = { id:a.id, name:a.name, legal:a.legal || "", inn:a.inn || "", phone:a.phone || "", email:a.email || "" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
+  agclose: () => { M.ui.agDraft = null; rerender(); },
+  agsave:  () => {
+    const d = M.ui.agDraft, e = agError(d); if (e) return showErr("#agerr", t(e));
+    const rec = { name:d.name.trim(), legal:d.legal.trim() || d.name.trim(), inn:fmtInn(d.inn), phone:prettyPhone(d.phone), email:d.email.trim() };
+    if (d.id) {
+      if (denied("agencies.edit")) return;
+      change(() => withAgency(d.id, st => { Object.assign(st.agency, rec); audit("ag_edit", { agency:rec.name }); }));
+    } else {
+      if (denied("agencies.create")) return;
+      change(() => { O.agencies.push({ id:uid("ag"), agency:{ ...rec, status:"verified", blockReason:"", since:TODAY },
+        brand:{ name:rec.name, phone:rec.phone, email:rec.email, address:"", telegram:"", color:"#16275C", logo:null }, balance:0, ledger:[], topups:[], orders:[], notes:[], travellers:[] });
+        audit("ag_create", { agency:rec.name }); });
+    }
+    M.ui.agDraft = null; rerender(); toast(tf(d.id ? "t_ag_edit" : "t_ag_create", { agency:rec.name }));
+  },
+  /* Сообщение агентству — приходит в колокольчик кабинета. */
+  agmsg: el => {
+    if (denied("agencies.message")) return;
+    const id = el.dataset.v, text = inp("msg:" + id).trim();
+    if (text.length < 3) return toast(t("err_msg"));
+    change(() => withAgency(id, st => { note("message", { reason:text, by:me().name }, st); audit("ag_message", { agency:st.agency.name }); }));
+    if (M.ui.inp) delete M.ui.inp["msg:" + id];
+    rerender(); toast(t("t_msg_sent"));
+  }
+});
+document.addEventListener("input", e => { const k = e.target.dataset?.ag; if (k && M.ui.agDraft) M.ui.agDraft[k] = e.target.value; });
+
 PAGES["agencies/:id"] = {
   render({ id }){
     const a = agencyById(id);
@@ -47,10 +103,14 @@ PAGES["agencies/:id"] = {
         <h1>${esc(a.name)}</h1><p class="muted">${esc(a.legal || "")}</p></div>${agPill(a)}</div>
       ${agencyActiveOf(a) ? "" : `<div class="blockbar inline">${IC.lock}<span>${esc(tf("ag_blocked_why", { reason:blockReasonOf(a) || "—" }))}</span></div>`}
       <div class="twocol"><div class="stack">
-        <section class="card stack"><h2>${esc(t("ag_details"))}</h2><div class="rows">
-          ${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}${row("agency_since", a.since ? fdateY(a.since) : "")}
+        ${M.ui.agDraft?.id === a.id ? agForm(a) : `<section class="card stack"><div class="card-h"><h2>${esc(t("ag_details"))}</h2>
+            <button type="button" class="link" data-act="agedit" data-v="${a.id}" ${guard("agencies.edit")}>${esc(t("edit"))}</button></div><div class="rows">
+          ${row("agency_legal", a.legal)}${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}${row("agency_since", a.since ? fdateY(a.since) : "")}
           ${row("col_orders30", String(tv.n))}${row("col_sales30", fmtUZS(tv.sum))}</div>
-          ${a.live ? `<a class="ghost sm" href="../" target="_blank" rel="noopener">${esc(t("open_cabinet"))}</a>` : ""}</section>
+          ${a.live ? `<a class="ghost sm" href="../" target="_blank" rel="noopener">${esc(t("open_cabinet"))}</a>` : ""}</section>`}
+        <section class="card stack"><h2>${esc(t("msg_h"))}</h2><p class="muted small">${esc(t("msg_d"))}</p>
+          <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("agencies.message") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
+          <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("agencies.message")}>${esc(t("msg_send"))}</button></div></section>
         <section class="card stack"><h2>${esc(t("ag_orders"))}</h2>
           ${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a, src:a.id }, i, "", true)).join("")}</div>
             ${can("orders") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>

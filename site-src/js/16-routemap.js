@@ -14,7 +14,7 @@ const WORLD_BG = ["IST","AYT","DXB","SSH","JED","SHJ","CXR","HKT","DME"];
 function mapState(){
   if (M.module === "heli") return { local:true, from:"TAS", to:M.heli.to };
   const r = { flights:[M.flights.from, M.flights.to], tours:["TAS", M.tours.to], hotels:["TAS", M.hotels.city], jet:[M.jet.from, M.jet.to] }[M.module];
-  return { local:false, from:r[0], to:r[1] };
+  return safeRoute({ local:false, from:r[0], to:r[1] });
 }
 function mapAria(){
   const st = mapState();

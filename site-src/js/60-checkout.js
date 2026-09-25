@@ -119,6 +119,7 @@ Object.assign(ACT, {
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     c.travellers.forEach(x => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
@@ -150,8 +151,8 @@ const hist = (o, s) => o.history.push({ s, at:Date.now() });
 function orderTitle(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${cityName(d.out.from)} → ${cityName(d.out.to)}${d.back ? " → " + cityName(d.back.to) : ""}`;
-  if (o.type === "TOUR")   return `${hotelById(d.hotelId).name} · ${cityName(d.to)}`;
-  if (o.type === "HOTEL")  return hotelById(d.hotelId).name;
+  if (o.type === "TOUR")   return hotelById(d.hotelId) ? `${hotelById(d.hotelId).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
+  if (o.type === "HOTEL")  return hotelById(d.hotelId)?.name || o.title || d.hotelId;
   if (o.type === "JET")    return `${cityName(d.from)} → ${cityName(d.to)}`;
   return heliName(d.to);
 }
@@ -159,7 +160,7 @@ function orderSub(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${fdateY(d.out.date)}${d.back ? " — " + fdateY(d.back.date) : ""} · ${pl(d.q.adults + d.q.children + d.q.infants, "pax")}`;
   if (o.type === "TOUR")   return `${fdateY(d.depart)} — ${fdateY(addDays(d.depart, d.nights))} · ${pl(d.nights, "night")} · ${pl(d.adults + d.children, "tourist")}`;
-  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId).city)} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
+  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
   return `${fdateY(d.date)}, ${d.time} · ${pl(d.pax, "pax")} · ${d.model}`;
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
@@ -167,6 +168,8 @@ const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
 function orderLines(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
+  // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
+  if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
   if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }

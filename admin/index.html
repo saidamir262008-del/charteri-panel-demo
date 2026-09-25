@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Unbounded:wght@800&display=swap">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%2314161C'/><path fill='%23fff' d='M20 16.2v-1.6l-7-4.4V5.1a1.3 1.3 0 0 0-2.6 0v5.1l-7 4.4v1.6l7-2.2v4.3l-1.7 1.3v1.3L12 20l3.3.9v-1.3L13.6 18.3V14z'/></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><rect width='24' height='24' rx='6' fill='%2316275C'/><path fill='%23fff' d='M20 16.2v-1.6l-7-4.4V5.1a1.3 1.3 0 0 0-2.6 0v5.1l-7 4.4v1.6l7-2.2v4.3l-1.7 1.3v1.3L12 20l3.3.9v-1.3L13.6 18.3V14z'/></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <style>
 /* ==========================================================================
@@ -1288,14 +1288,14 @@ body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
 }
 
 /* ==========================================================================
-   Админка поверх каркаса кабинета (b2b/panel.css): графитовое меню вместо
-   синего — чтобы сотрудник Charteri не спутал админку с кабинетом агентства.
+   Админка поверх каркаса кабинета (b2b/panel.css), в фирменном дизайне
+   Charteri: то же синее меню, шрифты и цвета, что у сайта и кабинета. От
+   кабинета её отличают подпись «Админка Charteri» и сотрудник внизу меню.
    Таблицы — одна сетка .atable, колонки задаются переменной --cols.
    ========================================================================== */
 :root{--chart:#2F6FE0;--chart-hi:#255FC9;--mint-ink:#0B7A52}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}}
 :root[data-theme="dark"]{--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}
-body.adm{--side-bg:linear-gradient(180deg,#1E2129 0%,#121419 100%)}
 body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 .arow.ahead > *{font-size:11px}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -1303,7 +1303,6 @@ body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 /* ---- меню и верхняя панель ---- */
 .side-me{margin-top:auto;display:flex;align-items:center;gap:11px;padding:12px;border-radius:16px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .side-me b{color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-me .avatar{background:linear-gradient(155deg,#3B4252,#262B36)}
 .side-role{font-size:12px;color:#A9C6FF}
 .live-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--mint-ink);padding:5px 10px;border-radius:999px;background:var(--mint-bg);white-space:nowrap}
 .live-pill i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
@@ -1399,6 +1398,19 @@ a.arow:hover + .arow{box-shadow:none}
 .blockbar.inline{border-radius:14px;margin-bottom:18px;border:0}
 .rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 
+/* ---- направления ---- */
+.dir-pc{width:44px;height:32px;border-radius:9px;display:grid;place-items:center;color:#fff;font:600 12px "IBM Plex Mono",monospace;letter-spacing:.5px;flex:none}
+.dir-hotel{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 90px minmax(0,1.3fr) 110px auto;align-items:end}
+.dir-est{align-self:center}
+.dir-hotels > .ghost{align-self:flex-start}
+.dir-hotel-set{border:0;margin:0;padding:10px 0 0;min-width:0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:8px}
+.dir-hotel-more{align-items:end;gap:14px}
+.dir-hotel-more .field{min-width:200px}
+.arow select.minisel{max-width:100%}
+@container main (max-width:560px){ .dir-hotel-more .field{min-width:0;flex:1 1 100%} }
+.a-cell.wrap{white-space:normal}
+@container main (max-width:860px){ .dir-hotel{grid-template-columns:1fr 1fr} }
+
 /* ---- цены ---- */
 .pr-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .pct-in{position:relative;display:block}
@@ -1416,8 +1428,6 @@ a.arow:hover + .arow{box-shadow:none}
 .matrix .no{color:var(--faint)}
 
 /* ---- вход ---- */
-.adm-auth .auth-side{background:radial-gradient(120% 95% at 72% 28%,#2A2F3B 0%,#1B1E26 55%,#111318 100%)}
-.adm-auth .auth-side::before{border-color:rgba(255,255,255,.14)}
 
 /* ---- узкая колонка ---- */
 @container main (max-width:1020px){
@@ -1727,6 +1737,7 @@ const STR = {
   site_penalty:["Штраф поставщика, {p}%","Yetkazib beruvchi jarimasi, {p}%","Supplier penalty, {p}%"],
   site_refund_wait:["Вернётся на карту","Kartaga qaytadi","Will return to your card"],
   site_refund_done:["Возвращено на карту","Kartaga qaytarildi","Returned to your card"],
+  dir_gone:["Это направление больше недоступно. Выберите другое.","Bu yo‘nalish endi mavjud emas. Boshqasini tanlang.","This destination is no longer available. Please choose another."],
   req_status_done:["Выполнено","Bajarildi","Done"],
   req_status_declined:["Отказано","Rad etildi","Declined"],
   req_reply:["Ответ Charteri","Charteri javobi","Charteri’s reply"],
@@ -2426,8 +2437,9 @@ function seg(act, options, value, extra = ""){
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
-  const uz = AIRPORTS.filter(a => a.country.ru === "Узбекистан" && a.iata !== exclude);
-  const intl = AIRPORTS.filter(a => a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
+  // Скрытые в админке направления в списках не показываем.
+  const uz = AIRPORTS.filter(a => !a.hidden && a.country.ru === "Узбекистан" && a.iata !== exclude);
+  const intl = AIRPORTS.filter(a => !a.hidden && a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
   const opt = a => `<option value="${a.iata}" ${a.iata === value ? "selected" : ""}>${esc(a.city[S.lang])} · ${a.iata}</option>`;
   return `<select data-bind="${bind}" data-rr>
     <optgroup label="${esc(t("grp_uzbekistan"))}">${uz.map(opt).join("")}</optgroup>
@@ -2464,7 +2476,7 @@ function postcard(city, sub = "", big = true){
     <span class="pc-code">${city}</span><span class="pc-city">${esc(cityName(city))}</span>${sub ? `<span class="pc-sub">${esc(sub)}</span>` : ""}</div>`;
 }
 function hotelArt(h, big = false){
-  const [a, b] = PALETTE[h.city];
+  const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
   return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
@@ -2490,6 +2502,110 @@ function orderPhotoKey(o){
 const fboxOpen = () => (M.ui.filters ?? !window.matchMedia("(max-width: 900px)").matches) ? "open" : "";
 const pageHead = (title, sub = "") => `<div class="pagehead"><h1>${esc(title)}</h1>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}</div>`;
 const backLink = (path, label) => `<a class="backlink" href="#/${path}">${IC.back}<span>${esc(label)}</span></a>`;
+
+/* ---- 12-directions.js ---- */
+/* ==========================================================================
+   Направления, добавленные в админке. Каталог сайта (AIRPORTS, COORDS,
+   ROUTES, RESORTS, HOTELS) собран при сборке; админка дописывает к нему свои
+   направления в DIRS_KEY, а сайт, кабинет и админка вливают их при загрузке и
+   при изменении в другой вкладке. Встроенные направления не трогаются.
+
+   Направление: { iata, city:{ru,uz,en}, country:{ru,uz,en}, lat, lon, eco,
+     popular, resort, hotels:[…], color:[a,b], hidden }
+   eco — тариф эконом из Ташкента в одну сторону, USD, до наценки.
+   ========================================================================== */
+"use strict";
+
+const DIRS_KEY = "charteri.ops.dirs";
+const CRUISE_KMH = 780, TAXI_MIN = 35;           // оценка времени полёта по расстоянию
+let DIRS_APPLIED = [];                           // коды, которые уже влиты: их можно убрать перед новым вливанием
+
+function loadDirections(){ const d = readJSON(DIRS_KEY, []); return Array.isArray(d) ? d.filter(validDirection) : []; }
+/* Данные из хранилища — чужие: берём только то, что прошло проверку формы. */
+function validDirection(d){
+  return d && /^[A-Z]{3}$/.test(d.iata) && ["ru", "uz", "en"].every(l => typeof d.city?.[l] === "string" && d.city[l].trim() && typeof d.country?.[l] === "string")
+    && Number.isFinite(d.lat) && Math.abs(d.lat) <= 90 && Number.isFinite(d.lon) && Math.abs(d.lon) <= 180 && Number.isFinite(d.eco) && d.eco >= 50 && d.eco <= 5000;
+}
+/* Маршрут в обе стороны: время — по расстоянию, вылет утром, обратно — днём. */
+function routesFor(d){
+  const km = distanceKm(COORDS.TAS, [d.lat, d.lon]), dur = Math.round((km / CRUISE_KMH) * 60 + TAXI_MIN);
+  const n = 100 + (seedFrom(d.iata) % 800), plane = km > 3500 ? "Boeing 787-8" : "Airbus A321neo";
+  const mk = (from, to, dep, no, eco) => ({ carrier:"Uzbekistan Airways", flightNo:`HY-${no}`, plane, depTime:dep, arrTime:addMinutes(dep, dur), ecoPrice:eco, busPrice:Math.round(eco * 1.85), durationMin:dur });
+  return { [`TAS-${d.iata}`]:mk("TAS", d.iata, "09:30", n * 2 + 1, Math.round(d.eco)), [`${d.iata}-TAS`]:mk(d.iata, "TAS", "15:10", n * 2 + 2, Math.round(d.eco * 0.93)) };
+}
+/* Отель направления — в формате каталога; незаполненное — по умолчанию. */
+const BEACH_M = { beach:0, near:400, city:null };
+const dirHotel = (d, h, i) => ({ id:`${d.iata.toLowerCase()}-${i + 1}`, city:d.iata, name:h.name, stars:clamp(Math.round(h.stars) || 4, 3, 5), area:h.area || "",
+  board:BOARDS.includes(h.board) ? h.board : "BB", base:clamp(Math.round(h.base) || 120, 20, 5000), rating:null,
+  beach:h.beach in BEACH_M ? BEACH_M[h.beach] : null, am:[...(h.beach === "beach" ? ["beach"] : []), ...(h.pool ? ["pool"] : []), "wifi"], custom:true });
+
+function unapplyDirections(){
+  const codes = new Set(DIRS_APPLIED); if (!codes.size) return;
+  const drop = (arr, test) => { for (let i = arr.length - 1; i >= 0; i--) if (test(arr[i])) arr.splice(i, 1); };
+  drop(AIRPORTS, a => a.custom && codes.has(a.iata)); drop(RESORTS, c => codes.has(c)); drop(HOTELS, h => h.custom && codes.has(h.city));
+  drop(WORLD_BG, c => codes.has(c)); drop(BOARD_DEST, c => codes.has(c));
+  for (const c of codes) { delete COORDS[c]; delete PALETTE[c]; delete ROUTES[`TAS-${c}`]; delete ROUTES[`${c}-TAS`]; }
+  DIRS_APPLIED = [];
+}
+/* Скрытое направление пропадает из поиска и витрин, но его город и отели
+   остаются в каталоге: по ним уже могут быть заказы. Вызывается при запуске
+   каждого приложения — после того как объявлены все списки. */
+function applyDirections(){
+  unapplyDirections();
+  for (const d of loadDirections()) {
+    if (AIRPORTS.some(a => a.iata === d.iata)) continue;                  // встроенный код не перекрываем
+    AIRPORTS.push({ iata:d.iata, city:{ ...d.city }, country:{ ...d.country }, popular:d.popular ? 90 : 40, custom:true, hidden:!!d.hidden });
+    COORDS[d.iata] = [d.lat, d.lon];
+    Object.assign(ROUTES, routesFor(d));
+    PALETTE[d.iata] = Array.isArray(d.color) && d.color.every(c => /^#[0-9a-f]{6}$/i.test(c)) ? d.color : ["#2F6FE0", "#16275C"];
+    const hotels = (d.hotels || []).filter(h => h && typeof h.name === "string" && h.name.trim());
+    hotels.forEach((h, i) => HOTELS.push(dirHotel(d, h, i)));
+    if (!d.hidden && d.resort && hotels.length) RESORTS.push(d.iata);
+    if (!d.hidden && d.popular) { WORLD_BG.push(d.iata); BOARD_DEST.push(d.iata); }
+    DIRS_APPLIED.push(d.iata);
+  }
+}
+/* ---- доступно ли направление сейчас ---- */
+const destShown = c => AIRPORTS.some(a => a.iata === c && !a.hidden);
+const hotelShown = id => { const h = HOTELS.find(x => x.id === id); return !!h && RESORTS.includes(h.city); };
+/* Детали брони: все её города видны, отель есть в каталоге. Вертолёт летает
+   по своим площадкам (HELI_DEST), не по аэропортам. */
+function detailsShown(d){
+  if (!d) return true;
+  if (d.hotelId && !hotelShown(d.hotelId)) return false;
+  if (d.kind === "heli") return true;
+  return [d.from, d.to, d.out?.from, d.out?.to, d.back?.from, d.back?.to].filter(Boolean).every(destShown);
+}
+/* Карта: код без координат (направление удалили) — рисуем маршрут по умолчанию. */
+const safeRoute = st => st.local || (COORDS[st.from] && COORDS[st.to]) ? st : { local:false, from:"TAS", to:"IST" };
+
+/* Выбор в формах поиска, который указывает на скрытое или удалённое
+   направление, возвращается к направлению по умолчанию. Возвращает, было ли что менять. */
+function sanitizeSelections(){
+  let changed = false;
+  const fix = (q, k, ok, def) => { if (q && q[k] && !ok(q[k])) { q[k] = def; q.searched = false; changed = true; } };
+  fix(M.flights, "from", destShown, "TAS"); fix(M.flights, "to", destShown, M.flights?.from === "IST" ? "DXB" : "IST");
+  fix(M.tours, "to", c => RESORTS.includes(c), "AYT"); fix(M.hotels, "city", c => RESORTS.includes(c), "AYT");
+  fix(M.jet, "from", destShown, "TAS"); fix(M.jet, "to", destShown, M.jet?.from === "DXB" ? "IST" : "DXB");
+  const sel = M.flights?.sel;
+  if (sel?.out && !detailsShown({ out:sel.out, back:sel.back })) { M.flights.sel = { out:null, back:null }; M.flights.searched = false; changed = true; }
+  if (M.checkout && !detailsShown(M.checkout.details)) { M.checkout = null; changed = true; }
+  return changed;
+}
+/* Админка изменила направления в другой вкладке. Если человек смотрит выдачу,
+   оформление или заявку по направлению, которого больше нет, — возвращаем к
+   поиску с объяснением, даже если он печатает: иначе он отправил бы заявку
+   не туда, куда выбирал. */
+const DIR_PAGES = ["flights", "hotels", "tours", "charter", "checkout"];
+window.addEventListener("storage", e => {
+  if (e.key !== DIRS_KEY) return;
+  applyDirections();
+  if (typeof GL !== "undefined") GL.key = null;                     // карта заново расставит точки
+  const changed = sanitizeSelections();
+  if (!S) return;
+  if (changed && DIR_PAGES.includes(currentParts()[0])) { toast(t("dir_gone")); go(SEARCH_PATH); return; }
+  onExternalChange();
+});
 
 /* ---- 15-motion.js ---- */
 /* ==========================================================================
@@ -2626,7 +2742,7 @@ const WORLD_BG = ["IST","AYT","DXB","SSH","JED","SHJ","CXR","HKT","DME"];
 function mapState(){
   if (M.module === "heli") return { local:true, from:"TAS", to:M.heli.to };
   const r = { flights:[M.flights.from, M.flights.to], tours:["TAS", M.tours.to], hotels:["TAS", M.hotels.city], jet:[M.jet.from, M.jet.to] }[M.module];
-  return { local:false, from:r[0], to:r[1] };
+  return safeRoute({ local:false, from:r[0], to:r[1] });
 }
 function mapAria(){
   const st = mapState();
@@ -3631,7 +3747,8 @@ function flightDocument(o){
 
 function hotelNightly(h, date){
   const month = parseYMD(date).getMonth() + 1;
-  const season = HIGH_SEASON[h.city].includes(month) ? 1.18 : 1;
+  // У направлений из админки сезона нет — цена ровная весь год.
+  const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
   return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
 }
 function hotelStay(h, checkin, nights, rooms, mult = 1){
@@ -3639,8 +3756,15 @@ function hotelStay(h, checkin, nights, rooms, mult = 1){
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
+/* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
+   заказа, а не падаем: один такой заказ не должен ломать список. */
+const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
+/* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
+const joinPlace = (parts, sep = " · ") => parts.filter(Boolean).join(sep);
+/* Оценки гостей у отеля из админки ещё нет — значок не выдумываем. */
+const ratingTag = h => h.rating ? `<span class="rating">${h.rating.toFixed(1)}</span>` : "";
 
 M.hotels = { city:"AYT", checkin:addDays(TODAY,14), checkout:addDays(TODAY,21), adults:2, children:0, rooms:1,
   stars:[], boards:[], maxNight:0, sort:"price", searched:false };
@@ -3702,7 +3826,7 @@ PAGES["hotels/results"] = {
     const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
@@ -3730,8 +3854,8 @@ function hotelRow(x, i, n, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(cityName(h.city))} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, cityName(h.city), beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       ${amenityChips(h)}
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(x.stay)}</span>
@@ -3741,14 +3865,14 @@ function hotelRow(x, i, n, rc){
 }
 PAGES["hotels/item/:id"] = {
   render({ id }){
-    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.hotels, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(cityName(h.city))}, ${esc(countryName(h.city))} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, `${cityName(h.city)}, ${countryName(h.city)}`, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="card stack" style="margin-top:20px">
         <div class="leg-h"><h2>${esc(t("rooms_title"))}</h2><span class="muted small">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.rooms, "room"))}</span></div>
@@ -3776,9 +3900,9 @@ function startHotelCheckout(hid, rid){
   });
 }
 function hotelVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId), lead = o.travellers[0];
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o), lead = o.travellers[0];
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
     <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>
@@ -3870,8 +3994,10 @@ PAGES["tours/results"] = {
   render(){
     const q = M.tours; if (!q.searched) { go(SEARCH_PATH); return null; }
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
+    // Направление убрали в админке, пока открыта выдача, — назад к поиску.
+    if (!all.length) { q.searched = false; go(SEARCH_PATH); return null; }
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : (a, b) => a.total.usd - b.total.usd);
     const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
@@ -3900,8 +4026,8 @@ function tourRow(p, i, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
@@ -3912,14 +4038,14 @@ function tourRow(p, i, rc){
 }
 PAGES["tours/item/:id"] = {
   render({ id }){
-    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.tours, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
@@ -3950,9 +4076,9 @@ function startTourCheckout(hid){
   });
 }
 function tourVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId);
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o);
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
@@ -4108,6 +4234,7 @@ function sendCharterRequest(kind){
   hideErr("#cherr");
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
+  if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));
   if (q.date < TODAY) return showErr("#cherr", t("err_date_past"));
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
@@ -4262,6 +4389,7 @@ Object.assign(ACT, {
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     c.travellers.forEach(x => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
@@ -4293,8 +4421,8 @@ const hist = (o, s) => o.history.push({ s, at:Date.now() });
 function orderTitle(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${cityName(d.out.from)} → ${cityName(d.out.to)}${d.back ? " → " + cityName(d.back.to) : ""}`;
-  if (o.type === "TOUR")   return `${hotelById(d.hotelId).name} · ${cityName(d.to)}`;
-  if (o.type === "HOTEL")  return hotelById(d.hotelId).name;
+  if (o.type === "TOUR")   return hotelById(d.hotelId) ? `${hotelById(d.hotelId).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
+  if (o.type === "HOTEL")  return hotelById(d.hotelId)?.name || o.title || d.hotelId;
   if (o.type === "JET")    return `${cityName(d.from)} → ${cityName(d.to)}`;
   return heliName(d.to);
 }
@@ -4302,7 +4430,7 @@ function orderSub(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${fdateY(d.out.date)}${d.back ? " — " + fdateY(d.back.date) : ""} · ${pl(d.q.adults + d.q.children + d.q.infants, "pax")}`;
   if (o.type === "TOUR")   return `${fdateY(d.depart)} — ${fdateY(addDays(d.depart, d.nights))} · ${pl(d.nights, "night")} · ${pl(d.adults + d.children, "tourist")}`;
-  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId).city)} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
+  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
   return `${fdateY(d.date)}, ${d.time} · ${pl(d.pax, "pax")} · ${d.model}`;
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
@@ -4310,6 +4438,8 @@ const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
 function orderLines(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
+  // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
+  if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
   if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
@@ -4573,6 +4703,7 @@ Object.assign(STR, {
   n_topup_rejected:["Пополнение на {amount} отклонено: {reason}","{amount} to‘ldirish rad etildi: {reason}","Top-up of {amount} rejected: {reason}"],
   n_adjust:["Charteri изменил баланс на {amount}: {reason}","Charteri balansni {amount}ga o‘zgartirdi: {reason}","Charteri changed the balance by {amount}: {reason}"],
   n_blocked:["Charteri приостановил работу агентства: {reason}","Charteri agentlik ishini to‘xtatdi: {reason}","Charteri blocked the agency: {reason}"],
+  n_message:["Сообщение от Charteri: {reason}","Charteri xabari: {reason}","Message from Charteri: {reason}"],
   n_unblocked:["Работа агентства возобновлена","Agentlik ishi tiklandi","The agency has been unblocked"],
   agency_note:["Реквизиты меняются через менеджера Charteri — из кабинета их не подменить.","Rekvizitlar Charteri menejeri orqali o‘zgartiriladi — kabinetdan almashtirib bo‘lmaydi.","Company details change through your Charteri manager, so they can’t be swapped from the workspace."],
   price_currency:["Валюта цен","Narxlar valyutasi","Price currency"],
@@ -5211,6 +5342,114 @@ Object.assign(STR, {
   no_rights_short:["нет прав","huquq yo‘q","no access"],
   adjust_amount_ph:["например, 1 000 000","masalan, 1 000 000","e.g. 1 000 000"],
   chart_keys:["Стрелки влево и вправо переходят по дням.","Chap va o‘ng strelkalar kunlar bo‘yicha o‘tadi.","Use the left and right arrow keys to move between days."],
+  an_directions:["Направления","Yo‘nalishlar","Destinations"],
+  directions_sub:["Куда летают и едут клиенты. Новое направление сразу появляется на сайте и в кабинете: поиск рейсов, карта, табло, а курорт с отелями — ещё туры и отели.","Mijozlar qayerga uchadi va boradi. Yangi yo‘nalish sayt va kabinetda darhol chiqadi: reys qidiruvi, xarita, tablo, mehmonxonali kurort esa — turlar va mehmonxonalarda ham.","Where customers fly and travel. A new destination appears on the site and in the workspace at once: flight search, map, departures board, and — for a resort with hotels — tours and hotels too."],
+  directions_note:["Встроенные направления идут из договоров с поставщиками и здесь не меняются. В боевой версии направления и отели придут от SAMO и поставщика отелей.","O‘rnatilgan yo‘nalishlar yetkazib beruvchilar bilan shartnomalardan keladi va bu yerda o‘zgarmaydi. Jangovar versiyada yo‘nalish va mehmonxonalar SAMO va mehmonxona yetkazib beruvchisidan keladi.","Built-in destinations come from supplier contracts and can’t be changed here. In production, destinations and hotels will come from SAMO and the hotel supplier."],
+  dir_new:["Новое направление","Yangi yo‘nalish","New destination"],
+  dir_search:["Город, код или страна","Shahar, kod yoki mamlakat","City, code or country"],
+  dir_none_match:["Ничего не нашлось.","Hech narsa topilmadi.","Nothing found."],
+  dir_iata:["Код аэропорта (IATA)","Aeroport kodi (IATA)","Airport code (IATA)"],
+  dir_lat:["Широта","Kenglik","Latitude"],
+  dir_lon:["Долгота","Uzunlik","Longitude"],
+  dir_city:["Город","Shahar","City"],
+  dir_country:["Страна","Mamlakat","Country"],
+  dir_eco:["Тариф эконом из Ташкента, $","Toshkentdan ekonom tarif, $","Economy fare from Tashkent, $"],
+  dir_color:["Цвет открытки","Otkritka rangi","Card colour"],
+  dir_est:["{km} км от Ташкента, в пути около {time}","Toshkentdan {km} km, yo‘lda taxminan {time}","{km} km from Tashkent, about {time} in the air"],
+  dir_est_none:["Введите координаты — посчитаем расстояние и время полёта.","Koordinatalarni kiriting — masofa va parvoz vaqtini hisoblaymiz.","Enter coordinates and we’ll work out the distance and flight time."],
+  dir_popular:["Популярное: на карте и табло вылетов","Ommabop: xaritada va uchish tablosida","Popular: on the map and departures board"],
+  dir_popular_short:["популярное","ommabop","popular"],
+  dir_resort:["Курорт: туры и отели (нужен хотя бы один отель)","Kurort: turlar va mehmonxonalar (kamida bitta mehmonxona kerak)","Resort: tours and hotels (needs at least one hotel)"],
+  dir_hotels:["Отели направления","Yo‘nalish mehmonxonalari","Hotels"],
+  dir_hotels_d:["Цена — за ночь в номере для двоих, в долларах. Фото и описание в боевой версии придут от поставщика.","Narx — ikki kishilik xonada bir kecha uchun, dollarda. Rasm va tavsif jangovar versiyada yetkazib beruvchidan keladi.","Price per night for a double room, in USD. Photos and descriptions will come from the supplier in production."],
+  dir_area:["Район","Tuman","Area"],
+  dir_stars:["Звёзды","Yulduzlar","Stars"],
+  dir_night:["За ночь, $","Bir kecha, $","Per night, $"],
+  dir_hotel_add:["Ещё отель","Yana mehmonxona","Add a hotel"],
+  dir_hotel_del:["Убрать отель","Mehmonxonani olib tashlash","Remove hotel"],
+  dir_save:["Добавить направление","Yo‘nalish qo‘shish","Add destination"],
+  dir_services:["Услуги","Xizmatlar","Services"],
+  dir_builtin:["Каталог поставщиков","Yetkazib beruvchilar katalogi","Supplier catalogue"],
+  dir_added_by:["Добавлено: {name}, {date}","Qo‘shgan: {name}, {date}","Added by {name}, {date}"],
+  dir_hidden:["Скрыто с сайта и из кабинета","Sayt va kabinetdan yashirilgan","Hidden from site and workspace"],
+  dir_hide:["Скрыть","Yashirish","Hide"],
+  dir_show:["Показать","Ko‘rsatish","Show"],
+  dir_delete:["Удалить","O‘chirish","Delete"],
+  dir_delete_q:["Удалить направление «{city}»?","«{city}» yo‘nalishi o‘chirilsinmi?","Delete the destination “{city}”?"],
+  dir_has_orders:["По направлению уже есть заказы — его можно только скрыть.","Yo‘nalish bo‘yicha buyurtmalar bor — uni faqat yashirish mumkin.","There are orders for this destination, so it can only be hidden."],
+  err_dir_iata:["Код — три латинские буквы, например DPS","Kod — uchta lotin harfi, masalan DPS","The code is three Latin letters, e.g. DPS"],
+  err_dir_dup:["Такой код уже есть в каталоге","Bunday kod katalogda bor","This code is already in the catalogue"],
+  err_dir_names:["Город и страна — на трёх языках, от 2 до 40 символов","Shahar va mamlakat — uch tilda, 2 dan 40 belgigacha","City and country in all three languages, 2 to 40 characters"],
+  err_dir_coords:["Широта — от −90 до 90, долгота — от −180 до 180","Kenglik −90 dan 90 gacha, uzunlik −180 dan 180 gacha","Latitude must be −90 to 90 and longitude −180 to 180"],
+  err_dir_near:["Это слишком близко к Ташкенту для авиарейса","Bu aviareys uchun Toshkentga juda yaqin","That’s too close to Tashkent for a flight"],
+  err_dir_eco:["Тариф — от $50 до $5 000","Tarif — $50 dan $5 000 gacha","The fare must be between $50 and $5,000"],
+  err_dir_hotels:["У отеля должно быть название от 3 букв и цена за ночь от $20 до $5 000","Mehmonxona nomi kamida 3 harf, bir kecha narxi $20 dan $5 000 gacha bo‘lsin","Each hotel needs a name of at least 3 letters and a nightly price from $20 to $5,000"],
+  t_dir_add:["Направление «{city}» добавлено: уже на сайте и в кабинете","«{city}» yo‘nalishi qo‘shildi: sayt va kabinetda allaqachon bor","“{city}” added; it’s already on the site and in the workspace"],
+  a_dir_add:["Добавлено направление {city} ({iata})","{city} ({iata}) yo‘nalishi qo‘shildi","Added destination {city} ({iata})"],
+  a_dir_hide:["Направление {city} ({iata}) скрыто","{city} ({iata}) yo‘nalishi yashirildi","Destination {city} ({iata}) hidden"],
+  a_dir_show:["Направление {city} ({iata}) снова показано","{city} ({iata}) yo‘nalishi yana ko‘rsatildi","Destination {city} ({iata}) shown again"],
+  a_dir_delete:["Направление {city} ({iata}) удалено","{city} ({iata}) yo‘nalishi o‘chirildi","Destination {city} ({iata}) deleted"],
+
+  staff_new:["Новый сотрудник","Yangi xodim","New staff member"],
+  staff_name:["Имя и фамилия","Ism va familiya","Full name"],
+  staff_role:["Роль","Rol","Role"],
+  staff_role_of:["Роль: {name}","Rol: {name}","Role: {name}"],
+  staff_add:["Добавить сотрудника","Xodim qo‘shish","Add staff member"],
+  staff_off:["Доступ отключён — не может войти","Kirish yopilgan — kira olmaydi","Access disabled, can’t sign in"],
+  staff_disable:["Отключить доступ","Kirishni yopish","Disable access"],
+  staff_enable:["Вернуть доступ","Kirishni ochish","Restore access"],
+  err_staff_name:["Введите имя и фамилию","Ism va familiyani kiriting","Enter a full name"],
+  err_staff_phone:["Сотрудник с таким номером уже есть","Bunday raqamli xodim bor","Someone already uses this number"],
+  err_staff_self:["Себя отключить нельзя","O‘zingizni o‘chira olmaysiz","You can’t disable yourself"],
+  err_last_admin:["Должен остаться хотя бы один главный администратор","Kamida bitta bosh administrator qolishi kerak","At least one administrator must remain"],
+  t_staff_add:["Сотрудник {name} добавлен","Xodim {name} qo‘shildi","Staff member {name} added"],
+  t_staff_off:["{name}: доступ отключён","{name}: kirish o‘chirildi","{name}: access disabled"],
+  t_staff_on:["{name}: доступ включён","{name}: kirish yoqildi","{name}: access enabled"],
+  t_staff_role:["{name}: роль {from} → {to}","{name}: rol {from} → {to}","{name}: role {from} → {to}"],
+  a_staff_add:["Добавлен сотрудник {name} — {role}","Xodim qo‘shildi: {name} — {role}","Added staff member {name}, {role}"],
+  a_staff_off:["Отключён доступ: {name}","Kirish o‘chirildi: {name}","Access disabled: {name}"],
+  a_staff_on:["Включён доступ: {name}","Kirish yoqildi: {name}","Access enabled: {name}"],
+  a_staff_role:["Роль {name}: {from} → {to}","{name} roli: {from} → {to}","{name}’s role: {from} → {to}"],
+
+  ag_new:["Новое агентство","Yangi agentlik","New agency"],
+  ag_edit:["Реквизиты агентства","Agentlik rekvizitlari","Agency details"],
+  ag_create:["Создать агентство","Agentlik yaratish","Create agency"],
+  err_ag_inn_dup:["Агентство с таким ИНН уже есть","Bunday STIRli agentlik bor","An agency with this TIN already exists"],
+  t_ag_create:["{agency}: агентство создано, баланс 0","{agency}: agentlik yaratildi, balans 0","{agency}: agency created, balance 0"],
+  t_ag_edit:["{agency}: реквизиты сохранены","{agency}: rekvizitlar saqlandi","{agency}: details saved"],
+  a_ag_create:["Создано агентство {agency}","{agency} agentligi yaratildi","Created agency {agency}"],
+  a_ag_edit:["Изменены реквизиты: {agency}","Rekvizitlar o‘zgartirildi: {agency}","Details changed: {agency}"],
+  a_ag_message:["Сообщение агентству {agency}","{agency} agentligiga xabar","Message to {agency}"],
+  msg_h:["Сообщение агентству","Agentlikka xabar","Message the agency"],
+  msg_d:["Придёт в уведомления кабинета агентства.","Agentlik kabineti bildirishnomalariga keladi.","Arrives in the agency workspace notifications."],
+  msg_text:["Текст","Matn","Text"],
+  msg_ph:["Например: с 1 октября новые правила возврата по турам","Masalan: 1-oktabrdan turlar bo‘yicha yangi qaytarish qoidalari","E.g. new tour refund rules from 1 October"],
+  msg_send:["Отправить","Yuborish","Send"],
+  err_msg:["Напишите сообщение","Xabarni yozing","Write a message"],
+  t_msg_sent:["Сообщение отправлено агентству","Xabar agentlikka yuborildi","Message sent to the agency"],
+
+  p_agencies_create:["Создавать агентства","Agentlik yaratish","Create agencies"],
+  p_agencies_edit:["Менять реквизиты агентств","Agentlik rekvizitlarini o‘zgartirish","Edit agency details"],
+  p_agencies_message:["Писать агентствам","Agentliklarga yozish","Message agencies"],
+  p_catalog:["Смотреть направления","Yo‘nalishlarni ko‘rish","View destinations"],
+  p_catalog_edit:["Управлять направлениями","Yo‘nalishlarni boshqarish","Manage destinations"],
+  p_staff_edit:["Управлять сотрудниками","Xodimlarni boshqarish","Manage staff"],
+  dc_0:["синий","ko‘k","blue"],
+  dc_1:["морской","dengiz","sea"],
+  dc_2:["коралловый","marjon","coral"],
+  dc_3:["изумрудный","zumrad","emerald"],
+  dc_4:["песочный","qum rang","sand"],
+  dc_5:["винный","sharob rang","wine"],
+  dir_hotel_n:["Отель {n}","Mehmonxona {n}","Hotel {n}"],
+  dir_hotel_del_n:["Убрать отель {n}","Mehmonxona {n} ni olib tashlash","Remove hotel {n}"],
+  dir_beach:["До пляжа","Plyajgacha","To the beach"],
+  dir_beach_beach:["На берегу","Sohilda","On the beach"],
+  dir_beach_near:["Недалеко, до 500 м","Yaqin, 500 m gacha","Nearby, under 500 m"],
+  dir_beach_city:["В городе","Shaharda","In town"],
+  dir_pool:["Есть бассейн","Hovuz bor","Has a pool"],
+  dir_in_orders:["в заказах: {n}","buyurtmalarda: {n}","in {n}"],
+  err_staff_off:["Доступ этого сотрудника отключён","Bu xodimning kirishi yopilgan","This staff member’s access is disabled"],
+  err_ag_inn_app:["С этим ИНН уже есть заявка на подключение — одобрите её в «Заявках»","Bu STIR bilan ulanish arizasi bor — uni «Arizalar»da ma’qullang","There’s already an application with this TIN — approve it under Applications"],
   hello_toast:["Здравствуйте, {name}","Assalomu alaykum, {name}","Hello, {name}"],
   ago_m:["{n} мин назад","{n} daqiqa oldin","{n} min ago"],
   ago_h:["{n} ч назад","{n} soat oldin","{n} h ago"],
@@ -5239,21 +5478,24 @@ let O = null, SITE = null;
    Главный администратор может всё. Остальные — по списку прав. */
 const ROLES = ["admin", "operator", "cashier", "accountant"];
 const PERMS = {
-  operator:   ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "agencies", "agencies.moderate", "customers", "requests.resolve", "integrations", "audit"],
+  operator:   ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "agencies", "agencies.moderate", "agencies.message", "customers", "requests.resolve", "catalog", "integrations", "audit"],
   cashier:    ["tasks", "orders", "agencies", "finance", "topups.confirm", "refunds.credit"],
   accountant: ["orders", "agencies", "finance", "finance.export", "audit"]
 };
 /* Права, которые есть в админке, — для таблицы на странице «Сотрудники». */
 const PERM_LIST = ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "refunds.credit", "agencies", "agencies.moderate",
-  "agencies.block", "balance.adjust", "customers", "requests.resolve", "finance", "topups.confirm", "finance.export", "pricing.edit", "integrations", "staff", "audit", "demo.reset"];
-const me = () => O?.staff.find(s => s.id === O.session?.staffId) || null;
+  "agencies.create", "agencies.edit", "agencies.message", "agencies.block", "balance.adjust", "customers", "requests.resolve", "finance", "topups.confirm",
+  "finance.export", "pricing.edit", "catalog", "catalog.edit", "integrations", "staff", "staff.edit", "audit", "demo.reset"];
+/* Вошедший сотрудник — только активный: отключённый теряет доступ сразу. */
+const me = () => O?.staff.find(s => s.id === O.session?.staffId && s.active !== false) || null;
+const activeStaff = () => O.staff.filter(s => s.active !== false);
 const can = p => { const r = me()?.role; return r === "admin" || !!PERMS[r]?.includes(p); };
 /* Кнопка без права не прячется: она выключена и подписана «нет прав». */
 const guard = p => can(p) ? "" : `disabled aria-disabled="true" title="${esc(t("no_rights"))}" data-nr="${esc(t("no_rights_short"))}"`;
 const denied = p => { if (can(p)) return false; toast(t("no_rights")); return true; };
 
 /* ---- хранилища ---- */
-function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) ? r : null; }
+function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateStaff(r) : null; }
 function saveOps(){ O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
 const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
@@ -5263,7 +5505,10 @@ function audit(action, vars = {}){
   O.audit.unshift({ id:uid("a"), at:Date.now(), staffId:O.session?.staffId || null, action, vars });
   O.audit = O.audit.slice(0, 400);
 }
-const auditText = e => tf("a_" + e.action, e.vars || {});
+/* Значения журнала: название на трёх языках — по языку экрана, роль — ключом
+   ("role:operator"). Старые записи со строками показываются как есть. */
+const auditVal = v => v && typeof v === "object" ? v[S.lang] || v.ru || "" : typeof v === "string" && v.startsWith("role:") ? roleName(v.slice(5)) : v;
+const auditText = e => tf("a_" + e.action, Object.fromEntries(Object.entries(e.vars || {}).map(([k, v]) => [k, auditVal(v)])));
 const staffName = id => O.staff.find(s => s.id === id)?.name || "—";
 
 /* ---- изменения ----
@@ -5343,8 +5588,15 @@ const STAFF = [
   { id:"st1", name:"Dilnoza Rahimova", role:"admin",      phone:"+998 90 000 00 01" },
   { id:"st2", name:"Jasur Aliyev",     role:"operator",   phone:"+998 90 000 00 02" },
   { id:"st3", name:"Kamola Nazarova",  role:"cashier",    phone:"+998 90 000 00 03" },
-  { id:"st4", name:"Rustam Ergashev",  role:"accountant", phone:"+998 90 000 00 04" }
+  { id:"st4", name:"Rustam Ergashev",  role:"accountant", phone:"+998 90 000 00 04" },
+  { id:"st5", name:"Ammar Temurov",    role:"admin",      phone:"+998 90 000 00 05" }
 ];
+/* Сотрудники из демо, которых ещё нет в сохранённой админке (добавлены после
+   её первого запуска), — дописываются; удалённые вручную остаются удалёнными. */
+function migrateStaff(o){
+  for (const s of STAFF) if (!o.staff.some(x => x.id === s.id) && !(o.removedStaff || []).includes(s.id)) o.staff.push({ ...s });
+  return o;
+}
 const PAX_NAMES = [["SAIDOV","OTABEK"],["RAHIMOVA","SHAHNOZA"],["KIM","VIKTORIYA"],["QODIROV","SARDOR"],["ORTIQOVA","LOBAR"],["NURMATOV","ILHOM"],["HAMIDOVA","FERUZA"],["ABDULLAEV","TIMUR"],["ZOKIROVA","DILFUZA"],["ISMOILOV","AKMAL"]];
 
 /* Агентство с заказами за последние 40 дней. Цены — те же функции, что на
@@ -5454,7 +5706,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", orders:"orders", "orders/:src/:id":"orders", agencies:"agencies", "agencies/:id":"agencies",
-  customers:"customers", "customers/:phone":"customers", finance:"finance", pricing:null, integrations:"integrations", staff:"staff", audit:"audit", settings:null, denied:null };
+  customers:"customers", "customers/:phone":"customers", finance:"finance", pricing:null, directions:"catalog", integrations:"integrations", staff:"staff", audit:"audit", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
   if (key === "auth") return "";
@@ -5573,6 +5825,8 @@ function decideApp(id, ok, reason = ""){
   if (denied("agencies.moderate")) return false;
   if (!ok && !reason) { toast(t("err_reason")); return false; }
   const apps = loadApps(), a = apps.find(x => x.id === id); if (!a || a.status !== "pending") return false;
+  // Агентство с тем же ИНН уже есть (создали вручную) — второе не открываем.
+  if (ok && agencies().some(x => digits(x.inn) === digits(a.inn))) { toast(t("err_ag_inn_dup")); return false; }
   Object.assign(a, { status:ok ? "approved" : "rejected", reason, decidedAt:Date.now(), by:me().name });
   writeJSON(APPS_KEY, apps);
   change(() => {
@@ -5709,7 +5963,7 @@ Object.assign(IC, {
 const ADM_NAV = [
   ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["orders", "an_orders", "bag", "orders"],
   ["agencies", "an_agencies", "users", "agencies"], ["customers", "an_customers", "person", "customers"], ["finance", "an_finance", "wallet", "finance"],
-  ["pricing", "an_pricing", "tag", null], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
+  ["pricing", "an_pricing", "tag", null], ["directions", "an_directions", "globe", "catalog"], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
   ["audit", "an_audit", "list", "audit"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
@@ -5735,7 +5989,7 @@ function renderNav(key){
       <span class="live-pill" title="${esc(t("live_d"))}"><i aria-hidden="true"></i>${esc(t("live_on"))}</span>
       ${can("tasks") ? `<a class="taskchip ${n ? "has" : ""}" href="#/tasks" aria-label="${esc(tf("tasks_n", { n }))}">${IC.inbox}<span class="tc-l" aria-hidden="true">${esc(t("an_tasks"))}</span><b aria-hidden="true">${n}</b></a>` : ""}
       <label class="whosel"><span class="sr-only">${esc(t("switch_staff"))}</span>
-        <select id="whoSel" class="minisel" aria-label="${esc(t("switch_staff"))}">${O.staff.map(s => `<option value="${s.id}" ${s.id === u.id ? "selected" : ""}>${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</option>`).join("")}</select></label>
+        <select id="whoSel" class="minisel" aria-label="${esc(t("switch_staff"))}">${activeStaff().map(s => `<option value="${s.id}" ${s.id === u.id ? "selected" : ""}>${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</option>`).join("")}</select></label>
       <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
     </div></div>`;
   $("#footer").innerHTML = `<div class="foot-in"><p class="small">${esc(t("adm_foot"))}</p><p class="small">${esc(t("credits"))}</p></div>`;
@@ -5744,8 +5998,8 @@ function renderNav(key){
 
 let whoTimer = 0;
 function switchStaff(id){
-  const s = O.staff.find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
-  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleName(s.role) }); saveOps();
+  const s = activeStaff().find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
+  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); saveOps();
   toast(tf("switched", { name:s.name, role:roleName(s.role) })); render(true);
   $("#whoSel")?.focus({ preventScroll:true });
 }
@@ -6066,7 +6320,9 @@ PAGES.agencies = {
     const tab = M.ui.agTab || "list", apps = loadApps(), pending = apps.filter(x => x.status === "pending");
     const list = agencies();
     return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_agencies"))}</h1><p class="muted">${esc(t("agencies_sub"))}</p></div>
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_agencies"))}</h1><p class="muted">${esc(t("agencies_sub"))}</p></div>
+        <button type="button" class="solid" data-act="agnew" ${guard("agencies.create")}>${IC.plus}<span>${esc(t("ag_new"))}</span></button></div>
+      ${agForm(null)}
       ${seg("agtab", [["list", t("ag_tab_list")], ["apps", t("ag_tab_apps") + (pending.length ? ` · ${pending.length}` : "")]], tab)}
       <div class="card stack" style="margin-top:16px">${tab === "list" ? `<div class="atable" style="--cols:${AG_COLS}">
         <div class="arow ahead" aria-hidden="true"><span>${esc(t("col_agency"))}</span><span>${esc(t("col_status"))}</span><span class="a-num">${esc(t("balance_now"))}</span>
@@ -6086,6 +6342,60 @@ PAGES.agencies = {
 };
 ACT.agtab = el => { M.ui.agTab = el.dataset.v; rerender(); };
 
+/* ---- новое агентство и правка реквизитов ----
+   Новое — сразу рабочее, с нулевым балансом: так бывает, когда договор
+   подписан в офисе, без заявки с сайта. */
+const AG_FIELDS = [["name", "reg_company", 'maxlength="40" autocomplete="off"'], ["legal", "agency_legal", 'maxlength="60" autocomplete="off"'],
+  ["inn", "agency_inn", 'inputmode="numeric" maxlength="11" autocomplete="off"'], ["phone", "phone_label", 'type="tel" placeholder="+998" autocomplete="off"'], ["email", "agency_email", 'type="email" autocomplete="off"']];
+function agForm(a){
+  const d = M.ui.agDraft; if (!d || (a ? d.id !== a.id : d.id)) return "";
+  return `<section class="card stack cl-edit" id="agedit"><div class="card-h"><h2>${esc(t(a ? "ag_edit" : "ag_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="agclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-2">${AG_FIELDS.map(([k, label, extra]) => `<label class="field"><span>${esc(t(label))}</span><input data-ag="${k}" value="${esc(d[k] || "")}" ${extra}></label>`).join("")}</div>
+    <div class="err" id="agerr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="agsave">${esc(t(a ? "client_save" : "ag_create"))}</button><button type="button" class="link" data-act="agclose">${esc(t("cancel"))}</button></div></section>`;
+}
+function agError(d){
+  if (d.name.trim().length < 2) return "err_company";
+  if (!/^\d{9}$/.test(digits(d.inn))) return "err_inn";
+  if (!validPhone(d.phone)) return "err_phone";
+  if (!d.email.trim() || !validEmail(d.email.trim())) return "err_email";
+  if (agencies().some(x => x.id !== d.id && digits(x.inn) === digits(d.inn))) return "err_ag_inn_dup";
+  if (!d.id && loadApps().some(x => x.status === "pending" && digits(x.inn) === digits(d.inn))) return "err_ag_inn_app";
+  return null;
+}
+const fmtInn = v => digits(v).replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
+Object.assign(ACT, {
+  agnew:   () => { if (denied("agencies.create")) return; M.ui.agDraft = { id:null, name:"", legal:"", inn:"", phone:"", email:"" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
+  agedit:  el => { if (denied("agencies.edit")) return; const a = agencyById(el.dataset.v); if (!a) return;
+    M.ui.agDraft = { id:a.id, name:a.name, legal:a.legal || "", inn:a.inn || "", phone:a.phone || "", email:a.email || "" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
+  agclose: () => { M.ui.agDraft = null; rerender(); },
+  agsave:  () => {
+    const d = M.ui.agDraft, e = agError(d); if (e) return showErr("#agerr", t(e));
+    const rec = { name:d.name.trim(), legal:d.legal.trim() || d.name.trim(), inn:fmtInn(d.inn), phone:prettyPhone(d.phone), email:d.email.trim() };
+    if (d.id) {
+      if (denied("agencies.edit")) return;
+      change(() => withAgency(d.id, st => { Object.assign(st.agency, rec); audit("ag_edit", { agency:rec.name }); }));
+    } else {
+      if (denied("agencies.create")) return;
+      change(() => { O.agencies.push({ id:uid("ag"), agency:{ ...rec, status:"verified", blockReason:"", since:TODAY },
+        brand:{ name:rec.name, phone:rec.phone, email:rec.email, address:"", telegram:"", color:"#16275C", logo:null }, balance:0, ledger:[], topups:[], orders:[], notes:[], travellers:[] });
+        audit("ag_create", { agency:rec.name }); });
+    }
+    M.ui.agDraft = null; rerender(); toast(tf(d.id ? "t_ag_edit" : "t_ag_create", { agency:rec.name }));
+  },
+  /* Сообщение агентству — приходит в колокольчик кабинета. */
+  agmsg: el => {
+    if (denied("agencies.message")) return;
+    const id = el.dataset.v, text = inp("msg:" + id).trim();
+    if (text.length < 3) return toast(t("err_msg"));
+    change(() => withAgency(id, st => { note("message", { reason:text, by:me().name }, st); audit("ag_message", { agency:st.agency.name }); }));
+    if (M.ui.inp) delete M.ui.inp["msg:" + id];
+    rerender(); toast(t("t_msg_sent"));
+  }
+});
+document.addEventListener("input", e => { const k = e.target.dataset?.ag; if (k && M.ui.agDraft) M.ui.agDraft[k] = e.target.value; });
+
 PAGES["agencies/:id"] = {
   render({ id }){
     const a = agencyById(id);
@@ -6098,10 +6408,14 @@ PAGES["agencies/:id"] = {
         <h1>${esc(a.name)}</h1><p class="muted">${esc(a.legal || "")}</p></div>${agPill(a)}</div>
       ${agencyActiveOf(a) ? "" : `<div class="blockbar inline">${IC.lock}<span>${esc(tf("ag_blocked_why", { reason:blockReasonOf(a) || "—" }))}</span></div>`}
       <div class="twocol"><div class="stack">
-        <section class="card stack"><h2>${esc(t("ag_details"))}</h2><div class="rows">
-          ${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}${row("agency_since", a.since ? fdateY(a.since) : "")}
+        ${M.ui.agDraft?.id === a.id ? agForm(a) : `<section class="card stack"><div class="card-h"><h2>${esc(t("ag_details"))}</h2>
+            <button type="button" class="link" data-act="agedit" data-v="${a.id}" ${guard("agencies.edit")}>${esc(t("edit"))}</button></div><div class="rows">
+          ${row("agency_legal", a.legal)}${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}${row("agency_since", a.since ? fdateY(a.since) : "")}
           ${row("col_orders30", String(tv.n))}${row("col_sales30", fmtUZS(tv.sum))}</div>
-          ${a.live ? `<a class="ghost sm" href="../" target="_blank" rel="noopener">${esc(t("open_cabinet"))}</a>` : ""}</section>
+          ${a.live ? `<a class="ghost sm" href="../" target="_blank" rel="noopener">${esc(t("open_cabinet"))}</a>` : ""}</section>`}
+        <section class="card stack"><h2>${esc(t("msg_h"))}</h2><p class="muted small">${esc(t("msg_d"))}</p>
+          <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("agencies.message") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
+          <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("agencies.message")}>${esc(t("msg_send"))}</button></div></section>
         <section class="card stack"><h2>${esc(t("ag_orders"))}</h2>
           ${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a, src:a.id }, i, "", true)).join("")}</div>
             ${can("orders") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
@@ -6386,35 +6700,266 @@ PAGES.integrations = {
   }
 };
 
+/* ---- 75-directions.js ---- */
+/* ==========================================================================
+   Направления: встроенный каталог (из договоров, только просмотр) и
+   направления, которые добавил главный администратор. Новое направление
+   сразу появляется на сайте и в кабинете: поиск рейсов, карта, табло,
+   а курорт с отелями — ещё и туры с отелями (js/12-directions.js).
+   ========================================================================== */
+"use strict";
+
+const DIR_COLORS = [["#2F6FE0", "#16275C"], ["#0FA3B1", "#1E5FD0"], ["#E15B4B", "#8E2F5C"], ["#13A376", "#136C9E"], ["#D99A3E", "#8C4A22"], ["#7A1F3D", "#2F3A4A"]];
+const blankHotel = () => ({ name:"", stars:4, base:"", board:"BB", area:"", beach:"city", pool:false });
+const NAME_MAX = 40;
+const blankDir = () => ({ iata:"", city:{ ru:"", uz:"", en:"" }, country:{ ru:"", uz:"", en:"" }, lat:"", lon:"", eco:"", popular:true, resort:false, hotels:[blankHotel()], color:0 });
+const dirsSaved = () => loadDirections();
+/* Сколько заказов уже ведут в направление: удалять такое нельзя, только скрыть. */
+function ordersTo(code){
+  const hits = o => { const d = o.details || {}; return [d.from, d.to, d.out?.from, d.out?.to, d.back?.from, d.back?.to, hotelById(d.hotelId)?.city].includes(code); };
+  return allOrders().filter(r => hits(r.o)).length;
+}
+const flightHours = d => { const km = distanceKm(COORDS.TAS, [d.lat, d.lon]); return { km:Math.round(km), min:Math.round(km / CRUISE_KMH * 60 + TAXI_MIN) }; };
+
+function dirForm(){
+  const d = M.ui.dirDraft; if (!d) return "";
+  const txt = (path, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-dir="${path}" value="${esc(path.split(".").reduce((o, k) => o?.[k], d) ?? "")}" ${extra}></label>`;
+  const lat = Number(String(d.lat).replace(",", ".")), lon = Number(String(d.lon).replace(",", "."));
+  const est = Number.isFinite(lat) && Number.isFinite(lon) && d.lat !== "" && d.lon !== "" && Math.abs(lat) <= 90 && Math.abs(lon) <= 180 ? flightHours({ lat, lon }) : null;
+  return `<section class="card stack cl-edit" id="diredit"><div class="card-h"><h2>${esc(t("dir_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="dirclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-3">
+      ${txt("iata", t("dir_iata"), 'class="upper mono" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DPS"')}
+      ${txt("lat", t("dir_lat"), 'inputmode="decimal" placeholder="-8.7482"')}${txt("lon", t("dir_lon"), 'inputmode="decimal" placeholder="115.1672"')}
+      ${txt("city.ru", t("dir_city") + " · RU", `placeholder="Бали" maxlength="${NAME_MAX}"`)}${txt("city.uz", t("dir_city") + " · UZ", `placeholder="Bali" maxlength="${NAME_MAX}"`)}${txt("city.en", t("dir_city") + " · EN", `placeholder="Bali" maxlength="${NAME_MAX}"`)}
+      ${txt("country.ru", t("dir_country") + " · RU", `placeholder="Индонезия" maxlength="${NAME_MAX}"`)}${txt("country.uz", t("dir_country") + " · UZ", `placeholder="Indoneziya" maxlength="${NAME_MAX}"`)}${txt("country.en", t("dir_country") + " · EN", `placeholder="Indonesia" maxlength="${NAME_MAX}"`)}
+    </div>
+    <div class="sgrid sgrid-3">${txt("eco", t("dir_eco"), 'inputmode="numeric" placeholder="450"')}
+      <div class="field"><span>${esc(t("dir_color"))}</span><div class="swatches">${DIR_COLORS.map((c, i) => `<button type="button" class="swatch" style="--c:${c[0]};background:linear-gradient(135deg,${c[0]},${c[1]})" data-act="dircolor" data-v="${i}" aria-pressed="${d.color === i}" aria-label="${esc(t("dir_color"))}: ${esc(t("dc_" + i))}"></button>`).join("")}</div></div>
+      <p class="muted small dir-est">${est ? esc(tf("dir_est", { km:grp(est.km), time:dur(est.min) })) : esc(t("dir_est_none"))}</p></div>
+    <label class="chk"><input type="checkbox" data-dir="popular" ${d.popular ? "checked" : ""}><span>${esc(t("dir_popular"))}</span></label>
+    <label class="chk"><input type="checkbox" data-dir="resort" ${d.resort ? "checked" : ""}><span>${esc(t("dir_resort"))}</span></label>
+    ${d.resort ? `<div class="stack dir-hotels"><h3>${esc(t("dir_hotels"))}</h3><p class="muted small">${esc(t("dir_hotels_d"))}</p>
+      ${d.hotels.map((h, i) => `<fieldset class="dir-hotel-set"><legend class="sr-only">${esc(tf("dir_hotel_n", { n:i + 1 }))}</legend><div class="sgrid dir-hotel">
+        <label class="field"><span>${esc(t("hotel"))}</span><input data-dh="${i}.name" value="${esc(h.name)}" maxlength="50" placeholder="Ubud Garden Resort"></label>
+        <label class="field"><span>${esc(t("dir_area"))}</span><input data-dh="${i}.area" value="${esc(h.area)}" maxlength="30" placeholder="Ubud"></label>
+        <label class="field"><span>${esc(t("dir_stars"))}</span><select data-dh="${i}.stars">${[3, 4, 5].map(n => `<option ${Number(h.stars) === n ? "selected" : ""}>${n}</option>`).join("")}</select></label>
+        <label class="field"><span>${esc(t("board"))}</span><select data-dh="${i}.board">${BOARDS.map(b => `<option value="${b}" ${h.board === b ? "selected" : ""}>${b} · ${esc(t("board_" + b))}</option>`).join("")}</select></label>
+        <label class="field"><span>${esc(t("dir_night"))}</span><input data-dh="${i}.base" value="${esc(h.base)}" inputmode="numeric" placeholder="140"></label>
+        ${d.hotels.length > 1 ? `<button type="button" class="iconbtn" data-act="dirhoteldel" data-v="${i}" aria-label="${esc(tf("dir_hotel_del_n", { n:i + 1 }))}">${IC.x}</button>` : ""}</div>
+        <div class="row dir-hotel-more"><label class="field"><span>${esc(t("dir_beach"))}</span><select data-dh="${i}.beach">${["beach", "near", "city"].map(b => `<option value="${b}" ${h.beach === b ? "selected" : ""}>${esc(t("dir_beach_" + b))}</option>`).join("")}</select></label>
+          <label class="chk"><input type="checkbox" data-dh="${i}.pool" ${h.pool ? "checked" : ""}><span>${esc(t("dir_pool"))}</span></label></div></fieldset>`).join("")}
+      ${d.hotels.length < 6 ? `<button type="button" class="ghost sm" data-act="dirhoteladd">${IC.plus}<span>${esc(t("dir_hotel_add"))}</span></button>` : ""}</div>` : ""}
+    <div class="err" id="direrr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="dirsave" ${guard("catalog.edit")}>${esc(t("dir_save"))}</button>
+      <button type="button" class="link" data-act="dirclose">${esc(t("cancel"))}</button></div></section>`;
+}
+function dirRows(){
+  const saved = dirsSaved(), rows = [
+    ...saved.map(d => ({ d, custom:true })),
+    ...AIRPORTS.filter(a => !a.custom && a.iata !== "TAS").map(a => ({ d:{ iata:a.iata, city:a.city, country:a.country, resort:RESORTS.includes(a.iata), popular:WORLD_BG.includes(a.iata) }, custom:false }))
+  ];
+  const q = (M.ui.dirq || "").trim().toLowerCase();
+  return rows.filter(({ d }) => !q || [d.iata, d.city.ru, d.city.en, d.city.uz, d.country.ru, d.country.en, d.country.uz].join(" ").toLowerCase().includes(q));
+}
+function dirList(){
+  const rows = dirRows();
+  if (!rows.length) return `<p class="muted">${esc(t("dir_none_match"))}</p>`;
+  return `<div class="atable" style="--cols:minmax(0,1.8fr) minmax(0,1.2fr) minmax(0,1.5fr) minmax(0,1.2fr) auto">
+    <div class="arow ahead" aria-hidden="true"><span>${esc(t("dir_city"))}</span><span>${esc(t("dir_country"))}</span><span>${esc(t("dir_services"))}</span><span>${esc(t("col_source"))}</span><span></span></div>
+    ${rows.map(({ d, custom }) => {
+      const n = custom ? ordersTo(d.iata) : 0;
+      return `<div class="arow ${d.hidden ? "past" : ""}"><span class="a-main a-with-mark"><span class="dir-pc" style="background:linear-gradient(135deg,${esc((PALETTE[d.iata] || DIR_COLORS[0])[0])},${esc((PALETTE[d.iata] || DIR_COLORS[0])[1])})">${esc(d.iata)}</span>
+          <span class="stack" style="gap:1px;min-width:0"><b>${esc(d.city[S.lang] || d.city.ru)}</b>${d.hidden ? `<span class="small muted">${esc(t("dir_hidden"))}</span>` : ""}</span></span>
+        <span class="a-cell a-sub">${esc(d.country[S.lang] || d.country.ru)}</span>
+        <span class="a-cell wrap small">${esc([t("type_FLIGHT"), t("type_JET"), ...(d.resort ? [t("type_TOUR"), t("type_HOTEL")] : [])].join(", "))}${d.popular ? ` · <b>${esc(t("dir_popular_short"))}</b>` : ""}</span>
+        <span class="a-cell muted small">${custom ? esc(tf("dir_added_by", { name:d.by || "—", date:d.at ? fdate(ymd(new Date(d.at))) : "" })) : esc(t("dir_builtin"))}</span>
+        <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${custom ? `<button type="button" class="link" data-act="${d.hidden ? "dirshow" : "dirhide"}" data-v="${esc(d.iata)}" aria-label="${esc(t(d.hidden ? "dir_show" : "dir_hide"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t(d.hidden ? "dir_show" : "dir_hide"))}</button>
+          ${n ? `<span class="muted small">${esc(tf("dir_in_orders", { n:pl(n, "order") }))}</span>` : `<button type="button" class="link danger" data-act="dirdel" data-v="${esc(d.iata)}" aria-label="${esc(t("dir_delete"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t("dir_delete"))}</button>`}` : ""}</span></div>`; }).join("")}</div>`;
+}
+PAGES.directions = {
+  render(){
+    return `<div class="page">
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_directions"))}</h1><p class="muted">${esc(t("directions_sub"))}</p></div>
+        <button type="button" class="solid" data-act="dirnew" ${guard("catalog.edit")}>${IC.plus}<span>${esc(t("dir_new"))}</span></button></div>
+      ${dirForm()}
+      <div class="card stack">
+        <label class="search wide">${IC.search}<input id="dirq" type="search" value="${esc(M.ui.dirq || "")}" placeholder="${esc(t("dir_search"))}" aria-label="${esc(t("dir_search"))}"></label>
+        <div id="dirlist">${dirList()}</div></div>
+      <p class="muted small" style="margin-top:12px">${esc(t("directions_note"))}</p></div>`;
+  },
+  after(){ if (M.ui.dirDraft && M.ui.dirFocus) { $("#diredit [data-dir=iata]")?.focus(); M.ui.dirFocus = false; } }
+};
+
+/* ---- проверка и сохранение ---- */
+function readDir(d){
+  const num = v => Number(String(v).trim().replace(",", "."));
+  const clean = o => ({ ru:o.ru.trim(), uz:o.uz.trim(), en:o.en.trim() });
+  return { iata:d.iata.trim().toUpperCase(), city:clean(d.city), country:clean(d.country), lat:num(d.lat), lon:num(d.lon), eco:Math.round(num(d.eco)),
+    popular:!!d.popular, resort:!!d.resort, color:DIR_COLORS[d.color] || DIR_COLORS[0],
+    hotels:d.resort ? d.hotels.map(h => ({ name:h.name.trim(), area:h.area.trim(), stars:Number(h.stars), board:h.board, base:Math.round(num(h.base)), beach:h.beach, pool:!!h.pool })) : [] };
+}
+/* Ошибка и поле, к которому она относится: фокус ставим на это поле. */
+function dirError(x){
+  const L = ["ru", "uz", "en"], bad = (k, f) => ({ key:k, field:f });
+  if (!/^[A-Z]{3}$/.test(x.iata)) return bad("err_dir_iata", "iata");
+  if (AIRPORTS.some(a => a.iata === x.iata) || dirsSaved().some(d => d.iata === x.iata)) return bad("err_dir_dup", "iata");
+  for (const g of ["city", "country"]) for (const l of L) if (x[g][l].length < 2 || x[g][l].length > NAME_MAX) return bad("err_dir_names", `${g}.${l}`);
+  if (!Number.isFinite(x.lat) || Math.abs(x.lat) > 90) return bad("err_dir_coords", "lat");
+  if (!Number.isFinite(x.lon) || Math.abs(x.lon) > 180) return bad("err_dir_coords", "lon");
+  if (distanceKm(COORDS.TAS, [x.lat, x.lon]) < 150) return bad("err_dir_near", "lat");
+  if (!Number.isFinite(x.eco) || x.eco < 50 || x.eco > 5000) return bad("err_dir_eco", "eco");
+  if (x.resort) { const i = x.hotels.findIndex(h => h.name.length < 3 || !(h.base >= 20 && h.base <= 5000));
+    if (i >= 0) return { key:"err_dir_hotels", hotel:`${i}.${x.hotels[i].name.length < 3 ? "name" : "base"}` }; }
+  return null;
+}
+function saveDirs(list, action, vars){
+  writeJSON(DIRS_KEY, list); applyDirections();
+  change(() => audit(action, vars));
+}
+Object.assign(ACT, {
+  dirnew:   () => { if (denied("catalog.edit")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
+  dirclose: () => { M.ui.dirDraft = null; rerender(); },
+  dircolor: el => { M.ui.dirDraft.color = Number(el.dataset.v); rerender(); },
+  dirhoteladd: () => { const h = M.ui.dirDraft.hotels; h.push(blankHotel()); rerender(); $(`[data-dh="${h.length - 1}.name"]`)?.focus(); },
+  dirhoteldel: el => { M.ui.dirDraft.hotels.splice(Number(el.dataset.v), 1); rerender(); ($('[data-act="dirhoteladd"]') || $('[data-dh="0.name"]'))?.focus(); },
+  dirsave: () => {
+    if (denied("catalog.edit")) return;
+    const x = readDir(M.ui.dirDraft), e = dirError(x);
+    if (e) {
+      $$("#diredit [aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
+      const f = e.field ? $(`#diredit [data-dir="${e.field}"]`) : $(`#diredit [data-dh="${e.hotel}"]`);
+      if (f) { f.setAttribute("aria-invalid", "true"); f.setAttribute("aria-describedby", "direrr"); }
+      showErr("#direrr", t(e.key)); f?.focus({ preventScroll:true }); return;
+    }
+    saveDirs([...dirsSaved(), { ...x, hidden:false, by:me().name, at:Date.now() }], "dir_add", { city:x.city, iata:x.iata });
+    M.ui.dirDraft = null; rerender(); toast(tf("t_dir_add", { city:x.city[S.lang] || x.city.ru }));
+  },
+  dirhide: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = true; saveDirs(list, "dir_hide", { city:d.city, iata:d.iata }); $(`[data-act="dirshow"][data-v="${d.iata}"]`)?.focus(); },
+  dirshow: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = false; saveDirs(list, "dir_show", { city:d.city, iata:d.iata }); $(`[data-act="dirhide"][data-v="${d.iata}"]`)?.focus(); },
+  dirdel: el => {
+    if (denied("catalog.edit")) return;
+    const code = el.dataset.v, d0 = dirsSaved().find(x => x.iata === code); if (!d0) return;
+    if (!confirm(tf("dir_delete_q", { city:d0.city[S.lang] || d0.city.ru }))) return;
+    // Пока было открыто окно подтверждения, другая вкладка могла изменить данные.
+    S = loadState() || S; adminPrefs(); SITE = loadSite(); O = loadOps() || O;
+    const list = dirsSaved(), d = list.find(x => x.iata === code); if (!d) return rerender();
+    if (ordersTo(code)) { rerender(); return toast(t("dir_has_orders")); }
+    saveDirs(list.filter(x => x.iata !== code), "dir_delete", { city:d.city, iata:d.iata }); $("#dirq")?.focus();
+  }
+});
+/* Поля формы → черновик. Флажки перерисовывают форму (курорт открывает отели). */
+document.addEventListener("input", e => {
+  const d = M.ui.dirDraft, k = e.target.dataset?.dir, h = e.target.dataset?.dh;
+  if (d && k && e.target.type !== "checkbox") { const ks = k.split("."); (ks.length === 2 ? d[ks[0]] : d)[ks.at(-1)] = k === "iata" ? e.target.value.toUpperCase() : e.target.value;
+    if (k === "lat" || k === "lon") { const p = $(".dir-est"); if (p) { const x = readDir(d); p.textContent = Number.isFinite(x.lat) && Number.isFinite(x.lon) && d.lat !== "" && d.lon !== "" ? tf("dir_est", { km:grp(flightHours(x).km), time:dur(flightHours(x).min) }) : t("dir_est_none"); } } }
+  if (d && h) { const [i, f] = h.split("."); if (d.hotels[i]) d.hotels[i][f] = e.target.value; }
+  if (e.target.id === "dirq") { M.ui.dirq = e.target.value; const l = $("#dirlist"); if (l) l.innerHTML = dirList(); }
+});
+document.addEventListener("change", e => {
+  const d = M.ui.dirDraft, k = e.target.dataset?.dir, h = e.target.dataset?.dh;
+  if (d && k && e.target.type === "checkbox") { d[k] = e.target.checked; rerender(); $(`#diredit [data-dir="${k}"]`)?.focus(); }
+  if (d && h) { const [i, f] = h.split("."); if (d.hotels[i]) d.hotels[i][f] = e.target.type === "checkbox" ? e.target.checked : e.target.value; }
+});
+
 /* ---- 80-staff.js ---- */
 /* ==========================================================================
    Сотрудники и права ролей, журнал действий, настройки админки, вход.
    ========================================================================== */
 "use strict";
 
+/* Сотрудники: добавить, сменить роль, отключить. Удалять нельзя — журнал
+   должен помнить, кто что делал; отключённый просто не входит. */
+const staffRoleSel = (s, disabled) => `<select class="minisel" data-staff-role="${s.id}" aria-label="${esc(tf("staff_role_of", { name:s.name }))}" ${disabled ? "disabled" : ""}>
+  ${ROLES.map(r => `<option value="${r}" ${s.role === r ? "selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`;
+function staffForm(){
+  const d = M.ui.stDraft; if (!d) return "";
+  return `<section class="card stack cl-edit" id="stedit"><div class="card-h"><h2>${esc(t("staff_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="stclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-3">
+      <label class="field"><span>${esc(t("staff_name"))}</span><input data-st="name" value="${esc(d.name)}" maxlength="60" autocomplete="off"></label>
+      <label class="field"><span>${esc(t("phone_label"))}</span><input data-st="phone" type="tel" value="${esc(d.phone)}" placeholder="+998" autocomplete="off"></label>
+      <label class="field"><span>${esc(t("staff_role"))}</span><select data-st="role">${ROLES.map(r => `<option value="${r}" ${d.role === r ? "selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select></label>
+    </div><div class="err" id="sterr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="stsave">${esc(t("staff_add"))}</button><button type="button" class="link" data-act="stclose">${esc(t("cancel"))}</button></div></section>`;
+}
 PAGES.staff = {
   render(){
-    const cur = me();
+    const cur = me(), edit = can("staff.edit");
     return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_staff"))}</h1><p class="muted">${esc(t("staff_sub"))}</p></div>
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_staff"))}</h1><p class="muted">${esc(t("staff_sub"))}</p></div>
+        <button type="button" class="solid" data-act="stnew" ${guard("staff.edit")}>${IC.plus}<span>${esc(t("staff_new"))}</span></button></div>
+      ${staffForm()}
       <section class="card stack"><h2>${esc(t("staff_people"))}</h2>
-        <div class="atable" style="--cols:minmax(0,2fr) minmax(0,1.4fr) minmax(0,1.3fr) 150px">
-          ${O.staff.map(s => `<div class="arow"><span class="a-main a-with-mark"><span class="avatar sm">${esc(monogram(s.name))}</span><b>${esc(s.name)}</b></span>
-            <span class="a-cell a-sub">${esc(roleName(s.role))}</span><span class="a-cell mono small">${esc(s.phone)}</span>
-            <span class="a-end">${s.id === cur.id ? `<span class="pill st-CONFIRMED">${esc(t("staff_you"))}</span>` : `<button type="button" class="link" data-act="aswitch" data-v="${s.id}">${esc(t("staff_as"))}</button>`}</span></div>`).join("")}
+        <div class="atable" style="--cols:minmax(0,2fr) minmax(0,1.5fr) minmax(0,1.2fr) auto">
+          ${O.staff.map(s => { const off = s.active === false, self = s.id === cur.id;
+            return `<div class="arow ${off ? "past" : ""}"><span class="a-main a-with-mark"><span class="avatar sm">${esc(monogram(s.name))}</span>
+              <span class="stack" style="gap:1px;min-width:0"><b>${esc(s.name)}</b>${off ? `<span class="small muted">${esc(t("staff_off"))}</span>` : ""}</span></span>
+              <span class="a-cell a-sub">${edit && !self && !off ? staffRoleSel(s, false) : esc(roleName(s.role))}</span><span class="a-cell mono small">${esc(s.phone)}</span>
+              <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${self ? `<span class="pill st-CONFIRMED">${esc(t("staff_you"))}</span>`
+                : `${off ? "" : `<button type="button" class="link" data-act="aswitch" data-v="${s.id}">${esc(t("staff_as"))}</button>`}
+                   <button type="button" class="link ${off ? "" : "danger"}" data-act="${off ? "ston" : "stoff"}" data-v="${s.id}" ${guard("staff.edit")}>${esc(t(off ? "staff_enable" : "staff_disable"))}</button>`}</span></div>`; }).join("")}
         </div></section>
       <section class="card stack" style="margin-top:20px"><h2>${esc(t("staff_matrix"))}</h2><p class="muted small">${esc(t("staff_matrix_d"))}</p>
         <div class="matrix-wrap"><table class="matrix"><thead><tr><th scope="col">${esc(t("perm"))}</th>${ROLES.map(r => `<th scope="col">${esc(roleName(r))}</th>`).join("")}</tr></thead>
           <tbody>${PERM_LIST.map(p => `<tr><th scope="row">${esc(t("p_" + p.replace(".", "_")))}</th>${ROLES.map(r => {
             const ok = r === "admin" || PERMS[r].includes(p);
             return `<td>${ok ? `<span class="yes">${IC.ok}<span class="sr-only">${esc(t("yes"))}</span></span>` : `<span class="no" aria-hidden="true">—</span><span class="sr-only">${esc(t("no"))}</span>`}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></section></div>`;
-  }
+  },
+  after(){ if (M.ui.stDraft && M.ui.stFocus) { $("#stedit [data-st=name]")?.focus(); M.ui.stFocus = false; } }
 };
-ACT.aswitch = el => {
-  const s = O.staff.find(x => x.id === el.dataset.v); if (!s) return;
-  change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleName(s.role) }); });
-  toast(tf("switched", { name:s.name, role:roleName(s.role) }));
-};
+/* Главный администратор должен остаться хотя бы один — иначе права менять некому. */
+const adminsLeft = exceptId => O.staff.filter(s => s.role === "admin" && s.active !== false && s.id !== exceptId).length;
+function setStaff(id, fn, action){
+  if (denied("staff.edit")) return;
+  let res = null;
+  change(() => { const s = O.staff.find(x => x.id === id); if (s) res = fn(s); if (res) audit(action, res); });
+  if (res) toast(tf("t_" + action, Object.fromEntries(Object.entries(res).map(([k, v]) => [k, auditVal(v)]))));
+}
+Object.assign(ACT, {
+  aswitch: el => {
+    const s = O.staff.find(x => x.id === el.dataset.v && x.active !== false); if (!s) return;
+    change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); });
+    toast(tf("switched", { name:s.name, role:roleName(s.role) }));
+  },
+  stnew:   () => { if (denied("staff.edit")) return; M.ui.stDraft = { name:"", phone:"", role:"operator" }; M.ui.stFocus = true; rerender(); },
+  stclose: () => { M.ui.stDraft = null; rerender(); },
+  stsave:  () => {
+    if (denied("staff.edit")) return;
+    const d = M.ui.stDraft, name = d.name.trim().replace(/\s+/g, " ");
+    if (name.length < 3) return showErr("#sterr", t("err_staff_name"));
+    if (!validPhone(d.phone)) return showErr("#sterr", t("err_phone"));
+    if (O.staff.some(s => digits(s.phone) === digits(d.phone))) return showErr("#sterr", t("err_staff_phone"));
+    if (!ROLES.includes(d.role)) return;
+    const rec = { id:uid("st"), name, phone:prettyPhone(d.phone), role:d.role, active:true, addedBy:me().name, addedAt:Date.now() };
+    change(() => { O.staff.push(rec); audit("staff_add", { name:rec.name, role:"role:" + rec.role }); });
+    M.ui.stDraft = null; rerender(); toast(tf("t_staff_add", { name:rec.name }));
+  },
+  stoff: el => {
+    if (el.dataset.v === me().id) return toast(t("err_staff_self"));
+    const s = O.staff.find(x => x.id === el.dataset.v);
+    if (s?.role === "admin" && !adminsLeft(s.id)) return toast(t("err_last_admin"));
+    setStaff(el.dataset.v, x => { x.active = false; return { name:x.name }; }, "staff_off");
+    $(`[data-act="ston"][data-v="${el.dataset.v}"]`)?.focus();
+  },
+  ston: el => { setStaff(el.dataset.v, x => { x.active = true; return { name:x.name }; }, "staff_on"); $(`[data-act="stoff"][data-v="${el.dataset.v}"]`)?.focus(); }
+});
+document.addEventListener("input", e => { const k = e.target.dataset?.st; if (k && M.ui.stDraft) M.ui.stDraft[k] = e.target.value; });
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.st; if (k && M.ui.stDraft) M.ui.stDraft[k] = e.target.value;
+  const id = e.target.dataset?.staffRole; if (!id) return;
+  const role = e.target.value;
+  clearTimeout(roleTimer); roleTimer = setTimeout(() => {
+    const s = O.staff.find(x => x.id === id);
+    if (!s || !ROLES.includes(role) || s.role === role) return;
+    if (s.role === "admin" && role !== "admin" && !adminsLeft(s.id)) { toast(t("err_last_admin")); rerender(); return; }
+    setStaff(id, x => { const from = "role:" + x.role; x.role = role; return { name:x.name, from, to:"role:" + role }; }, "staff_role");
+    $(`[data-staff-role="${id}"]`)?.focus();
+  }, 450);
+});
+let roleTimer = 0;
 
 /* ---- журнал ---- */
 function auditRows(){
@@ -6470,10 +7015,11 @@ Object.assign(ACT, {
   areset:     () => {
     if (denied("demo.reset") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
-    PRICES = null; M.ui = {};
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    PRICES = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
-    O = freshOps({ lang:O.lang, theme:O.theme, session }); saveOps(); SITE = null; seedApps();
+    // Сотрудника, добавленного вручную, в исходных данных нет — входим главным администратором.
+    O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:"st1", at:Date.now() } }); saveOps(); SITE = null; seedApps();
     change(() => audit("reset", {})); go("");
   }
 });
@@ -6489,8 +7035,8 @@ PAGES.auth = {
         <ul class="auth-mods" aria-hidden="true">${["an_tasks", "an_orders", "an_agencies", "an_finance"].map(k => `<li><span>${esc(t(k))}</span></li>`).join("")}</ul></section>
       <section class="auth-main"><div class="card stack authcard">
         ${step === "phone" ? `<h2>${esc(t("aauth_title"))}</h2><p class="muted">${esc(t("aauth_sub"))}</p>
-          <label class="field"><span>${esc(t("phone_label"))}</span><input id="aph" type="tel" inputmode="tel" autocomplete="tel" value="${esc(M.ui.aPhone || O.staff[0].phone)}"></label>
-          <div class="stack" style="gap:6px"><span class="lbl">${esc(t("aauth_demo"))}</span><div class="tchips">${O.staff.map(s => `<button type="button" class="tchip" data-act="apick" data-v="${esc(s.phone)}">${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</button>`).join("")}</div></div>
+          <label class="field"><span>${esc(t("phone_label"))}</span><input id="aph" type="tel" inputmode="tel" autocomplete="tel" value="${esc(M.ui.aPhone || activeStaff()[0]?.phone || "")}"></label>
+          <div class="stack" style="gap:6px"><span class="lbl">${esc(t("aauth_demo"))}</span><div class="tchips">${activeStaff().map(s => `<button type="button" class="tchip" data-act="apick" data-v="${esc(s.phone)}">${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</button>`).join("")}</div></div>
           <div class="err" id="aerr" hidden></div><button type="button" class="cta" data-act="asend">${esc(t("login_cta"))}</button>`
         : `<h2>${esc(t("otp_title"))}</h2><p class="muted">${esc(t("otp_sub"))} <b class="mono">${esc(M.ui.aPhone)}</b></p>
           <input id="aotp" class="otp" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="••••" aria-label="${esc(t("otp_title"))}">
@@ -6504,8 +7050,8 @@ function aVerify(){
   const v = ($("#aotp")?.value || "").trim();
   if (!/^\d{4}$/.test(v)) return showErr("#aerr", t("err_code"));
   if (v !== ADM_CODE) return showErr("#aerr", t("err_code_wrong"));
-  const s = O.staff.find(x => digits(x.phone) === digits(M.ui.aPhone)); if (!s) return showErr("#aerr", t("err_staff"));
-  change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("signin", { role:roleName(s.role) }); });
+  const s = activeStaff().find(x => digits(x.phone) === digits(M.ui.aPhone)); if (!s) return showErr("#aerr", t("err_staff"));
+  change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("signin", { role:"role:" + s.role }); });
   M.ui.aStep = "phone"; heartbeat(); toast(tf("hello_toast", { name:s.name.split(" ")[0] }));
   if (currentParts()[0] === "auth") go(""); else render(true);
 }
@@ -6513,7 +7059,7 @@ Object.assign(ACT, {
   apick:   el => { M.ui.aPhone = el.dataset.v; rerender(); },
   asend:   () => {
     const v = $("#aph").value; if (!validPhone(v)) return showErr("#aerr", t("err_phone"));
-    if (!O.staff.some(x => digits(x.phone) === digits(v))) return showErr("#aerr", t("err_staff"));
+    if (!activeStaff().some(x => digits(x.phone) === digits(v))) return showErr("#aerr", t(O.staff.some(x => digits(x.phone) === digits(v)) ? "err_staff_off" : "err_staff"));
     M.ui.aPhone = prettyPhone(v); M.ui.aStep = "code"; rerender();
   },
   averify: () => aVerify(),
@@ -6529,6 +7075,7 @@ document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id
    ========================================================================== */
 "use strict";
 
+applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S); }
 O = loadOps() || freshOps(null);

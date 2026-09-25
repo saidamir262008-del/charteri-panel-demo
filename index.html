@@ -1560,6 +1560,7 @@ const STR = {
   site_penalty:["Штраф поставщика, {p}%","Yetkazib beruvchi jarimasi, {p}%","Supplier penalty, {p}%"],
   site_refund_wait:["Вернётся на карту","Kartaga qaytadi","Will return to your card"],
   site_refund_done:["Возвращено на карту","Kartaga qaytarildi","Returned to your card"],
+  dir_gone:["Это направление больше недоступно. Выберите другое.","Bu yo‘nalish endi mavjud emas. Boshqasini tanlang.","This destination is no longer available. Please choose another."],
   req_status_done:["Выполнено","Bajarildi","Done"],
   req_status_declined:["Отказано","Rad etildi","Declined"],
   req_reply:["Ответ Charteri","Charteri javobi","Charteri’s reply"],
@@ -2259,8 +2260,9 @@ function seg(act, options, value, extra = ""){
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
-  const uz = AIRPORTS.filter(a => a.country.ru === "Узбекистан" && a.iata !== exclude);
-  const intl = AIRPORTS.filter(a => a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
+  // Скрытые в админке направления в списках не показываем.
+  const uz = AIRPORTS.filter(a => !a.hidden && a.country.ru === "Узбекистан" && a.iata !== exclude);
+  const intl = AIRPORTS.filter(a => !a.hidden && a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
   const opt = a => `<option value="${a.iata}" ${a.iata === value ? "selected" : ""}>${esc(a.city[S.lang])} · ${a.iata}</option>`;
   return `<select data-bind="${bind}" data-rr>
     <optgroup label="${esc(t("grp_uzbekistan"))}">${uz.map(opt).join("")}</optgroup>
@@ -2297,7 +2299,7 @@ function postcard(city, sub = "", big = true){
     <span class="pc-code">${city}</span><span class="pc-city">${esc(cityName(city))}</span>${sub ? `<span class="pc-sub">${esc(sub)}</span>` : ""}</div>`;
 }
 function hotelArt(h, big = false){
-  const [a, b] = PALETTE[h.city];
+  const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
   return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
@@ -2323,6 +2325,110 @@ function orderPhotoKey(o){
 const fboxOpen = () => (M.ui.filters ?? !window.matchMedia("(max-width: 900px)").matches) ? "open" : "";
 const pageHead = (title, sub = "") => `<div class="pagehead"><h1>${esc(title)}</h1>${sub ? `<p class="muted">${esc(sub)}</p>` : ""}</div>`;
 const backLink = (path, label) => `<a class="backlink" href="#/${path}">${IC.back}<span>${esc(label)}</span></a>`;
+
+/* ---- 12-directions.js ---- */
+/* ==========================================================================
+   Направления, добавленные в админке. Каталог сайта (AIRPORTS, COORDS,
+   ROUTES, RESORTS, HOTELS) собран при сборке; админка дописывает к нему свои
+   направления в DIRS_KEY, а сайт, кабинет и админка вливают их при загрузке и
+   при изменении в другой вкладке. Встроенные направления не трогаются.
+
+   Направление: { iata, city:{ru,uz,en}, country:{ru,uz,en}, lat, lon, eco,
+     popular, resort, hotels:[…], color:[a,b], hidden }
+   eco — тариф эконом из Ташкента в одну сторону, USD, до наценки.
+   ========================================================================== */
+"use strict";
+
+const DIRS_KEY = "charteri.ops.dirs";
+const CRUISE_KMH = 780, TAXI_MIN = 35;           // оценка времени полёта по расстоянию
+let DIRS_APPLIED = [];                           // коды, которые уже влиты: их можно убрать перед новым вливанием
+
+function loadDirections(){ const d = readJSON(DIRS_KEY, []); return Array.isArray(d) ? d.filter(validDirection) : []; }
+/* Данные из хранилища — чужие: берём только то, что прошло проверку формы. */
+function validDirection(d){
+  return d && /^[A-Z]{3}$/.test(d.iata) && ["ru", "uz", "en"].every(l => typeof d.city?.[l] === "string" && d.city[l].trim() && typeof d.country?.[l] === "string")
+    && Number.isFinite(d.lat) && Math.abs(d.lat) <= 90 && Number.isFinite(d.lon) && Math.abs(d.lon) <= 180 && Number.isFinite(d.eco) && d.eco >= 50 && d.eco <= 5000;
+}
+/* Маршрут в обе стороны: время — по расстоянию, вылет утром, обратно — днём. */
+function routesFor(d){
+  const km = distanceKm(COORDS.TAS, [d.lat, d.lon]), dur = Math.round((km / CRUISE_KMH) * 60 + TAXI_MIN);
+  const n = 100 + (seedFrom(d.iata) % 800), plane = km > 3500 ? "Boeing 787-8" : "Airbus A321neo";
+  const mk = (from, to, dep, no, eco) => ({ carrier:"Uzbekistan Airways", flightNo:`HY-${no}`, plane, depTime:dep, arrTime:addMinutes(dep, dur), ecoPrice:eco, busPrice:Math.round(eco * 1.85), durationMin:dur });
+  return { [`TAS-${d.iata}`]:mk("TAS", d.iata, "09:30", n * 2 + 1, Math.round(d.eco)), [`${d.iata}-TAS`]:mk(d.iata, "TAS", "15:10", n * 2 + 2, Math.round(d.eco * 0.93)) };
+}
+/* Отель направления — в формате каталога; незаполненное — по умолчанию. */
+const BEACH_M = { beach:0, near:400, city:null };
+const dirHotel = (d, h, i) => ({ id:`${d.iata.toLowerCase()}-${i + 1}`, city:d.iata, name:h.name, stars:clamp(Math.round(h.stars) || 4, 3, 5), area:h.area || "",
+  board:BOARDS.includes(h.board) ? h.board : "BB", base:clamp(Math.round(h.base) || 120, 20, 5000), rating:null,
+  beach:h.beach in BEACH_M ? BEACH_M[h.beach] : null, am:[...(h.beach === "beach" ? ["beach"] : []), ...(h.pool ? ["pool"] : []), "wifi"], custom:true });
+
+function unapplyDirections(){
+  const codes = new Set(DIRS_APPLIED); if (!codes.size) return;
+  const drop = (arr, test) => { for (let i = arr.length - 1; i >= 0; i--) if (test(arr[i])) arr.splice(i, 1); };
+  drop(AIRPORTS, a => a.custom && codes.has(a.iata)); drop(RESORTS, c => codes.has(c)); drop(HOTELS, h => h.custom && codes.has(h.city));
+  drop(WORLD_BG, c => codes.has(c)); drop(BOARD_DEST, c => codes.has(c));
+  for (const c of codes) { delete COORDS[c]; delete PALETTE[c]; delete ROUTES[`TAS-${c}`]; delete ROUTES[`${c}-TAS`]; }
+  DIRS_APPLIED = [];
+}
+/* Скрытое направление пропадает из поиска и витрин, но его город и отели
+   остаются в каталоге: по ним уже могут быть заказы. Вызывается при запуске
+   каждого приложения — после того как объявлены все списки. */
+function applyDirections(){
+  unapplyDirections();
+  for (const d of loadDirections()) {
+    if (AIRPORTS.some(a => a.iata === d.iata)) continue;                  // встроенный код не перекрываем
+    AIRPORTS.push({ iata:d.iata, city:{ ...d.city }, country:{ ...d.country }, popular:d.popular ? 90 : 40, custom:true, hidden:!!d.hidden });
+    COORDS[d.iata] = [d.lat, d.lon];
+    Object.assign(ROUTES, routesFor(d));
+    PALETTE[d.iata] = Array.isArray(d.color) && d.color.every(c => /^#[0-9a-f]{6}$/i.test(c)) ? d.color : ["#2F6FE0", "#16275C"];
+    const hotels = (d.hotels || []).filter(h => h && typeof h.name === "string" && h.name.trim());
+    hotels.forEach((h, i) => HOTELS.push(dirHotel(d, h, i)));
+    if (!d.hidden && d.resort && hotels.length) RESORTS.push(d.iata);
+    if (!d.hidden && d.popular) { WORLD_BG.push(d.iata); BOARD_DEST.push(d.iata); }
+    DIRS_APPLIED.push(d.iata);
+  }
+}
+/* ---- доступно ли направление сейчас ---- */
+const destShown = c => AIRPORTS.some(a => a.iata === c && !a.hidden);
+const hotelShown = id => { const h = HOTELS.find(x => x.id === id); return !!h && RESORTS.includes(h.city); };
+/* Детали брони: все её города видны, отель есть в каталоге. Вертолёт летает
+   по своим площадкам (HELI_DEST), не по аэропортам. */
+function detailsShown(d){
+  if (!d) return true;
+  if (d.hotelId && !hotelShown(d.hotelId)) return false;
+  if (d.kind === "heli") return true;
+  return [d.from, d.to, d.out?.from, d.out?.to, d.back?.from, d.back?.to].filter(Boolean).every(destShown);
+}
+/* Карта: код без координат (направление удалили) — рисуем маршрут по умолчанию. */
+const safeRoute = st => st.local || (COORDS[st.from] && COORDS[st.to]) ? st : { local:false, from:"TAS", to:"IST" };
+
+/* Выбор в формах поиска, который указывает на скрытое или удалённое
+   направление, возвращается к направлению по умолчанию. Возвращает, было ли что менять. */
+function sanitizeSelections(){
+  let changed = false;
+  const fix = (q, k, ok, def) => { if (q && q[k] && !ok(q[k])) { q[k] = def; q.searched = false; changed = true; } };
+  fix(M.flights, "from", destShown, "TAS"); fix(M.flights, "to", destShown, M.flights?.from === "IST" ? "DXB" : "IST");
+  fix(M.tours, "to", c => RESORTS.includes(c), "AYT"); fix(M.hotels, "city", c => RESORTS.includes(c), "AYT");
+  fix(M.jet, "from", destShown, "TAS"); fix(M.jet, "to", destShown, M.jet?.from === "DXB" ? "IST" : "DXB");
+  const sel = M.flights?.sel;
+  if (sel?.out && !detailsShown({ out:sel.out, back:sel.back })) { M.flights.sel = { out:null, back:null }; M.flights.searched = false; changed = true; }
+  if (M.checkout && !detailsShown(M.checkout.details)) { M.checkout = null; changed = true; }
+  return changed;
+}
+/* Админка изменила направления в другой вкладке. Если человек смотрит выдачу,
+   оформление или заявку по направлению, которого больше нет, — возвращаем к
+   поиску с объяснением, даже если он печатает: иначе он отправил бы заявку
+   не туда, куда выбирал. */
+const DIR_PAGES = ["flights", "hotels", "tours", "charter", "checkout"];
+window.addEventListener("storage", e => {
+  if (e.key !== DIRS_KEY) return;
+  applyDirections();
+  if (typeof GL !== "undefined") GL.key = null;                     // карта заново расставит точки
+  const changed = sanitizeSelections();
+  if (!S) return;
+  if (changed && DIR_PAGES.includes(currentParts()[0])) { toast(t("dir_gone")); go(SEARCH_PATH); return; }
+  onExternalChange();
+});
 
 /* ---- 15-motion.js ---- */
 /* ==========================================================================
@@ -2459,7 +2565,7 @@ const WORLD_BG = ["IST","AYT","DXB","SSH","JED","SHJ","CXR","HKT","DME"];
 function mapState(){
   if (M.module === "heli") return { local:true, from:"TAS", to:M.heli.to };
   const r = { flights:[M.flights.from, M.flights.to], tours:["TAS", M.tours.to], hotels:["TAS", M.hotels.city], jet:[M.jet.from, M.jet.to] }[M.module];
-  return { local:false, from:r[0], to:r[1] };
+  return safeRoute({ local:false, from:r[0], to:r[1] });
 }
 function mapAria(){
   const st = mapState();
@@ -3464,7 +3570,8 @@ function flightDocument(o){
 
 function hotelNightly(h, date){
   const month = parseYMD(date).getMonth() + 1;
-  const season = HIGH_SEASON[h.city].includes(month) ? 1.18 : 1;
+  // У направлений из админки сезона нет — цена ровная весь год.
+  const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
   return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12);
 }
 function hotelStay(h, checkin, nights, rooms, mult = 1){
@@ -3472,8 +3579,15 @@ function hotelStay(h, checkin, nights, rooms, mult = 1){
   return amt(sum * mult * rooms);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
+/* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
+   заказа, а не падаем: один такой заказ не должен ломать список. */
+const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
+/* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
+const joinPlace = (parts, sep = " · ") => parts.filter(Boolean).join(sep);
+/* Оценки гостей у отеля из админки ещё нет — значок не выдумываем. */
+const ratingTag = h => h.rating ? `<span class="rating">${h.rating.toFixed(1)}</span>` : "";
 
 M.hotels = { city:"AYT", checkin:addDays(TODAY,14), checkout:addDays(TODAY,21), adults:2, children:0, rooms:1,
   stars:[], boards:[], maxNight:0, sort:"price", searched:false };
@@ -3535,7 +3649,7 @@ PAGES["hotels/results"] = {
     const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : q.sort === "stars" ? (a, b) => b.h.stars - a.h.stars || a.stay.usd - b.stay.usd : (a, b) => a.stay.usd - b.stay.usd);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
@@ -3563,8 +3677,8 @@ function hotelRow(x, i, n, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(cityName(h.city))} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, cityName(h.city), beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       ${amenityChips(h)}
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(x.stay)}</span>
@@ -3574,14 +3688,14 @@ function hotelRow(x, i, n, rc){
 }
 PAGES["hotels/item/:id"] = {
   render({ id }){
-    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.hotels, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(cityName(h.city))}, ${esc(countryName(h.city))} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, `${cityName(h.city)}, ${countryName(h.city)}`, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="card stack" style="margin-top:20px">
         <div class="leg-h"><h2>${esc(t("rooms_title"))}</h2><span class="muted small">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.rooms, "room"))}</span></div>
@@ -3609,9 +3723,9 @@ function startHotelCheckout(hid, rid){
   });
 }
 function hotelVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId), lead = o.travellers[0];
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o), lead = o.travellers[0];
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
     <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>
@@ -3703,8 +3817,10 @@ PAGES["tours/results"] = {
   render(){
     const q = M.tours; if (!q.searched) { go(SEARCH_PATH); return null; }
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
+    // Направление убрали в админке, пока открыта выдача, — назад к поиску.
+    if (!all.length) { q.searched = false; go(SEARCH_PATH); return null; }
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : (a, b) => a.total.usd - b.total.usd);
     const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
@@ -3733,8 +3849,8 @@ function tourRow(p, i, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
@@ -3745,14 +3861,14 @@ function tourRow(p, i, rc){
 }
 PAGES["tours/item/:id"] = {
   render({ id }){
-    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.tours, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
@@ -3783,9 +3899,9 @@ function startTourCheckout(hid){
   });
 }
 function tourVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId);
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o);
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
@@ -3941,6 +4057,7 @@ function sendCharterRequest(kind){
   hideErr("#cherr");
   const phone = q.phone || S.user?.phone || "";
   if (isJet && q.from === q.to) return showErr("#cherr", t("err_same_city"));
+  if (isJet && !(destShown(q.from) && destShown(q.to))) return showErr("#cherr", t("dir_gone"));
   if (q.date < TODAY) return showErr("#cherr", t("err_date_past"));
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
@@ -4095,6 +4212,7 @@ Object.assign(ACT, {
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     c.travellers.forEach(x => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
       S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
@@ -4126,8 +4244,8 @@ const hist = (o, s) => o.history.push({ s, at:Date.now() });
 function orderTitle(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${cityName(d.out.from)} → ${cityName(d.out.to)}${d.back ? " → " + cityName(d.back.to) : ""}`;
-  if (o.type === "TOUR")   return `${hotelById(d.hotelId).name} · ${cityName(d.to)}`;
-  if (o.type === "HOTEL")  return hotelById(d.hotelId).name;
+  if (o.type === "TOUR")   return hotelById(d.hotelId) ? `${hotelById(d.hotelId).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
+  if (o.type === "HOTEL")  return hotelById(d.hotelId)?.name || o.title || d.hotelId;
   if (o.type === "JET")    return `${cityName(d.from)} → ${cityName(d.to)}`;
   return heliName(d.to);
 }
@@ -4135,7 +4253,7 @@ function orderSub(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${fdateY(d.out.date)}${d.back ? " — " + fdateY(d.back.date) : ""} · ${pl(d.q.adults + d.q.children + d.q.infants, "pax")}`;
   if (o.type === "TOUR")   return `${fdateY(d.depart)} — ${fdateY(addDays(d.depart, d.nights))} · ${pl(d.nights, "night")} · ${pl(d.adults + d.children, "tourist")}`;
-  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId).city)} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
+  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
   return `${fdateY(d.date)}, ${d.time} · ${pl(d.pax, "pax")} · ${d.model}`;
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
@@ -4143,6 +4261,8 @@ const pill = s => `<span class="pill st-${s}">${esc(t("st_" + s))}</span>`;
 function orderLines(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
+  // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
+  if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
   if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { out:d.out, back:d.back }), q); }
   if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
@@ -4406,6 +4526,7 @@ Object.assign(STR, {
   n_topup_rejected:["Пополнение на {amount} отклонено: {reason}","{amount} to‘ldirish rad etildi: {reason}","Top-up of {amount} rejected: {reason}"],
   n_adjust:["Charteri изменил баланс на {amount}: {reason}","Charteri balansni {amount}ga o‘zgartirdi: {reason}","Charteri changed the balance by {amount}: {reason}"],
   n_blocked:["Charteri приостановил работу агентства: {reason}","Charteri agentlik ishini to‘xtatdi: {reason}","Charteri blocked the agency: {reason}"],
+  n_message:["Сообщение от Charteri: {reason}","Charteri xabari: {reason}","Message from Charteri: {reason}"],
   n_unblocked:["Работа агентства возобновлена","Agentlik ishi tiklandi","The agency has been unblocked"],
   agency_note:["Реквизиты меняются через менеджера Charteri — из кабинета их не подменить.","Rekvizitlar Charteri menejeri orqali o‘zgartiriladi — kabinetdan almashtirib bo‘lmaydi.","Company details change through your Charteri manager, so they can’t be swapped from the workspace."],
   price_currency:["Валюта цен","Narxlar valyutasi","Price currency"],
@@ -4804,7 +4925,7 @@ function bellPanel(){
   const list = S.notes.slice(0, 8);
   return `<div class="bellpanel" id="bellpanel">
     <div class="bell-h"><b>${esc(t("notifications"))}</b>${unread() ? `<button type="button" class="link" data-act="bellread">${esc(t("mark_read"))}</button>` : ""}</div>
-    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + n.orderId : "balance"}" data-act="bellgo">
+    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + n.orderId : n.kind === "message" ? "" : "balance"}" data-act="bellgo">
       <span class="bell-dot"></span><span class="stack" style="gap:2px;min-width:0"><span>${esc(noteText(n))}</span><span class="muted small">${esc(fdt(n.at))}</span></span></a>`).join("")
       : `<p class="muted small" style="padding:12px 16px">${esc(t("notes_empty"))}</p>`}
   </div>`;
@@ -4841,14 +4962,14 @@ function tripRoute(o){
   if (o.type === "FLIGHT") return { local:false, from:d.out.from, to:d.out.to };
   if (o.type === "JET")    return { local:false, from:d.from, to:d.to };
   if (o.type === "TOUR")   return { local:false, from:"TAS", to:d.to };
-  return { local:false, from:"TAS", to:hotelById(d.hotelId).city };
+  return { local:false, from:"TAS", to:hotelById(d.hotelId)?.city || d.to || "IST" };
 }
 const selectedTrip = () => { const trips = upcomingTrips(); return trips.find(o => o.id === M.ui.trip) || trips[0] || null; };
 
 /* Карта сайта берёт маршрут из формы поиска — в кабинете из выбранной поездки. */
 function mapState(){
   const o = selectedTrip();
-  return o ? tripRoute(o) : { local:false, from:"TAS", to:"IST" };
+  return o ? safeRoute(tripRoute(o)) : { local:false, from:"TAS", to:"IST" };
 }
 function glPick(id){
   const o = upcomingTrips().find(x => tripRoute(x).to === id);
@@ -5046,6 +5167,7 @@ Object.assign(ACT, {
   },
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     const due = withFee(c.total);
     if (!agencyActive()) return showErr("#cerr", t("agency_blocked_d"));
     if (due.uzs > S.balance) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) }));
@@ -5753,6 +5875,7 @@ document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id
    ========================================================================== */
 "use strict";
 
+applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); save(); }
 render(true);

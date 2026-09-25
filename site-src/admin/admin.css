@@ -1,12 +1,12 @@
 /* ==========================================================================
-   Админка поверх каркаса кабинета (b2b/panel.css): графитовое меню вместо
-   синего — чтобы сотрудник Charteri не спутал админку с кабинетом агентства.
+   Админка поверх каркаса кабинета (b2b/panel.css), в фирменном дизайне
+   Charteri: то же синее меню, шрифты и цвета, что у сайта и кабинета. От
+   кабинета её отличают подпись «Админка Charteri» и сотрудник внизу меню.
    Таблицы — одна сетка .atable, колонки задаются переменной --cols.
    ========================================================================== */
 :root{--chart:#2F6FE0;--chart-hi:#255FC9;--mint-ink:#0B7A52}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}}
 :root[data-theme="dark"]{--chart:#5E8EEB;--chart-hi:#7AA2EF;--mint-ink:var(--mint)}
-body.adm{--side-bg:linear-gradient(180deg,#1E2129 0%,#121419 100%)}
 body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 .arow.ahead > *{font-size:11px}
 .sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -14,7 +14,6 @@ body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 /* ---- меню и верхняя панель ---- */
 .side-me{margin-top:auto;display:flex;align-items:center;gap:11px;padding:12px;border-radius:16px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
 .side-me b{color:#fff;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.side-me .avatar{background:linear-gradient(155deg,#3B4252,#262B36)}
 .side-role{font-size:12px;color:#A9C6FF}
 .live-pill{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--mint-ink);padding:5px 10px;border-radius:999px;background:var(--mint-bg);white-space:nowrap}
 .live-pill i{width:7px;height:7px;border-radius:50%;background:currentColor;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 25%,transparent)}
@@ -110,6 +109,19 @@ a.arow:hover + .arow{box-shadow:none}
 .blockbar.inline{border-radius:14px;margin-bottom:18px;border:0}
 .rev-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 
+/* ---- направления ---- */
+.dir-pc{width:44px;height:32px;border-radius:9px;display:grid;place-items:center;color:#fff;font:600 12px "IBM Plex Mono",monospace;letter-spacing:.5px;flex:none}
+.dir-hotel{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 90px minmax(0,1.3fr) 110px auto;align-items:end}
+.dir-est{align-self:center}
+.dir-hotels > .ghost{align-self:flex-start}
+.dir-hotel-set{border:0;margin:0;padding:10px 0 0;min-width:0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:8px}
+.dir-hotel-more{align-items:end;gap:14px}
+.dir-hotel-more .field{min-width:200px}
+.arow select.minisel{max-width:100%}
+@container main (max-width:560px){ .dir-hotel-more .field{min-width:0;flex:1 1 100%} }
+.a-cell.wrap{white-space:normal}
+@container main (max-width:860px){ .dir-hotel{grid-template-columns:1fr 1fr} }
+
 /* ---- цены ---- */
 .pr-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .pct-in{position:relative;display:block}
@@ -127,8 +139,6 @@ a.arow:hover + .arow{box-shadow:none}
 .matrix .no{color:var(--faint)}
 
 /* ---- вход ---- */
-.adm-auth .auth-side{background:radial-gradient(120% 95% at 72% 28%,#2A2F3B 0%,#1B1E26 55%,#111318 100%)}
-.adm-auth .auth-side::before{border-color:rgba(255,255,255,.14)}
 
 /* ---- узкая колонка ---- */
 @container main (max-width:1020px){

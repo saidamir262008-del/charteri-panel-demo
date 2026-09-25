@@ -29,6 +29,7 @@ function freshState(){
   return st;
 }
 
+applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 // freshState() форматирует даты и склонения через S.lang — сначала нужен язык.
 if (!S) { S = { v:1, lang:"ru", cur:"UZS", theme:"system", user:null, travellers:[], orders:[] }; S = freshState(); save(); }

@@ -79,8 +79,10 @@ PAGES["tours/results"] = {
   render(){
     const q = M.tours; if (!q.searched) { go(SEARCH_PATH); return null; }
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
+    // Направление убрали в админке, пока открыта выдача, — назад к поиску.
+    if (!all.length) { q.searched = false; go(SEARCH_PATH); return null; }
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
-    list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
+    list.sort(q.sort === "rating" ? (a, b) => (b.h.rating || 0) - (a.h.rating || 0) : (a, b) => a.total.usd - b.total.usd);
     const back = addDays(q.depart, q.nights), f0 = all[0], rc = listEnter(`to:${q.to}:${q.depart}:${q.nights}:${q.adults}:${q.children}`);
     const chk = (act, v, on, label) => `<label class="chk"><input type="checkbox" data-act="${act}" data-v="${v}" ${on ? "checked" : ""}><span>${label}</span></label>`;
     return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
@@ -109,8 +111,8 @@ function tourRow(p, i, rc){
   return `<article class="hotel lift ${rc}" style="--i:${i}" data-flip="${h.id}">${hotelArt(h)}
     <div class="ho-main">
       <div class="ho-h"><h3>${esc(h.name)}</h3>${stars(h.stars)}</div>
-      <span class="muted small">${esc(h.area)} · ${esc(beachText(h))}</span>
-      <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+      <span class="muted small">${esc(joinPlace([h.area, beachText(h)]))}</span>
+      <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
       <div class="incl">${[t("incl_flight"), t("incl_transfer"), t("incl_insurance")].map(x => `<span>${IC.ok}${esc(x)}</span>`).join("")}</div>
     </div>
     <div class="ho-buy"><span class="of-price">${fmt(p.perPerson)}</span>
@@ -121,14 +123,14 @@ function tourRow(p, i, rc){
 }
 PAGES["tours/item/:id"] = {
   render({ id }){
-    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
+    const q = M.tours, h = hotelById(id); if (!h || !q.searched || !RESORTS.includes(h.city)) { go(SEARCH_PATH); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
         <span class="lbl">${esc(t("tour_to"))} ${esc(cityName(q.to))}, ${esc(countryName(q.to))}</span>
         <div class="ho-h"><h1>${esc(h.name)}</h1>${stars(h.stars)}</div>
-        <span class="muted">${esc(h.area)} · ${esc(beachText(h))}</span>
-        <div class="ho-tags"><span class="rating">${h.rating.toFixed(1)}</span><span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
+        <span class="muted">${esc(joinPlace([h.area, beachText(h)]))}</span>
+        <div class="ho-tags">${ratingTag(h)}<span class="tag-b"><b class="mono">${h.board}</b> ${esc(t("board_" + h.board))}</span></div>
         ${amenityChips(h)}</div></div>
       <div class="twocol" style="margin-top:20px">
         <div class="stack">${legCard(p.out, t("leg_out"), an)}${legCard(p.back, t("leg_back"), an, 180)}
@@ -159,9 +161,9 @@ function startTourCheckout(hid){
   });
 }
 function tourVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId);
+  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o);
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(h.area)}, ${esc(cityName(h.city))}</span></div>
+    <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>

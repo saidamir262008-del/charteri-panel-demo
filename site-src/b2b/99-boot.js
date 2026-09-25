@@ -4,6 +4,7 @@
    ========================================================================== */
 "use strict";
 
+applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); save(); }
 render(true);

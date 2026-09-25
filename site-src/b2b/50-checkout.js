@@ -77,6 +77,7 @@ Object.assign(ACT, {
   },
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     const due = withFee(c.total);
     if (!agencyActive()) return showErr("#cerr", t("agency_blocked_d"));
     if (due.uzs > S.balance) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - S.balance) }));

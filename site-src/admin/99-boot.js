@@ -4,6 +4,7 @@
    ========================================================================== */
 "use strict";
 
+applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S); }
 O = loadOps() || freshOps(null);

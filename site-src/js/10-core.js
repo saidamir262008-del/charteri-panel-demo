@@ -328,8 +328,9 @@ function seg(act, options, value, extra = ""){
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
-  const uz = AIRPORTS.filter(a => a.country.ru === "Узбекистан" && a.iata !== exclude);
-  const intl = AIRPORTS.filter(a => a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
+  // Скрытые в админке направления в списках не показываем.
+  const uz = AIRPORTS.filter(a => !a.hidden && a.country.ru === "Узбекистан" && a.iata !== exclude);
+  const intl = AIRPORTS.filter(a => !a.hidden && a.country.ru !== "Узбекистан" && a.iata !== exclude).sort((a, b) => b.popular - a.popular);
   const opt = a => `<option value="${a.iata}" ${a.iata === value ? "selected" : ""}>${esc(a.city[S.lang])} · ${a.iata}</option>`;
   return `<select data-bind="${bind}" data-rr>
     <optgroup label="${esc(t("grp_uzbekistan"))}">${uz.map(opt).join("")}</optgroup>
@@ -366,7 +367,7 @@ function postcard(city, sub = "", big = true){
     <span class="pc-code">${city}</span><span class="pc-city">${esc(cityName(city))}</span>${sub ? `<span class="pc-sub">${esc(sub)}</span>` : ""}</div>`;
 }
 function hotelArt(h, big = false){
-  const [a, b] = PALETTE[h.city];
+  const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
   return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;

@@ -19,7 +19,7 @@ Object.assign(IC, {
 const ADM_NAV = [
   ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["orders", "an_orders", "bag", "orders"],
   ["agencies", "an_agencies", "users", "agencies"], ["customers", "an_customers", "person", "customers"], ["finance", "an_finance", "wallet", "finance"],
-  ["pricing", "an_pricing", "tag", null], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
+  ["pricing", "an_pricing", "tag", null], ["directions", "an_directions", "globe", "catalog"], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
   ["audit", "an_audit", "list", "audit"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
@@ -45,7 +45,7 @@ function renderNav(key){
       <span class="live-pill" title="${esc(t("live_d"))}"><i aria-hidden="true"></i>${esc(t("live_on"))}</span>
       ${can("tasks") ? `<a class="taskchip ${n ? "has" : ""}" href="#/tasks" aria-label="${esc(tf("tasks_n", { n }))}">${IC.inbox}<span class="tc-l" aria-hidden="true">${esc(t("an_tasks"))}</span><b aria-hidden="true">${n}</b></a>` : ""}
       <label class="whosel"><span class="sr-only">${esc(t("switch_staff"))}</span>
-        <select id="whoSel" class="minisel" aria-label="${esc(t("switch_staff"))}">${O.staff.map(s => `<option value="${s.id}" ${s.id === u.id ? "selected" : ""}>${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</option>`).join("")}</select></label>
+        <select id="whoSel" class="minisel" aria-label="${esc(t("switch_staff"))}">${activeStaff().map(s => `<option value="${s.id}" ${s.id === u.id ? "selected" : ""}>${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</option>`).join("")}</select></label>
       <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
     </div></div>`;
   $("#footer").innerHTML = `<div class="foot-in"><p class="small">${esc(t("adm_foot"))}</p><p class="small">${esc(t("credits"))}</p></div>`;
@@ -54,8 +54,8 @@ function renderNav(key){
 
 let whoTimer = 0;
 function switchStaff(id){
-  const s = O.staff.find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
-  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleName(s.role) }); saveOps();
+  const s = activeStaff().find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
+  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); saveOps();
   toast(tf("switched", { name:s.name, role:roleName(s.role) })); render(true);
   $("#whoSel")?.focus({ preventScroll:true });
 }

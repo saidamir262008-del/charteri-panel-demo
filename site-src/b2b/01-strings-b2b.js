@@ -221,6 +221,7 @@ Object.assign(STR, {
   n_topup_rejected:["Пополнение на {amount} отклонено: {reason}","{amount} to‘ldirish rad etildi: {reason}","Top-up of {amount} rejected: {reason}"],
   n_adjust:["Charteri изменил баланс на {amount}: {reason}","Charteri balansni {amount}ga o‘zgartirdi: {reason}","Charteri changed the balance by {amount}: {reason}"],
   n_blocked:["Charteri приостановил работу агентства: {reason}","Charteri agentlik ishini to‘xtatdi: {reason}","Charteri blocked the agency: {reason}"],
+  n_message:["Сообщение от Charteri: {reason}","Charteri xabari: {reason}","Message from Charteri: {reason}"],
   n_unblocked:["Работа агентства возобновлена","Agentlik ishi tiklandi","The agency has been unblocked"],
   agency_note:["Реквизиты меняются через менеджера Charteri — из кабинета их не подменить.","Rekvizitlar Charteri menejeri orqali o‘zgartiriladi — kabinetdan almashtirib bo‘lmaydi.","Company details change through your Charteri manager, so they can’t be swapped from the workspace."],
   price_currency:["Валюта цен","Narxlar valyutasi","Price currency"],
