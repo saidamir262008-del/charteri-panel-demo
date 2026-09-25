@@ -73,7 +73,7 @@ function hotelResults(q){
 }
 PAGES["hotels/results"] = {
   render(){
-    const q = M.hotels; if (!q.searched) { go(""); return null; }
+    const q = M.hotels; if (!q.searched) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
@@ -82,7 +82,7 @@ PAGES["hotels/results"] = {
     return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
         <span class="muted">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.adults + q.children, "guest"))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>
       <div class="container section"><div class="reslayout">
         <aside class="filters"><details class="fbox" data-keep="filters" ${fboxOpen()}><summary>${esc(t("filters"))}</summary><div class="fbody">
           <div class="fgroup"><span class="lbl">${esc(t("sort"))}</span>${seg("hsort", [["price", t("sort_cheapest")], ["rating", t("sort_rating")], ["stars", t("sort_stars")]], q.sort)}</div>
@@ -116,7 +116,7 @@ function hotelRow(x, i, n, rc){
 }
 PAGES["hotels/item/:id"] = {
   render({ id }){
-    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
+    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}

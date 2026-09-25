@@ -849,6 +849,8 @@ input:disabled,select:disabled{opacity:.6}
 <div id="toast"></div>
 <div id="overlay"></div>
 <script>
+"use strict";
+const APP = "b2c";
 /* ---- 00-config.js ---- */
 /* ==========================================================================
    Настройки сайта — всё, что меняется при переезде с демо на боевой сервер.
@@ -1100,6 +1102,7 @@ const STR = {
   mod_jet:["Частные самолёты","Xususiy samolyotlar","Private jets"],
   mod_tours:["Туры","Turlar","Tours"],
   my_orders:["Мои заказы","Buyurtmalarim","My orders"],
+  nav_book:["Бронирование","Bron qilish","Booking"],
   nights:["Ночей","Kechalar","Nights"],
   no_aircraft:["Для такого числа пассажиров нет подходящего борта — уменьшите число или выберите другой класс","Bunday yo‘lovchilar soni uchun mos samolyot yo‘q — sonni kamaytiring yoki boshqa sinfni tanlang","No aircraft fits this many passengers — reduce the number or choose another class"],
   order_missing:["Заказ не найден","Buyurtma topilmadi","Order not found"],
@@ -1491,7 +1494,11 @@ const daysBetween = (a, b) => Math.round((parseYMD(b) - parseYMD(a)) / 864e5);
 const TODAY = ymd(new Date());
 
 /* ---- сохраняемое состояние ---- */
-const LS_KEY = "charteri.site.demo.v1";
+/* APP подставляет build.py: "b2c" — сайт для пассажиров, "b2b" — кабинет агентства.
+   Демо обоих живут на одном домене, поэтому хранилища у них разные. */
+const LS_KEY = APP === "b2b" ? "charteri.panel.demo.v2" : "charteri.site.demo.v1";
+/* Где форма поиска: на сайте — главная, в кабинете — страница «Бронирование». */
+const SEARCH_PATH = APP === "b2b" ? "book" : "";
 let S;
 function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
 function loadState(){
@@ -1578,9 +1585,12 @@ function matchRoute(parts){
   return { key: "", params: {} };
 }
 function go(path){ const h = "#/" + path; if (location.hash === h) render(true); else location.hash = h; }
+/* routeGuard — необязательный хук приложения: вернуть ключ страницы, на которую
+   нужно попасть вместо запрошенной (кабинет агентства без входа — на вход). */
 function render(scrollTop = true){
   applyTheme();
-  const { key, params } = matchRoute(currentParts());
+  const m = matchRoute(currentParts()), guard = typeof routeGuard === "function" ? routeGuard(m.key) : null;
+  const { key, params } = guard ? { key:guard, params:{} } : m;
   const page = PAGES[key] || PAGES[""];
   let html;
   try { html = page.render(params); }
@@ -1592,7 +1602,19 @@ function render(scrollTop = true){
   // иначе протащила бы её через всю высоту предыдущей.
   if (scrollTop) window.scrollTo({ top: 0, behavior: "instant" });
   slideIndicators(); countUps(); rollStepper(); launchFlights();
+  announcePage(scrollTop);
   page.after?.(params);
+}
+/* Новая страница: заголовок вкладки — по её h1, фокус — на h1, чтобы клавиатура
+   и экранный диктор начинали с неё, а не с начала документа. Перерисовка той
+   же страницы (фильтр, степпер) фокус не трогает. */
+const BASE_TITLE = document.title;
+function announcePage(isNav){
+  const h = $("#app h1");
+  document.title = h && currentParts().length ? `${h.textContent.trim()} — ${BASE_TITLE.split(" — ")[0]}` : BASE_TITLE;
+  if (!isNav || !h || !announcePage.ready) { announcePage.ready = true; return; }
+  if ($("#app").contains(document.activeElement)) return;
+  h.tabIndex = -1; h.focus({ preventScroll:true });
 }
 const rerender = () => render(false);
 /* Переход на другую страницу: каскад и табло снова разрешены, смена — через
@@ -1642,8 +1664,14 @@ document.addEventListener("change", onField);
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
   if (!el || el.disabled) return;
-  const fn = ACT[el.dataset.act];
-  if (fn) { e.preventDefault(); fn(el, e); }
+  const fn = ACT[el.dataset.act]; if (!fn) return;
+  e.preventDefault();
+  const had = document.activeElement === el;
+  const twin = `[data-act="${el.dataset.act}"]${el.dataset.v != null ? `[data-v="${CSS.escape(el.dataset.v)}"]` : ""}`;
+  fn(el, e);
+  // Перерисовка заменила нажатую кнопку — фокус переходит на её копию,
+  // иначе клавиатура начинала бы снова с начала страницы.
+  if (had && !el.isConnected) $(twin)?.focus({ preventScroll:true });
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
    выпадающие панели оставались открытыми после перерисовки. */
@@ -1797,6 +1825,9 @@ function withTransition(update, kind = "nav"){
   const root = document.documentElement;
   root.dataset.vt = kind;
   const vt = document.startViewTransition(update);
+  // Страница сама перенаправила (например, оформление без выбранного рейса) —
+  // новый переход отменяет этот; отмена — не ошибка.
+  vt.ready.catch(() => {});
   vt.finished.finally(() => { delete root.dataset.vt; });
 }
 
@@ -1827,7 +1858,7 @@ function slideIndicators(animate = true){
   const reads = $$("[data-ind]").map(g => {
     const k = (g.closest("#nav") ? "nav:" : route + ":") + g.dataset.ind;
     counts[k] = (counts[k] || 0) + 1;
-    const on = g.querySelector('[aria-selected="true"],[aria-pressed="true"]');
+    const on = g.querySelector('[aria-selected="true"],[aria-pressed="true"],[aria-current="page"]');
     return { key: k + ":" + counts[k], ind: g.querySelector(":scope > .ind"), line: "indLine" in g.dataset,
       r: on && on.offsetWidth ? { x:on.offsetLeft, y:on.offsetTop, w:on.offsetWidth, h:on.offsetHeight } : null };
   });
@@ -2755,12 +2786,12 @@ function offerRow(o, i, bestId, rc){
 }
 PAGES["flights/results"] = {
   render(){
-    const f = M.flights; if (!f.searched) { go(""); return null; }
+    const f = M.flights; if (!f.searched) { go(SEARCH_PATH); return null; }
     const q = legQuery(f.leg), key = legKey(f.leg), n = f.adults + f.children + f.infants;
     const head = `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route mono">${q.from} → ${q.to}</span>
         <span class="muted">${esc(fdateLong(q.date))} · ${esc(pl(n, "pax"))} · ${esc(t(f.cabin))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>`;
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>`;
     const legNote = f.type === "roundtrip" ? `<div class="legsteps">
         <span class="${f.leg === "out" ? "on" : "done"}">1 · ${esc(t("leg_out"))}${f.sel.out ? ` — <b class="mono">${f.sel.out.flightNo}</b>` : ""}</span>
         <span class="${f.leg === "back" ? "on" : ""}">2 · ${esc(t("leg_back"))}</span>
@@ -2837,7 +2868,7 @@ function flightLines(out, back, q){
 }
 PAGES["flights/offer"] = {
   render(){
-    const f = M.flights; if (!f.sel.out) { go(""); return null; }
+    const f = M.flights; if (!f.sel.out) { go(SEARCH_PATH); return null; }
     const { lines, total } = flightLines(f.sel.out, f.sel.back, f), an = arcOnce();
     return `<div class="container section">${backLink("flights/results", t("back_results"))}
       ${pageHead(t("flight_details"))}
@@ -2972,7 +3003,7 @@ function hotelResults(q){
 }
 PAGES["hotels/results"] = {
   render(){
-    const q = M.hotels; if (!q.searched) { go(""); return null; }
+    const q = M.hotels; if (!q.searched) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q), all = hotelResults(q), rc = listEnter(`ho:${q.city}:${q.checkin}:${q.checkout}:${q.rooms}`);
     const top = Math.ceil(Math.max(...all.map(x => x.night)) / 10) * 10;
     let list = all.filter(x => (!q.stars.length || q.stars.includes(x.h.stars)) && (!q.boards.length || q.boards.includes(x.h.board)) && (!q.maxNight || x.night <= q.maxNight));
@@ -2981,7 +3012,7 @@ PAGES["hotels/results"] = {
     return `<div class="${resbarCls(q.city)}">${resbarPhoto(q.city)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName(q.city))}</span>
         <span class="muted">${esc(fdate(q.checkin))} — ${esc(fdate(q.checkout))} · ${esc(pl(n, "night"))} · ${esc(pl(q.adults + q.children, "guest"))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>
       <div class="container section"><div class="reslayout">
         <aside class="filters"><details class="fbox" data-keep="filters" ${fboxOpen()}><summary>${esc(t("filters"))}</summary><div class="fbody">
           <div class="fgroup"><span class="lbl">${esc(t("sort"))}</span>${seg("hsort", [["price", t("sort_cheapest")], ["rating", t("sort_rating")], ["stars", t("sort_stars")]], q.sort)}</div>
@@ -3015,7 +3046,7 @@ function hotelRow(x, i, n, rc){
 }
 PAGES["hotels/item/:id"] = {
   render({ id }){
-    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
+    const q = M.hotels, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
     const n = nightsOf(q);
     const rooms = ROOM_TYPES.map(r => ({ r, stay: hotelStay(h, q.checkin, n, q.rooms, r.mult) }));
     return `<div class="container section">${backLink("hotels/results", t("back_results"))}
@@ -3140,7 +3171,7 @@ Object.assign(ACT, {
 
 PAGES["tours/results"] = {
   render(){
-    const q = M.tours; if (!q.searched) { go(""); return null; }
+    const q = M.tours; if (!q.searched) { go(SEARCH_PATH); return null; }
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
@@ -3149,7 +3180,7 @@ PAGES["tours/results"] = {
     return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName("TAS"))} → ${esc(cityName(q.to))}</span>
         <span class="muted">${esc(fdate(q.depart))} — ${esc(fdate(back))} · ${esc(pl(q.nights, "night"))} · ${esc(pl(q.adults + q.children, "tourist"))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>
       <div class="container section">
         <div class="flightstrip card">${IC.flights}<span>${esc(t("tour_flights"))}:</span>
           ${carrierBadge(f0.out.flightNo.split("-")[0], "cb-xs")}<b class="mono">${f0.out.flightNo}</b><span class="muted">${esc(fdate(q.depart))} ${f0.out.depTime}</span>
@@ -3184,7 +3215,7 @@ function tourRow(p, i, rc){
 }
 PAGES["tours/item/:id"] = {
   render({ id }){
-    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
+    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">
@@ -3339,7 +3370,7 @@ function charterPage(kind){
     : `<label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base_short"))}</option></select></label>
        <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="heli.to" data-rr>${HELI_DEST.map(d =>
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
-  return `<div class="container section">${backLink("", t("home"))}
+  return `<div class="container section">${backLink(SEARCH_PATH, t(APP === "b2b" ? "nav_book" : "home"))}
     ${pageHead(t(isJet ? "jet_title" : "heli_title"), t(isJet ? "jet_sub" : "heli_sub"))}
     <div class="twocol"><div class="stack">
       <div class="card stack"><h3>${esc(t("route_when"))}</h3>
@@ -3458,7 +3489,7 @@ function travellerForm(x, i, mode){
 }
 PAGES.checkout = {
   render(){
-    const c = M.checkout; if (!c) { go(""); return null; }
+    const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;

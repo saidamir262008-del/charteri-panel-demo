@@ -23,7 +23,11 @@ const daysBetween = (a, b) => Math.round((parseYMD(b) - parseYMD(a)) / 864e5);
 const TODAY = ymd(new Date());
 
 /* ---- сохраняемое состояние ---- */
-const LS_KEY = "charteri.site.demo.v1";
+/* APP подставляет build.py: "b2c" — сайт для пассажиров, "b2b" — кабинет агентства.
+   Демо обоих живут на одном домене, поэтому хранилища у них разные. */
+const LS_KEY = APP === "b2b" ? "charteri.panel.demo.v2" : "charteri.site.demo.v1";
+/* Где форма поиска: на сайте — главная, в кабинете — страница «Бронирование». */
+const SEARCH_PATH = APP === "b2b" ? "book" : "";
 let S;
 function save(){ try { localStorage.setItem(LS_KEY, JSON.stringify(S)); } catch(e) {} }
 function loadState(){
@@ -110,9 +114,12 @@ function matchRoute(parts){
   return { key: "", params: {} };
 }
 function go(path){ const h = "#/" + path; if (location.hash === h) render(true); else location.hash = h; }
+/* routeGuard — необязательный хук приложения: вернуть ключ страницы, на которую
+   нужно попасть вместо запрошенной (кабинет агентства без входа — на вход). */
 function render(scrollTop = true){
   applyTheme();
-  const { key, params } = matchRoute(currentParts());
+  const m = matchRoute(currentParts()), guard = typeof routeGuard === "function" ? routeGuard(m.key) : null;
+  const { key, params } = guard ? { key:guard, params:{} } : m;
   const page = PAGES[key] || PAGES[""];
   let html;
   try { html = page.render(params); }
@@ -124,7 +131,19 @@ function render(scrollTop = true){
   // иначе протащила бы её через всю высоту предыдущей.
   if (scrollTop) window.scrollTo({ top: 0, behavior: "instant" });
   slideIndicators(); countUps(); rollStepper(); launchFlights();
+  announcePage(scrollTop);
   page.after?.(params);
+}
+/* Новая страница: заголовок вкладки — по её h1, фокус — на h1, чтобы клавиатура
+   и экранный диктор начинали с неё, а не с начала документа. Перерисовка той
+   же страницы (фильтр, степпер) фокус не трогает. */
+const BASE_TITLE = document.title;
+function announcePage(isNav){
+  const h = $("#app h1");
+  document.title = h && currentParts().length ? `${h.textContent.trim()} — ${BASE_TITLE.split(" — ")[0]}` : BASE_TITLE;
+  if (!isNav || !h || !announcePage.ready) { announcePage.ready = true; return; }
+  if ($("#app").contains(document.activeElement)) return;
+  h.tabIndex = -1; h.focus({ preventScroll:true });
 }
 const rerender = () => render(false);
 /* Переход на другую страницу: каскад и табло снова разрешены, смена — через
@@ -174,8 +193,14 @@ document.addEventListener("change", onField);
 document.addEventListener("click", e => {
   const el = e.target.closest("[data-act]");
   if (!el || el.disabled) return;
-  const fn = ACT[el.dataset.act];
-  if (fn) { e.preventDefault(); fn(el, e); }
+  const fn = ACT[el.dataset.act]; if (!fn) return;
+  e.preventDefault();
+  const had = document.activeElement === el;
+  const twin = `[data-act="${el.dataset.act}"]${el.dataset.v != null ? `[data-v="${CSS.escape(el.dataset.v)}"]` : ""}`;
+  fn(el, e);
+  // Перерисовка заменила нажатую кнопку — фокус переходит на её копию,
+  // иначе клавиатура начинала бы снова с начала страницы.
+  if (had && !el.isConnected) $(twin)?.focus({ preventScroll:true });
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
    выпадающие панели оставались открытыми после перерисовки. */

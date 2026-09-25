@@ -46,7 +46,7 @@ function travellerForm(x, i, mode){
 }
 PAGES.checkout = {
   render(){
-    const c = M.checkout; if (!c) { go(""); return null; }
+    const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
     const lines = c.pstate === "changed" ? c.pending.lines : c.lines, total = c.pstate === "changed" ? c.pending.total : c.total;
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;

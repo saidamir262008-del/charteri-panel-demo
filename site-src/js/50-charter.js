@@ -104,7 +104,7 @@ function charterPage(kind){
     : `<label class="field"><span>${esc(t("from"))}</span><select disabled><option>${esc(t("heli_base_short"))}</option></select></label>
        <label class="field"><span>${esc(t("where_to"))}</span><select data-bind="heli.to" data-rr>${HELI_DEST.map(d =>
          `<option value="${d.id}" ${d.id === q.to ? "selected" : ""}>${esc(d.name[S.lang])}</option>`).join("")}</select></label>`;
-  return `<div class="container section">${backLink("", t("home"))}
+  return `<div class="container section">${backLink(SEARCH_PATH, t(APP === "b2b" ? "nav_book" : "home"))}
     ${pageHead(t(isJet ? "jet_title" : "heli_title"), t(isJet ? "jet_sub" : "heli_sub"))}
     <div class="twocol"><div class="stack">
       <div class="card stack"><h3>${esc(t("route_when"))}</h3>

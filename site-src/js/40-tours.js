@@ -75,7 +75,7 @@ Object.assign(ACT, {
 
 PAGES["tours/results"] = {
   render(){
-    const q = M.tours; if (!q.searched) { go(""); return null; }
+    const q = M.tours; if (!q.searched) { go(SEARCH_PATH); return null; }
     const all = HOTELS.filter(h => h.city === q.to).map(h => tourPackage(h, q));
     let list = all.filter(p => (!q.stars.length || q.stars.includes(p.h.stars)) && (!q.boards.length || q.boards.includes(p.h.board)));
     list.sort(q.sort === "rating" ? (a, b) => b.h.rating - a.h.rating : (a, b) => a.total.usd - b.total.usd);
@@ -84,7 +84,7 @@ PAGES["tours/results"] = {
     return `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route">${esc(cityName("TAS"))} → ${esc(cityName(q.to))}</span>
         <span class="muted">${esc(fdate(q.depart))} — ${esc(fdate(back))} · ${esc(pl(q.nights, "night"))} · ${esc(pl(q.adults + q.children, "tourist"))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>
       <div class="container section">
         <div class="flightstrip card">${IC.flights}<span>${esc(t("tour_flights"))}:</span>
           ${carrierBadge(f0.out.flightNo.split("-")[0], "cb-xs")}<b class="mono">${f0.out.flightNo}</b><span class="muted">${esc(fdate(q.depart))} ${f0.out.depTime}</span>
@@ -119,7 +119,7 @@ function tourRow(p, i, rc){
 }
 PAGES["tours/item/:id"] = {
   render({ id }){
-    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(""); return null; }
+    const q = M.tours, h = hotelById(id); if (!h || !q.searched) { go(SEARCH_PATH); return null; }
     const p = tourPackage(h, q), lines = tourLines(p, q), an = arcOnce();
     return `<div class="container section">${backLink("tours/results", t("back_results"))}
       <div class="hhero">${hotelGallery(h)}<div class="stack" style="gap:8px">

@@ -22,6 +22,9 @@ function withTransition(update, kind = "nav"){
   const root = document.documentElement;
   root.dataset.vt = kind;
   const vt = document.startViewTransition(update);
+  // Страница сама перенаправила (например, оформление без выбранного рейса) —
+  // новый переход отменяет этот; отмена — не ошибка.
+  vt.ready.catch(() => {});
   vt.finished.finally(() => { delete root.dataset.vt; });
 }
 
@@ -52,7 +55,7 @@ function slideIndicators(animate = true){
   const reads = $$("[data-ind]").map(g => {
     const k = (g.closest("#nav") ? "nav:" : route + ":") + g.dataset.ind;
     counts[k] = (counts[k] || 0) + 1;
-    const on = g.querySelector('[aria-selected="true"],[aria-pressed="true"]');
+    const on = g.querySelector('[aria-selected="true"],[aria-pressed="true"],[aria-current="page"]');
     return { key: k + ":" + counts[k], ind: g.querySelector(":scope > .ind"), line: "indLine" in g.dataset,
       r: on && on.offsetWidth ? { x:on.offsetLeft, y:on.offsetTop, w:on.offsetWidth, h:on.offsetHeight } : null };
   });

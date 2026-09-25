@@ -172,12 +172,12 @@ function offerRow(o, i, bestId, rc){
 }
 PAGES["flights/results"] = {
   render(){
-    const f = M.flights; if (!f.searched) { go(""); return null; }
+    const f = M.flights; if (!f.searched) { go(SEARCH_PATH); return null; }
     const q = legQuery(f.leg), key = legKey(f.leg), n = f.adults + f.children + f.infants;
     const head = `<div class="${resbarCls(q.to)}">${resbarPhoto(q.to)}<div class="container resbar-in">
         <div><span class="rb-route mono">${q.from} → ${q.to}</span>
         <span class="muted">${esc(fdateLong(q.date))} · ${esc(pl(n, "pax"))} · ${esc(t(f.cabin))}</span></div>
-        <a class="ghost sm" href="#/">${esc(t("edit_search"))}</a></div></div>`;
+        <a class="ghost sm" href="#/${SEARCH_PATH}">${esc(t("edit_search"))}</a></div></div>`;
     const legNote = f.type === "roundtrip" ? `<div class="legsteps">
         <span class="${f.leg === "out" ? "on" : "done"}">1 · ${esc(t("leg_out"))}${f.sel.out ? ` — <b class="mono">${f.sel.out.flightNo}</b>` : ""}</span>
         <span class="${f.leg === "back" ? "on" : ""}">2 · ${esc(t("leg_back"))}</span>
@@ -254,7 +254,7 @@ function flightLines(out, back, q){
 }
 PAGES["flights/offer"] = {
   render(){
-    const f = M.flights; if (!f.sel.out) { go(""); return null; }
+    const f = M.flights; if (!f.sel.out) { go(SEARCH_PATH); return null; }
     const { lines, total } = flightLines(f.sel.out, f.sel.back, f), an = arcOnce();
     return `<div class="container section">${backLink("flights/results", t("back_results"))}
       ${pageHead(t("flight_details"))}

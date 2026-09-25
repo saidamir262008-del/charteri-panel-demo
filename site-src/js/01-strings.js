@@ -169,6 +169,7 @@ const STR = {
   mod_jet:["Частные самолёты","Xususiy samolyotlar","Private jets"],
   mod_tours:["Туры","Turlar","Tours"],
   my_orders:["Мои заказы","Buyurtmalarim","My orders"],
+  nav_book:["Бронирование","Bron qilish","Booking"],
   nights:["Ночей","Kechalar","Nights"],
   no_aircraft:["Для такого числа пассажиров нет подходящего борта — уменьшите число или выберите другой класс","Bunday yo‘lovchilar soni uchun mos samolyot yo‘q — sonni kamaytiring yoki boshqa sinfni tanlang","No aircraft fits this many passengers — reduce the number or choose another class"],
   order_missing:["Заказ не найден","Buyurtma topilmadi","Order not found"],
