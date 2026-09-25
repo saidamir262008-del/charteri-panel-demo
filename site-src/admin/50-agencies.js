@@ -114,6 +114,7 @@ PAGES["agencies/:id"] = {
         <section class="card stack"><h2>${esc(t("msg_h"))}</h2><p class="muted small">${esc(t("msg_d"))}</p>
           <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("b2b.edit") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
           <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("msg_send"))}</button></div></section>
+        ${can("crm.view") ? notesBlock("a:" + a.id) : ""}
         <section class="card stack"><h2>${esc(t("ag_orders"))}</h2>
           ${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a, src:a.id }, i, "", true)).join("")}</div>
             ${can("orders.view") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
@@ -123,6 +124,7 @@ PAGES["agencies/:id"] = {
             <span class="a-num a-keep mono ${l.amount > 0 ? "plus" : ""}">${l.amount > 0 ? "+" : "−"}${grp(Math.abs(l.amount))}</span><span class="a-num mono muted">${grp(l.after)}</span></div>`).join("")}</div>` : `<p class="muted">${esc(t("ledger_empty"))}</p>`}</section>
       </div>
       <aside class="stack sticky">
+        ${can("crm.view") ? `<div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("a:" + a.id, clientData("a:" + a.id)?.manager || null)}</div></div>${tasksBlock("a:" + a.id)}` : ""}
         <div class="card stack"><span class="lbl">${esc(t("balance_now"))}</span><b class="bal-big mono">${grp(st.balance)}<small>${esc(t("cur_uzs"))}</small></b>
           ${pend.length ? `<div class="tasks compact">${pend.map(p => topupRow(p, a)).join("")}</div>` : ""}</div>
         <div class="card stack"><h3>${esc(t("adjust_h"))}</h3><p class="muted small">${esc(t("adjust_d"))}</p>

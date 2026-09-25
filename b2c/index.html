@@ -1005,6 +1005,7 @@ const STR = {
   err_contact:["Укажите телефон в формате +998 XX XXX XX XX","Telefonni +998 XX XXX XX XX formatida kiriting","Enter a phone as +998 XX XXX XX XX"],
   err_date_past:["Эта дата уже прошла","Bu sana o‘tib ketgan","This date has passed"],
   err_dob:["Укажите дату рождения","Tug‘ilgan sanani kiriting","Enter the date of birth"],
+  err_blocked:["Бронирование с этого номера закрыто. Свяжитесь с поддержкой Charteri.","Bu raqamdan bron qilish yopilgan. Charteri qo‘llab-quvvatlash xizmatiga murojaat qiling.","Booking from this number is closed. Please contact Charteri support."],
   err_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
   err_expiry:["Паспорт истекает раньше, чем закончится поездка","Pasport muddati safar tugashidan oldin tugaydi","The passport expires before the trip ends"],
   err_gender:["Укажите пол","Jinsini tanlang","Select gender"],
@@ -1553,6 +1554,9 @@ function refocus(key){ if (key) $(key)?.focus({ preventScroll:true }); }
    Пока админка открыта, она раз в несколько секунд отмечается в OPS_HB —
    тогда демо не отвечает за оператора само (цена чартера, пополнения, возвраты). */
 const PRICES_KEY = "charteri.ops.prices", OPS_HB = "charteri.ops.hb", APPS_KEY = "charteri.ops.apps";
+/* Номера, для которых Charteri закрыл бронирование: список ведёт админка. */
+const BLOCK_KEY = "charteri.ops.blocked";
+const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
 const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
@@ -3611,6 +3615,7 @@ function sendCharterRequest(kind){
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
   if (!validPhone(phone)) return showErr("#cherr", t("err_contact"));
+  if (phoneBlocked(phone)) return showErr("#cherr", t("err_blocked"));
   const title = isJet ? `${cityName(q.from)} → ${cityName(q.to)}` : heliName(q.to);
   createOrder({
     type: isJet ? "JET" : "HELI", status: "NEW",
@@ -3745,6 +3750,7 @@ function validateCheckout(){
   }
   hideErr("#cerr");
   if (!validPhone(c.contact.phone)) { showErr("#cerr", t("err_contact")); return false; }
+  if (phoneBlocked(c.contact.phone)) { showErr("#cerr", t("err_blocked")); return false; }
   if (!validEmail(c.contact.email)) { showErr("#cerr", t("err_email")); return false; }
   return true;
 }
@@ -3998,6 +4004,7 @@ Object.assign(ACT, {
      изменить или отменить заказ в админке. */
   opay:     el => {
     const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING") return;
+    if (phoneBlocked(o0.contact?.phone)) return toast(t("err_blocked"));
     const method = M.ui.opm || "payme";
     overlay(t("processing"));
     setTimeout(() => {
@@ -4011,6 +4018,7 @@ Object.assign(ACT, {
   oreqkind: el => { M.ui.reqKind = el.dataset.v; rerender(); },
   oreqsend: el => {
     const o = S.orders.find(x => x.id === el.dataset.v); if (!o) return;
+    if (phoneBlocked(o.contact?.phone)) return toast(t("err_blocked"));
     o.req = { kind:M.ui.reqKind || "change_date", note:(M.ui.reqNote || "").trim(), at:Date.now() };
     M.ui.reqFor = null; save(); rerender(); toast(t("req_status_new"));
   }

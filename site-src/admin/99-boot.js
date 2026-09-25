@@ -13,4 +13,6 @@ SITE = loadSite();
 seedApps();
 adminPrefs();
 heartbeat();
+crmSync();                        // заявки с сайта и агентств → лиды до первого показа
+syncBlocked();                    // сайт закрывает бронирование ровно тем номерам, что заблокированы в CRM
 render(true);

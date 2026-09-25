@@ -103,6 +103,7 @@ function validateCheckout(){
   }
   hideErr("#cerr");
   if (!validPhone(c.contact.phone)) { showErr("#cerr", t("err_contact")); return false; }
+  if (phoneBlocked(c.contact.phone)) { showErr("#cerr", t("err_blocked")); return false; }
   if (!validEmail(c.contact.email)) { showErr("#cerr", t("err_email")); return false; }
   return true;
 }

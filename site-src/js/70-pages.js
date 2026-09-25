@@ -144,6 +144,7 @@ Object.assign(ACT, {
      изменить или отменить заказ в админке. */
   opay:     el => {
     const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING") return;
+    if (phoneBlocked(o0.contact?.phone)) return toast(t("err_blocked"));
     const method = M.ui.opm || "payme";
     overlay(t("processing"));
     setTimeout(() => {
@@ -157,6 +158,7 @@ Object.assign(ACT, {
   oreqkind: el => { M.ui.reqKind = el.dataset.v; rerender(); },
   oreqsend: el => {
     const o = S.orders.find(x => x.id === el.dataset.v); if (!o) return;
+    if (phoneBlocked(o.contact?.phone)) return toast(t("err_blocked"));
     o.req = { kind:M.ui.reqKind || "change_date", note:(M.ui.reqNote || "").trim(), at:Date.now() };
     M.ui.reqFor = null; save(); rerender(); toast(t("req_status_new"));
   }

@@ -29,7 +29,7 @@ const denied = p => { if (can(p)) return false; toast(t("no_rights")); return tr
 function announce(msg){ const e = $("#adm-live"); if (!e) return; e.textContent = ""; setTimeout(() => { e.textContent = msg; }, 60); }
 
 /* ---- хранилища ---- */
-function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateRoles(migrateStaff(r)) : null; }
+function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateCrm(migrateRoles(migrateStaff(r))) : null; }
 function saveOps(){ delete O._migrated; O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
 const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
@@ -59,6 +59,7 @@ function auditVal(v){
   if ("uzs" in v) return (v.sign && v.uzs > 0 ? "+" : "") + fmtUZS(v.uzs);
   if ("pct" in v) return pctText(v.pct) + "%";
   if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
+  if ("dest" in v) return v.dest.heli ? heliName(v.dest.code) : cityName(v.dest.code);
   return loc(v);
 }
 /* Записи прошлой версии хранили роль строкой "role:operator". */
@@ -145,7 +146,7 @@ function tasks(){
    задачей кассира не считается. */
 function taskCount(){
   const k = tasks();
-  return TASK_KINDS.reduce((n, [key, need]) => n + (can(need) ? k[key].length : 0), 0) + myDecisions().length;
+  return TASK_KINDS.reduce((n, [key, need]) => n + (can(need) ? k[key].length : 0), 0) + myDecisions().length + myReminders().length;
 }
 
 /* ---- демо: сотрудники, ещё три агентства, заявки на подключение ---- */
@@ -238,7 +239,7 @@ function seedAgency(spec){
   return st;
 }
 function freshOps(prev){
-  return migrateRoles({
+  return migrateCrm(migrateRoles({
     v:1, lang:prev?.lang || S?.lang || "ru", theme:prev?.theme || "system", session:prev?.session || null, staff:STAFF.map(s => ({ ...s })), audit:[], approvals:[], rules:null, roles:null,
     agencies:[
       seedAgency({ id:"ag-smk", name:"Samarkand Voyage", legal:"OOO «SAMARKAND VOYAGE»", inn:"307 112 845", phone:"+998 66 233 10 20", email:"sales@samvoyage.uz",
@@ -250,7 +251,7 @@ function freshOps(prev){
       seedAgency({ id:"ag-fgn", name:"Fergana Tours", legal:"OOO «FARG‘ONA TOURS»", inn:"305 998 004", phone:"+998 73 244 12 12", email:"fergana.tours@mail.uz",
         address:"Farg‘ona, Mustaqillik ko‘chasi, 44", color:"#2F3A4A", status:"blocked", blockReasonKey:"seed_block_reason", age:90, orders:3, opening:30_000_000 })
     ]
-  });
+  }));
 }
 /* Две заявки на подключение — пока их нет в общем хранилище. */
 function seedApps(){
@@ -285,14 +286,15 @@ window.addEventListener("pageshow", e => { if (e.persisted) { leaving = false; h
 
 /* Кабинет, сайт, заявки или другая вкладка админки изменили данные. */
 window.addEventListener("storage", e => {
-  if (e.key === SITE_KEY) { SITE = loadSite(); onExternalChange(); }
-  else if (e.key === APPS_KEY) onExternalChange();
+  // Сайт или заявки изменились — CRM подтягивает новые лиды и оплаты.
+  if (e.key === SITE_KEY) { SITE = loadSite(); onExternalChange(); crmSync(); }
+  else if (e.key === APPS_KEY) { onExternalChange(); crmSync(); }
   else if (e.key === OPS_KEY && e.newValue) { const next = loadOps(); if (next) { O = next; onExternalChange(); } }
 });
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"b2c.view", "customers/:phone":"b2c.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";

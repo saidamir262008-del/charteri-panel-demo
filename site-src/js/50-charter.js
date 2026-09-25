@@ -147,6 +147,7 @@ function sendCharterRequest(kind){
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
   if (!validPhone(phone)) return showErr("#cherr", t("err_contact"));
+  if (phoneBlocked(phone)) return showErr("#cherr", t("err_blocked"));
   const title = isJet ? `${cityName(q.from)} → ${cityName(q.to)}` : heliName(q.to);
   createOrder({
     type: isJet ? "JET" : "HELI", status: "NEW",

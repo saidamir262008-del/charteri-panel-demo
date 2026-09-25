@@ -72,6 +72,7 @@ const STR = {
   err_contact:["Укажите телефон в формате +998 XX XXX XX XX","Telefonni +998 XX XXX XX XX formatida kiriting","Enter a phone as +998 XX XXX XX XX"],
   err_date_past:["Эта дата уже прошла","Bu sana o‘tib ketgan","This date has passed"],
   err_dob:["Укажите дату рождения","Tug‘ilgan sanani kiriting","Enter the date of birth"],
+  err_blocked:["Бронирование с этого номера закрыто. Свяжитесь с поддержкой Charteri.","Bu raqamdan bron qilish yopilgan. Charteri qo‘llab-quvvatlash xizmatiga murojaat qiling.","Booking from this number is closed. Please contact Charteri support."],
   err_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
   err_expiry:["Паспорт истекает раньше, чем закончится поездка","Pasport muddati safar tugashidan oldin tugaydi","The passport expires before the trip ends"],
   err_gender:["Укажите пол","Jinsini tanlang","Select gender"],

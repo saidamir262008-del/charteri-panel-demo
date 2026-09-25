@@ -72,6 +72,9 @@ function refocus(key){ if (key) $(key)?.focus({ preventScroll:true }); }
    Пока админка открыта, она раз в несколько секунд отмечается в OPS_HB —
    тогда демо не отвечает за оператора само (цена чартера, пополнения, возвраты). */
 const PRICES_KEY = "charteri.ops.prices", OPS_HB = "charteri.ops.hb", APPS_KEY = "charteri.ops.apps";
+/* Номера, для которых Charteri закрыл бронирование: список ведёт админка. */
+const BLOCK_KEY = "charteri.ops.blocked";
+const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
 const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };

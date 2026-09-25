@@ -127,6 +127,7 @@ function decideApp(id, ok, reason = ""){
     audit(ok ? "app_ok" : "app_rejected", { company:a.company, reason });
   });
   toast(tf(ok ? "t_app_ok" : "t_app_rejected", { company:a.company }));
+  crmSync();                                     // лид агентства переходит в «Завершён» или «Потерян»
   return true;
 }
 function setBlocked(aid, blocked, reason = ""){

@@ -1467,6 +1467,57 @@ a.arow:hover + .arow{box-shadow:none}
 .au-find .minisel{max-width:220px}
 .au-table .a-key{display:flex;flex-direction:column;gap:2px}
 
+/* ---- CRM ----
+   Этапы воронки: холодные — нейтральные, в работе — синие, итог — зелёный
+   или приглушённый красный. Цвет всегда вместе с подписью этапа. */
+.ls-new{background:var(--sunken);color:var(--muted)}
+.ls-contacted,.ls-progress,.ls-interested{background:var(--sky);color:var(--navy)}
+.ls-confirmed,.ls-completed{background:var(--mint-bg);color:var(--mint-ink)}
+.ls-lost{background:var(--warn-bg);color:var(--warn)}
+.seg-new{background:var(--sunken);color:var(--muted)}
+.seg-active{background:var(--sky);color:var(--navy)}
+.seg-vip{background:var(--navy);color:#fff}
+.seg-inactive{background:var(--sunken);color:var(--faint)}
+.seg-blocked{background:var(--warn-bg);color:var(--warn)}
+.avatar.xs{width:24px;height:24px;border-radius:8px;font-size:10px;flex:none}
+.who-chip{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.lboard{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity;position:relative}
+.lboard:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:12px}
+.bcol{display:flex;flex-direction:column;gap:10px;min-width:0;padding:12px;border-radius:18px;background:var(--sunken);scroll-snap-align:start}
+.bcol-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bcol-h h3{font-size:14px;margin:0;color:var(--navy)}
+.bcol-h .count{margin-left:0}
+.bcol-h .mono{margin-left:auto}
+.bcards{display:flex;flex-direction:column;gap:8px}
+.lcard{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:14px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border)}
+.lcard-main{display:flex;flex-direction:column;gap:2px;min-width:0;color:inherit}
+.lcard-main b{color:var(--navy)}
+.lcard-main:hover b{color:var(--blue)}
+.lcard-foot{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lcard-foot .avatar{margin-left:auto}
+.lcard-foot svg{width:16px;height:16px;vertical-align:-3px}
+.lcard > .link{align-self:flex-start}
+.lstepper{display:flex;flex-wrap:wrap;gap:6px}
+.lstep{border:0;font:inherit;font-size:13.5px;font-weight:600;padding:8px 12px;border-radius:999px;background:var(--sunken);color:var(--muted);cursor:pointer;transition:background-color 160ms ease,color 160ms ease}
+.lstep.past{background:var(--sky);color:var(--navy)}
+.lstep[aria-pressed="true"]{box-shadow:inset 0 0 0 2px currentColor}
+.lstep[aria-pressed="true"].ls-new{background:var(--sunken);color:var(--ink)}
+.lstep[aria-pressed="true"].ls-contacted,.lstep[aria-pressed="true"].ls-progress,.lstep[aria-pressed="true"].ls-interested{background:var(--sky);color:var(--navy)}
+.lstep[aria-pressed="true"].ls-confirmed,.lstep[aria-pressed="true"].ls-completed{background:var(--mint-bg);color:var(--mint-ink)}
+.lstep[aria-pressed="true"].ls-lost{background:var(--warn-bg);color:var(--warn)}
+.lstep:disabled{cursor:default}
+.note-form{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;align-items:start}
+.note-form textarea{min-height:44px;resize:vertical}
+.feed-dot.nk-call{background:var(--blue)}
+.feed-dot.nk-meeting{background:var(--mint)}
+.feed-dot.nk-message,.feed-dot.nk-email{background:var(--navy)}
+.crm-tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.crm-task{display:flex;flex-direction:column;gap:4px;padding:9px 0;border-top:1px solid var(--line)}
+.crm-tasks > .crm-task:first-child{border-top:0}
+.crm-task-meta{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;padding-left:28px}
+.crm-task.done .chk span{text-decoration:line-through;color:var(--faint)}
+.task-form{border-top:1px dashed var(--line);padding-top:12px}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
@@ -1492,6 +1543,8 @@ a.arow:hover + .arow{box-shadow:none}
   .arow > .or-ic,.arow > .a-cell:not(.a-key):not(.a-sub),.arow > .a-num:not(.a-keep){display:none}
   .arow > .a-sub{font-size:12px;color:var(--muted)}
   .arow.ahead{display:none}
+  .note-form{grid-template-columns:1fr}
+  .ohead > .row{grid-column:1 / -1}
   /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
   .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
@@ -1685,6 +1738,7 @@ const STR = {
   err_contact:["Укажите телефон в формате +998 XX XXX XX XX","Telefonni +998 XX XXX XX XX formatida kiriting","Enter a phone as +998 XX XXX XX XX"],
   err_date_past:["Эта дата уже прошла","Bu sana o‘tib ketgan","This date has passed"],
   err_dob:["Укажите дату рождения","Tug‘ilgan sanani kiriting","Enter the date of birth"],
+  err_blocked:["Бронирование с этого номера закрыто. Свяжитесь с поддержкой Charteri.","Bu raqamdan bron qilish yopilgan. Charteri qo‘llab-quvvatlash xizmatiga murojaat qiling.","Booking from this number is closed. Please contact Charteri support."],
   err_email:["Проверьте адрес почты","Email manzilini tekshiring","Check the email address"],
   err_expiry:["Паспорт истекает раньше, чем закончится поездка","Pasport muddati safar tugashidan oldin tugaydi","The passport expires before the trip ends"],
   err_gender:["Укажите пол","Jinsini tanlang","Select gender"],
@@ -2233,6 +2287,9 @@ function refocus(key){ if (key) $(key)?.focus({ preventScroll:true }); }
    Пока админка открыта, она раз в несколько секунд отмечается в OPS_HB —
    тогда демо не отвечает за оператора само (цена чартера, пополнения, возвраты). */
 const PRICES_KEY = "charteri.ops.prices", OPS_HB = "charteri.ops.hb", APPS_KEY = "charteri.ops.apps";
+/* Номера, для которых Charteri закрыл бронирование: список ведёт админка. */
+const BLOCK_KEY = "charteri.ops.blocked";
+const phoneBlocked = p => { const d = String(p ?? "").replace(/\D/g, ""), l = readJSON(BLOCK_KEY, []); return !!d && Array.isArray(l) && l.includes(d); };
 const readJSON = (k, fallback) => { try { return JSON.parse(localStorage.getItem(k)) ?? fallback; } catch(e) { return fallback; } };
 const writeJSON = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} };
 const PRICE_DEFAULTS = { feeBps:300, flightMarkupBps:1000 };
@@ -4291,6 +4348,7 @@ function sendCharterRequest(kind){
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
   if (!validPhone(phone)) return showErr("#cherr", t("err_contact"));
+  if (phoneBlocked(phone)) return showErr("#cherr", t("err_blocked"));
   const title = isJet ? `${cityName(q.from)} → ${cityName(q.to)}` : heliName(q.to);
   createOrder({
     type: isJet ? "JET" : "HELI", status: "NEW",
@@ -4425,6 +4483,7 @@ function validateCheckout(){
   }
   hideErr("#cerr");
   if (!validPhone(c.contact.phone)) { showErr("#cerr", t("err_contact")); return false; }
+  if (phoneBlocked(c.contact.phone)) { showErr("#cerr", t("err_blocked")); return false; }
   if (!validEmail(c.contact.email)) { showErr("#cerr", t("err_email")); return false; }
   return true;
 }
@@ -5229,8 +5288,7 @@ Object.assign(STR, {
   unblock_h:["Агентство заблокировано","Agentlik bloklangan","Agency blocked"],
   unblock_d:["Разблокировка вернёт агентству оплату и пополнение.","Blokdan chiqarish agentlikka to‘lov va to‘ldirishni qaytaradi.","Unblocking restores payments and top-ups."],
   unblock_cta:["Разблокировать","Blokdan chiqarish","Unblock"],
-
-  customers_sub:["Покупатели сайта по номеру телефона: заказы и сохранённые пассажиры.","Telefon raqami bo‘yicha sayt xaridorlari: buyurtmalar va saqlangan yo‘lovchilar.","Site buyers by phone number: orders and saved travellers."],
+  customers_sub:["Пассажиры сайта: сегменты, заказы, платежи и доступ к бронированию.","Sayt yo‘lovchilari: segmentlar, buyurtmalar, to‘lovlar va bron qilishga kirish.","Site customers: segments, orders, payments and booking access."],
   customers_empty:["На сайте пока никто не покупал","Saytda hali hech kim xarid qilmagan","No purchases on the site yet"],
   customer_missing:["Покупатель не найден","Xaridor topilmadi","Customer not found"],
   col_spent:["Оплачено","To‘langan","Paid"],
@@ -5706,6 +5764,186 @@ Object.assign(STR, {
   ap_withdrawn_at:["Снят: {name}, {ago}","Olib tashlandi: {name}, {ago}","Withdrawn by {name}, {ago}"],
   rules_unsaved:["Изменения не сохранены","O‘zgarishlar saqlanmagan","Unsaved changes"],
   a_role_migrate:["{name}: роль основателя назначена при переходе на новые роли","{name}: yangi rollarga o‘tishda asoschi roli berildi","{name} was made founder during the move to the new roles"],
+  /* ---- этап 2: CRM и пассажиры ---- */
+  an_crm:["CRM","CRM","CRM"],
+  crm_sub_all:["Лиды всех менеджеров, клиенты сайта и агентства, задачи и напоминания.","Barcha menejerlar lidlari, sayt mijozlari va agentliklar, vazifalar va eslatmalar.","Leads of every manager, site customers and agencies, tasks and reminders."],
+  crm_sub_mine:["Ваши лиды и ничьи — их можно взять себе. Клиенты, задачи и напоминания.","Sizning va egasiz lidlar — ularni o‘zingizga olishingiz mumkin. Mijozlar, vazifalar va eslatmalar.","Your leads and unassigned ones you can take. Customers, tasks and reminders."],
+  crm_tab_board:["Воронка","Voronka","Pipeline"],
+  crm_tab_leads:["Лиды","Lidlar","Leads"],
+  crm_tab_clients:["Клиенты","Mijozlar","Customers"],
+  crm_tab_tasks:["Задачи","Vazifalar","Tasks"],
+  ls_new:["Новый","Yangi","New"],
+  ls_contacted:["Связались","Bog‘lanildi","Contacted"],
+  ls_progress:["В работе","Ishlanmoqda","In progress"],
+  ls_interested:["Заинтересован","Qiziqmoqda","Interested"],
+  ls_confirmed:["Подтверждён","Tasdiqlandi","Confirmed"],
+  ls_completed:["Завершён","Yakunlandi","Completed"],
+  ls_lost:["Потерян","Yo‘qotildi","Lost"],
+  src_phone:["Звонок","Qo‘ng‘iroq","Phone call"],
+  src_telegram:["Telegram","Telegram","Telegram"],
+  src_instagram:["Instagram","Instagram","Instagram"],
+  src_whatsapp:["WhatsApp","WhatsApp","WhatsApp"],
+  src_email:["Почта","Pochta","Email"],
+  src_referral:["Рекомендация","Tavsiya","Referral"],
+  src_walk_in:["Визит в офис","Ofisga tashrif","Office visit"],
+  src_site:["Сайт","Sayt","Website"],
+  src_other:["Другое","Boshqa","Other"],
+  src_site_charter:["Сайт: заявка на чартер","Sayt: charter arizasi","Website: charter request"],
+  src_b2b_app:["Заявка агентства","Agentlik arizasi","Agency application"],
+  seg_new:["Новый","Yangi","New"],
+  seg_active:["Активный","Faol","Active"],
+  seg_vip:["VIP","VIP","VIP"],
+  seg_inactive:["Неактивный","Nofaol","Inactive"],
+  seg_blocked:["Заблокирован","Bloklangan","Blocked"],
+  seg_note:["VIP — оплатили от {vip}; активный — платил за последние {days} дней; неактивный — давно не платил; новый — ещё не платил.","VIP — {vip} dan to‘lagan; faol — oxirgi {days} kunda to‘lagan; nofaol — anchadan beri to‘lamagan; yangi — hali to‘lamagan.","VIP: paid {vip} or more. Active: paid in the last {days} days. Inactive: hasn’t paid for a while. New: hasn’t paid yet."],
+  nk_note:["Заметка","Qayd","Note"],
+  nk_call:["Звонок","Qo‘ng‘iroq","Call"],
+  nk_message:["Сообщение","Xabar","Message"],
+  nk_meeting:["Встреча","Uchrashuv","Meeting"],
+  nk_email:["Письмо","Xat","Email"],
+  crm_name:["Имя","Ism","Name"],
+  crm_country:["Страна","Mamlakat","Country"],
+  crm_source:["Источник","Manba","Source"],
+  crm_service:["Услуга","Xizmat","Service"],
+  crm_dest:["Направление","Yo‘nalish","Destination"],
+  crm_budget:["Бюджет, $","Byudjet, $","Budget, $"],
+  crm_interest:["Интерес","Qiziqish","Interest"],
+  crm_manager:["Ответственный","Mas’ul","Owner"],
+  crm_stage:["Этап","Bosqich","Stage"],
+  crm_type:["Тип","Turi","Type"],
+  crm_segment:["Сегмент","Segment","Segment"],
+  crm_person:["Контактное лицо","Aloqa shaxsi","Contact person"],
+  crm_created:["Создан","Yaratilgan","Created"],
+  crm_since:["Клиент с","Mijoz sanasi","Customer since"],
+  crm_lead:["Лид","Lid","Lead"],
+  crm_lead_b2b:["Лид B2B","B2B lid","B2B lead"],
+  crm_leads:["Лиды","Lidlar","Leads"],
+  crm_clients:["Клиенты","Mijozlar","Customers"],
+  crm_board:["Воронка лидов","Lidlar voronkasi","Lead pipeline"],
+  crm_lead_new:["Новый лид","Yangi lid","New lead"],
+  crm_lead_edit:["Данные лида","Lid ma’lumotlari","Lead details"],
+  crm_lead_create:["Создать лид","Lid yaratish","Create lead"],
+  crm_first_note:["Комментарий","Izoh","Comment"],
+  crm_no_interest:["Интерес не указан","Qiziqish ko‘rsatilmagan","No interest noted"],
+  crm_col_empty:["Пусто","Bo‘sh","Empty"],
+  crm_move_to:["Дальше: {stage}","Keyingisi: {stage}","Move to {stage}"],
+  crm_leads_none:["Лидов с такими условиями нет.","Bunday shartli lidlar yo‘q.","No leads match."],
+  crm_all_stages:["Все этапы","Barcha bosqichlar","All stages"],
+  crm_open:["Открытые","Ochiq","Open"],
+  crm_all_sources:["Все источники","Barcha manbalar","All sources"],
+  crm_all_managers:["Все сотрудники","Barcha xodimlar","Everyone"],
+  crm_nobody:["Не назначен","Tayinlanmagan","Unassigned"],
+  crm_search:["Имя, телефон, № лида","Ism, telefon, lid raqami","Name, phone, lead no."],
+  crm_search_c:["Имя, телефон, почта","Ism, telefon, pochta","Name, phone, email"],
+  crm_count:["Найдено: {n}","Topildi: {n}","Found: {n}"],
+  crm_all:["Все","Barchasi","All"],
+  crm_all_segments:["Все сегменты","Barcha segmentlar","All segments"],
+  crm_done:["Выполнены","Bajarilgan","Done"],
+  crm_today:["Сегодня","Bugun","Today"],
+  crm_later:["Позже","Keyinroq","Later"],
+  crm_overdue:["Просрочено","Muddati o‘tgan","Overdue"],
+  crm_open_tasks:["Открытые","Ochiq","Open"],
+  crm_assignee:["Исполнитель","Ijrochi","Assignee"],
+  crm_mine:["Мои","Meniki","Mine"],
+  crm_tasks_none:["Задач пока нет.","Hozircha vazifalar yo‘q.","No tasks yet."],
+  crm_tasks_clear:["Открытых задач нет.","Ochiq vazifalar yo‘q.","No open tasks."],
+  le_created:["Лид создан · {src}","Lid yaratildi · {src}","Lead created · {src}"],
+  le_status:["Этап: {from} → {to}","Bosqich: {from} → {to}","Stage: {from} → {to}"],
+  le_auto:["автоматически","avtomatik","automatic"],
+  le_assign:["Ответственный: {name}","Mas’ul: {name}","Owner: {name}"],
+  le_link:["В карточку добавлен заказ {no}","Kartaga {no} buyurtmasi qo‘shildi","Order {no} added to the card"],
+  le_edit:["Изменены данные: {fields}","Ma’lumotlar o‘zgardi: {fields}","Details changed: {fields}"],
+  le_system:["Система","Tizim","System"],
+  crm_lost_ph:["Почему потеряли","Nega yo‘qotildi","Why it was lost"],
+  crm_mark_lost:["Отметить потерянным","Yo‘qotilgan deb belgilash","Mark as lost"],
+  crm_lost_reason:["Причина","Sabab","Reason"],
+  lost_order_cancelled:["Заявка отменена","Ariza bekor qilindi","Request cancelled"],
+  crm_lead_missing:["Лид не найден или закреплён за другим менеджером","Lid topilmadi yoki boshqa menejerga biriktirilgan","Lead not found or owned by another manager"],
+  crm_orders_none:["Заказов пока нет. Заказы с сайта на номер лида появятся здесь сами.","Hozircha buyurtmalar yo‘q. Lid raqamiga saytdan qilingan buyurtmalar bu yerda o‘zi paydo bo‘ladi.","No orders yet. Site orders from the lead’s number show up here automatically."],
+  crm_history:["История","Tarix","History"],
+  crm_contact:["Контакты","Kontaktlar","Contacts"],
+  crm_client_card:["Карточка клиента","Mijoz kartasi","Customer card"],
+  crm_lead_delete:["Удалить лид","Lidni o‘chirish","Delete lead"],
+  crm_lead_delete_q:["Удалить лид {no}? Комментарии останутся в карточке клиента, задачи по лиду удалятся.","{no} lidini o‘chirasizmi? Izohlar mijoz kartasida qoladi, lid vazifalari o‘chadi.","Delete lead {no}? Comments stay on the customer card; the lead’s tasks are deleted."],
+  err_lead_contact:["Нужен телефон или почта","Telefon yoki pochta kerak","Enter a phone number or email"],
+  err_budget:["Бюджет — целое число долларов","Byudjet — butun dollar","Budget must be whole dollars"],
+  err_lead_dup:["С этим номером уже есть открытый лид {no}","Bu raqam bilan ochiq {no} lid bor","Open lead {no} already has this number"],
+  t_lead_new:["Лид {no} создан","{no} lid yaratildi","Lead {no} created"],
+  t_lead_saved:["Данные лида сохранены","Lid ma’lumotlari saqlandi","Lead saved"],
+  t_lead_stage:["Этап: {stage}","Bosqich: {stage}","Stage: {stage}"],
+  t_lead_deleted:["Лид удалён","Lid o‘chirildi","Lead deleted"],
+  crm_notes:["Комментарии и контакты","Izohlar va aloqalar","Comments and contacts"],
+  crm_note_kind:["Вид","Turi","Kind"],
+  crm_note_ph:["Что обсудили, что договорились","Nima muhokama qilindi, nimaga kelishildi","What you discussed and agreed"],
+  crm_note_text:["Текст","Matn","Text"],
+  crm_note_add:["Записать","Yozish","Add"],
+  crm_notes_none:["Записей пока нет.","Hozircha yozuvlar yo‘q.","No entries yet."],
+  t_crm_note:["Записано","Yozildi","Saved"],
+  crm_tasks:["Задачи и напоминания","Vazifalar va eslatmalar","Tasks and reminders"],
+  crm_task_text:["Что сделать","Nima qilish kerak","To do"],
+  crm_task_ph:["Например: перезвонить и отправить цену","Masalan: qayta qo‘ng‘iroq qilib, narxni yuborish","For example: call back and send the price"],
+  crm_task_due:["Срок","Muddat","Due"],
+  crm_task_add:["Добавить задачу","Vazifa qo‘shish","Add task"],
+  crm_take:["Взять себе","O‘zimga olish","Take it"],
+  err_task_text:["Напишите, что сделать","Nima qilishni yozing","Write what needs doing"],
+  err_task_due:["Укажите срок","Muddatni kiriting","Set a due date"],
+  err_task_who:["Выберите исполнителя","Ijrochini tanlang","Choose an assignee"],
+  t_task_new:["Задача поставлена: {name}","Vazifa qo‘yildi: {name}","Task set for {name}"],
+  t_crm_assign:["Ответственный: {name}","Mas’ul: {name}","Owner: {name}"],
+  tk_rem:["Напоминания CRM","CRM eslatmalari","CRM reminders"],
+  tk_rem_d:["Ваши задачи со сроком на сегодня и просроченные.","Bugungi va muddati o‘tgan vazifalaringiz.","Your tasks due today and overdue."],
+  cust_new:["Новый клиент","Yangi mijoz","New customer"],
+  cust_edit:["Данные клиента","Mijoz ma’lumotlari","Customer details"],
+  cust_create:["Добавить клиента","Mijoz qo‘shish","Add customer"],
+  err_cust_dup:["Клиент с этим номером уже есть","Bu raqamli mijoz bor","A customer with this number already exists"],
+  t_client_saved:["Данные клиента сохранены","Mijoz ma’lumotlari saqlandi","Customer saved"],
+  t_client_new:["Клиент добавлен: {name}","Mijoz qo‘shildi: {name}","Customer added: {name}"],
+  ce_block:["Бронирование закрыто: {reason}","Bron qilish yopildi: {reason}","Booking closed: {reason}"],
+  ce_unblock:["Бронирование снова открыто","Bron qilish yana ochildi","Booking reopened"],
+  ce_created:["Клиент добавлен в CRM","Mijoz CRMga qo‘shildi","Customer added to CRM"],
+  ce_edit:["Изменены данные клиента","Mijoz ma’lumotlari o‘zgardi","Customer details changed"],
+  crm_requests:["Заявки и лиды","Arizalar va lidlar","Requests and leads"],
+  crm_requests_none:["Заявок пока нет.","Hozircha arizalar yo‘q.","No requests yet."],
+  crm_payments:["Платежи","To‘lovlar","Payments"],
+  crm_pay:["Оплата","To‘lov","Payment"],
+  crm_refund:["Возврат","Qaytim","Refund"],
+  crm_payments_none:["Платежей пока нет.","Hozircha to‘lovlar yo‘q.","No payments yet."],
+  cust_blocked_h:["Бронирование закрыто.","Bron qilish yopilgan.","Booking closed."],
+  cust_access:["Доступ к бронированию","Bron qilishga kirish","Booking access"],
+  cust_blocked_d:["Сайт не даёт оформить заказ или заявку с этого номера.","Sayt bu raqamdan buyurtma yoki ariza berishga ruxsat bermaydi.","The site won’t accept orders or requests from this number."],
+  cust_active_d:["Клиент может бронировать на сайте. Закрыть — с причиной, её увидят сотрудники.","Mijoz saytda bron qila oladi. Yopish — sabab bilan, uni xodimlar ko‘radi.","The customer can book on the site. Closing it needs a reason, which staff will see."],
+  cust_block_ph:["Например: неоплаченные брони","Masalan: to‘lanmagan bronlar","For example: unpaid bookings"],
+  cust_st_on:["Бронирование открыто","Bron qilish ochiq","Booking open"],
+  cust_st_off:["Бронирование закрыто","Bron qilish yopiq","Booking closed"],
+  t_client_blocked:["Бронирование для клиента закрыто","Mijoz uchun bron qilish yopildi","Booking closed for this customer"],
+  t_client_unblocked:["Бронирование снова открыто","Bron qilish yana ochildi","Booking reopened"],
+  a_lead_new:["Создан лид {no}: {name}","{no} lid yaratildi: {name}","Created lead {no}: {name}"],
+  a_lead_edit:["Изменён лид {no}: {name}","{no} lid o‘zgartirildi: {name}","Edited lead {no}: {name}"],
+  a_lead_status:["Этап лида {no}: {name}","{no} lid bosqichi: {name}","Lead {no} stage: {name}"],
+  a_lead_delete:["Удалён лид {no}: {name}. Задач удалено: {tasks}","{no} lid o‘chirildi: {name}. O‘chirilgan vazifalar: {tasks}","Deleted lead {no}: {name}. Tasks deleted: {tasks}"],
+  a_crm_note:["{what}: {target}","{what}: {target}","{what}: {target}"],
+  a_crm_assign:["Сменён ответственный: {target}","Mas’ul o‘zgartirildi: {target}","Owner changed: {target}"],
+  a_task_new:["Задача «{text}» для {name}: {target}","«{text}» vazifasi {name} uchun: {target}","Task “{text}” for {name}: {target}"],
+  a_task_done:["Выполнена задача «{text}»: {target}","«{text}» vazifasi bajarildi: {target}","Completed task “{text}”: {target}"],
+  a_task_reopen:["Задача снова открыта «{text}»: {target}","«{text}» vazifasi qayta ochildi: {target}","Reopened task “{text}”: {target}"],
+  a_client_new:["Добавлен клиент {name}","{name} mijoz qo‘shildi","Added customer {name}"],
+  a_client_edit:["Изменены данные клиента {name}","{name} mijoz ma’lumotlari o‘zgardi","Changed details of {name}"],
+  a_client_block:["Бронирование закрыто: {name} — {reason}","Bron qilish yopildi: {name} — {reason}","Booking closed: {name}, {reason}"],
+  a_client_unblock:["Бронирование открыто: {name}","Bron qilish ochildi: {name}","Booking reopened: {name}"],
+  m_crm:["CRM","CRM","CRM"],
+  crm_b2b_interest:["Подключение к Charteri","Charteri’ga ulanish","Joining Charteri"],
+  pm_crm_view:["видеть свои и ничьи лиды, клиентов, задачи","o‘z va egasiz lidlar, mijozlar, vazifalarni ko‘rish","see own and unassigned leads, customers, tasks"],
+  pm_crm_create:["создавать лиды","lid yaratish","create leads"],
+  pm_crm_edit:["вести лиды: этапы, комментарии, задачи","lidlarni yuritish: bosqichlar, izohlar, vazifalar","work leads: stages, comments, tasks"],
+  pm_crm_delete:["удалять лиды","lidlarni o‘chirish","delete leads"],
+  pm_crm_export:["выгружать лиды и клиентов","lidlar va mijozlarni yuklab olish","export leads and customers"],
+  pm_crm_manage:["видеть все лиды и назначать ответственных","barcha lidlarni ko‘rish va mas’ul tayinlash","see all leads and assign owners"],
+  pm_b2c_manage:["закрывать и открывать бронирование","bron qilishni yopish va ochish","close and reopen booking"],
+  pm_b2c_export:["выгружать список пассажиров","yo‘lovchilar ro‘yxatini yuklab olish","export the customer list"],
+  err_name_short:["Введите имя","Ismni kiriting","Enter a name"],
+  err_note:["Напишите, о чём договорились","Nimaga kelishilganini yozing","Write what you agreed"],
+  crm_none_match:["Ничего не найдено. Измените фильтр или поиск.","Hech narsa topilmadi. Filtr yoki qidiruvni o‘zgartiring.","Nothing found. Change the filter or search."],
+  crm_last_activity:["Последняя активность","Oxirgi faollik","Last activity"]
 });
 
 /* ---- 10-ops.js ---- */
@@ -5740,7 +5978,7 @@ const denied = p => { if (can(p)) return false; toast(t("no_rights")); return tr
 function announce(msg){ const e = $("#adm-live"); if (!e) return; e.textContent = ""; setTimeout(() => { e.textContent = msg; }, 60); }
 
 /* ---- хранилища ---- */
-function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateRoles(migrateStaff(r)) : null; }
+function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateCrm(migrateRoles(migrateStaff(r))) : null; }
 function saveOps(){ delete O._migrated; O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
 const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
@@ -5770,6 +6008,7 @@ function auditVal(v){
   if ("uzs" in v) return (v.sign && v.uzs > 0 ? "+" : "") + fmtUZS(v.uzs);
   if ("pct" in v) return pctText(v.pct) + "%";
   if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
+  if ("dest" in v) return v.dest.heli ? heliName(v.dest.code) : cityName(v.dest.code);
   return loc(v);
 }
 /* Записи прошлой версии хранили роль строкой "role:operator". */
@@ -5856,7 +6095,7 @@ function tasks(){
    задачей кассира не считается. */
 function taskCount(){
   const k = tasks();
-  return TASK_KINDS.reduce((n, [key, need]) => n + (can(need) ? k[key].length : 0), 0) + myDecisions().length;
+  return TASK_KINDS.reduce((n, [key, need]) => n + (can(need) ? k[key].length : 0), 0) + myDecisions().length + myReminders().length;
 }
 
 /* ---- демо: сотрудники, ещё три агентства, заявки на подключение ---- */
@@ -5949,7 +6188,7 @@ function seedAgency(spec){
   return st;
 }
 function freshOps(prev){
-  return migrateRoles({
+  return migrateCrm(migrateRoles({
     v:1, lang:prev?.lang || S?.lang || "ru", theme:prev?.theme || "system", session:prev?.session || null, staff:STAFF.map(s => ({ ...s })), audit:[], approvals:[], rules:null, roles:null,
     agencies:[
       seedAgency({ id:"ag-smk", name:"Samarkand Voyage", legal:"OOO «SAMARKAND VOYAGE»", inn:"307 112 845", phone:"+998 66 233 10 20", email:"sales@samvoyage.uz",
@@ -5961,7 +6200,7 @@ function freshOps(prev){
       seedAgency({ id:"ag-fgn", name:"Fergana Tours", legal:"OOO «FARG‘ONA TOURS»", inn:"305 998 004", phone:"+998 73 244 12 12", email:"fergana.tours@mail.uz",
         address:"Farg‘ona, Mustaqillik ko‘chasi, 44", color:"#2F3A4A", status:"blocked", blockReasonKey:"seed_block_reason", age:90, orders:3, opening:30_000_000 })
     ]
-  });
+  }));
 }
 /* Две заявки на подключение — пока их нет в общем хранилище. */
 function seedApps(){
@@ -5996,14 +6235,15 @@ window.addEventListener("pageshow", e => { if (e.persisted) { leaving = false; h
 
 /* Кабинет, сайт, заявки или другая вкладка админки изменили данные. */
 window.addEventListener("storage", e => {
-  if (e.key === SITE_KEY) { SITE = loadSite(); onExternalChange(); }
-  else if (e.key === APPS_KEY) onExternalChange();
+  // Сайт или заявки изменились — CRM подтягивает новые лиды и оплаты.
+  if (e.key === SITE_KEY) { SITE = loadSite(); onExternalChange(); crmSync(); }
+  else if (e.key === APPS_KEY) { onExternalChange(); crmSync(); }
   else if (e.key === OPS_KEY && e.newValue) { const next = loadOps(); if (next) { O = next; onExternalChange(); } }
 });
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"b2c.view", "customers/:phone":"b2c.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
@@ -6032,7 +6272,8 @@ const PERM_ACTS = ["view", "create", "edit", "delete", "approve", "cancel", "ref
 const PERM_MODS = {
   orders:   ["view", "edit", "approve", "cancel"],
   b2b:      ["view", "create", "edit", "approve", "manage"],
-  b2c:      ["view", "edit"],
+  b2c:      ["view", "edit", "manage", "export"],
+  crm:      ["view", "create", "edit", "delete", "export", "manage"],
   finance:  ["view", "approve", "refund", "manage", "export"],
   pricing:  ["view", "edit", "approve"],
   services: ["view", "create", "edit", "delete", "approve"],
@@ -6049,14 +6290,20 @@ const SYS_ROLES = {
   owner:    { ...ALL_PERMS(), roles:["view", "approve"] },
   sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
   finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
-  b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"] },
-  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit"], pricing:["view"] },
-  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"] },
-  ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"] },
+  b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"], crm:["view", "create", "edit", "export"] },
+  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"] },
+  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"] },
+  ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"], crm:["view"] },
   content:  { services:["view", "create", "edit"] },
-  support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"] },
-  viewer:   { orders:["view"], b2b:["view"], b2c:["view"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"] }
+  support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"], crm:["view", "create", "edit"] },
+  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"] }
 };
+/* Права, добавленные в новых версиях: у системных ролей из сохранённой админки
+   их ещё нет — дописываются по умолчанию один раз (O.permsV). Свои роли
+   основатель настраивает сам. */
+const PERMS_V = 2;
+const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"] };
+const PERMS_NEW_MODS = { 2:["crm"] };
 /* Основатель и владелец: их назначает и меняет только основатель. */
 const TOP_ROLES = ["founder", "owner"];
 /* Роли прошлой версии админки → роли из ТЗ. */
@@ -6080,6 +6327,8 @@ const roleById = id => O?.roles?.find(r => r.id === id) || null;
 const liveRoles = () => (O?.roles || []).filter(r => !r.deleted);
 const permsOf = id => id === "founder" ? ALL_PERMS() : roleById(id)?.perms || {};
 const hasPerm = (perms, p) => { const [m, a] = p.split("."); return !!perms[m]?.includes(a); };
+/* Право сотрудника s (не только вошедшего). */
+const canAs = (s, p) => !!s && (s.role === "founder" || hasPerm(permsOf(s.role), p));
 const isFounder = () => me()?.role === "founder";
 
 /* Право текущего сотрудника. Два права — сборные: «задачи» есть у того, кому
@@ -6087,8 +6336,9 @@ const isFounder = () => me()?.role === "founder";
    запросы или сам их отправлял. */
 function can(p){
   const u = me(); if (!u) return false;
-  if (p === "tasks") return TASK_KINDS.some(([, need]) => can(need)) || canDecideAny();
+  if (p === "tasks") return TASK_KINDS.some(([, need]) => can(need)) || canDecideAny() || can("crm.edit");
   if (p === "approvals") return canDecideAny() || O.approvals.some(a => a.by === u.id);
+  if (p === "clients") return can("b2c.view") || can("crm.view");
   return u.role === "founder" || hasPerm(permsOf(u.role), p);
 }
 
@@ -6126,6 +6376,15 @@ function migrateRoles(o){
   o.roles = (Array.isArray(o.roles) ? o.roles : []).filter(r => r && typeof r.id === "string")
     .map(r => ({ ...r, sys:SYS_ORDER.includes(r.id), perms:r.id === "founder" ? ALL_PERMS() : cleanPerms(r.perms) }));
   for (const id of SYS_ORDER) if (!o.roles.some(r => r.id === id)) o.roles.push({ id, sys:true, perms:id === "founder" ? ALL_PERMS() : cleanPerms(SYS_ROLES[id]) });
+  for (let v = (o.permsV || 1) + 1; v <= PERMS_V; v++) for (const r of o.roles) if (r.sys && r.id !== "founder") {
+    const def = SYS_ROLES[r.id] || {}, next = Object.fromEntries(Object.entries(r.perms).map(([m, a]) => [m, [...a]]));
+    // Новое действие добавляем, только если раздел у роли остался: раздел,
+    // который основатель у роли снял, не возвращаем. Новый раздел — целиком.
+    for (const p of PERMS_ADDED[v] || []) { const [m, a] = p.split("."), fresh = PERMS_NEW_MODS[v]?.includes(m);
+      if (def[m]?.includes(a) && (fresh || next[m]?.includes("view"))) next[m] = [...new Set([...(next[m] || []), "view", a])]; }
+    r.perms = cleanPerms(next); o._migrated = true;
+  }
+  o.permsV = PERMS_V;
   o.roles.sort((a, b) => (a.sys ? roleRank(a.id) : SYS_ORDER.length) - (b.sys ? roleRank(b.id) : SYS_ORDER.length) || (a.at || 0) - (b.at || 0));
   for (const s of o.staff) {
     if (OLD_ROLES[s.role]) { s.role = s.id === FOUNDER_ID && s.role === "admin" && s.active !== false ? "founder" : OLD_ROLES[s.role]; o._migrated = true; }
@@ -6161,6 +6420,258 @@ const DEMO_IP = (() => {
   try { let v = sessionStorage.getItem(k); if (!v) { const n = () => 2 + Math.floor(Math.random() * 250); v = `10.${20 + Math.floor(Math.random() * 20)}.${n()}.${n()}`; sessionStorage.setItem(k, v); } return v; }
   catch(e) { return "10.20.0.1"; }
 })();
+
+/* ---- 13-crm.js ---- */
+/* ==========================================================================
+   CRM: лиды, клиенты, комментарии и контакты, задачи и напоминания.
+   Хранится в O.crm: leads, clients (данные CRM поверх клиента), notes, tasks.
+
+   Цепочка из ТЗ: заявка → лид → менеджер связался → в карточке появился
+   заказ → после оплаты статусы лида и клиента меняются сами. Поэтому часть
+   CRM собирается из других демо: заявка на чартер с сайта становится лидом,
+   заявка агентства на подключение — лидом B2B, заказы сайта с телефоном лида
+   прикрепляются к нему, оплата двигает лид в «Подтверждён», поездка — в
+   «Завершён». Это делает syncCrm().
+   ========================================================================== */
+"use strict";
+
+const LEAD_STAGES = ["new", "contacted", "progress", "interested", "confirmed", "completed", "lost"];
+const LEAD_OPEN = ["new", "contacted", "progress", "interested"];
+/* Источники. Два последних лиды получают сами, вручную их не выбирают. */
+const LEAD_SOURCES = ["phone", "telegram", "instagram", "whatsapp", "email", "referral", "walk_in", "site", "other", "site_charter", "b2b_app"];
+const AUTO_SOURCES = ["site_charter", "b2b_app"];
+const LEAD_SERVICES = ["FLIGHT", "TOUR", "HOTEL", "JET", "HELI"];
+const NOTE_KINDS = ["note", "call", "message", "meeting", "email"];
+/* Сегменты клиента: VIP — от этой суммы оплат; активный — платил за полгода. */
+const VIP_MIN = 30_000_000, ACTIVE_DAYS = 180;
+const NOTE_MAX = 500, TASK_MAX = 160;
+
+/* ---- хранилище ---- */
+function migrateCrm(o){
+  const c = o.crm && typeof o.crm === "object" ? o.crm : null;
+  o.crm = {
+    seq:Number.isInteger(c?.seq) ? c.seq : 0,
+    leads:Array.isArray(c?.leads) ? c.leads.filter(l => l && typeof l.id === "string" && LEAD_STAGES.includes(l.status)) : [],
+    clients:c?.clients && typeof c.clients === "object" && !Array.isArray(c.clients) ? c.clients : {},
+    notes:Array.isArray(c?.notes) ? c.notes.filter(n => n && n.text && NOTE_KINDS.includes(n.kind)) : [],
+    tasks:Array.isArray(c?.tasks) ? c.tasks.filter(x => x && x.text && Number.isFinite(x.due)) : [],
+    // Заявки с сайта и агентств, которые CRM уже разобрала: удалённый лид не возвращается.
+    seen:Array.isArray(c?.seen) ? c.seen.filter(k => typeof k === "string") : []
+  };
+  const seen = new Set(o.crm.seen);
+  for (const l of o.crm.leads) {
+    if (l.origin?.src === "site") seen.add("site:" + l.origin.id);
+    if (l.origin?.app) seen.add("app:" + l.origin.app);
+    for (const x of l.links || []) seen.add(x.src + ":" + x.id);
+  }
+  o.crm.seen = [...seen];
+  if (!c) seedCrm(o);
+  return o;
+}
+const leadNo = o => "L-" + String(++o.crm.seq).padStart(4, "0");
+const leadById = id => O.crm.leads.find(l => l.id === id) || null;
+const clientData = key => O.crm.clients[key] || null;
+/* Данные CRM поверх клиента: создаются при первой правке. */
+const clientRec = key => (O.crm.clients[key] ||= { events:[] });
+
+/* ---- кто что видит ----
+   С правом «CRM: управление» — все лиды; без него — свои и ничьи (их можно
+   взять себе). Основатель и владелец видят всё. Проверки «как сотрудник s» —
+   для исполнителей задач: задачу нельзя поручить тому, кто её цель не видит. */
+const crmAll = () => can("crm.manage");
+const canSeeLeadAs = (l, s) => !!s && canAs(s, "crm.view") && (canAs(s, "crm.manage") || !l.manager || l.manager === s.id);
+const canSeeLead = l => canSeeLeadAs(l, me());
+function canSeeTarget(target, s = me()){
+  const id = target.slice(2);
+  if (target.startsWith("l:")) { const l = leadById(id); return !!l && canSeeLeadAs(l, s); }
+  if (target.startsWith("a:")) return canAs(s, "b2b.view");
+  return canAs(s, "b2c.view") || canAs(s, "crm.view");
+}
+const canEditLead = l => can("crm.edit") && canSeeLead(l);
+const visibleLeads = () => O.crm.leads.filter(canSeeLead);
+/* Кому можно назначить лид или задачу: действующие сотрудники, которые ведут лиды. */
+const crmStaff = () => activeStaff().filter(s => s.role === "founder" || hasPerm(permsOf(s.role), "crm.edit"));
+
+/* ---- лид: события ---- */
+const leadEvent = (l, e) => { l.events.unshift({ at:Date.now(), by:e.sys ? null : me()?.id || null, ...e }); l.updatedAt = Date.now(); };
+function newLead(o, spec){
+  const l = { id:uid("ld"), no:leadNo(o), name:"", phone:"", email:"", country:"", source:"other", service:null, dest:"", budget:null,
+    status:"new", manager:null, lostReason:"", links:[], origin:null, createdAt:Date.now(), updatedAt:Date.now(), by:null, events:[], ...spec };
+  l.events = [{ at:l.createdAt, by:l.by, type:"created" }, ...(l.events || [])];
+  o.crm.leads.unshift(l);
+  return l;
+}
+/* Направление лида: код аэропорта или площадки — по языку экрана; текст — как ввели. */
+const leadDest = l => !l.dest ? "" : typeof l.dest === "object" && l.dest.code ? (l.dest.heli ? heliName(l.dest.code) : cityName(l.dest.code)) : loc(l.dest);
+const leadWhat = l => l.kind === "b2b" ? t("crm_b2b_interest") : [l.service ? t("type_" + l.service) : "", leadDest(l)].filter(Boolean).join(" · ");
+
+/* ---- заказы: оплачен ли, в силе ли, закончилась ли поездка ---- */
+const orderPaid = o => !!o.paidAt || !!o.history?.some(h => h.s === "PAID") || ["PAID", "CONFIRMED", "COMPLETED"].includes(o.status);
+const orderGone = o => ["CANCELLED", "REFUNDED"].includes(o.status);
+const orderWon = o => orderPaid(o) && !orderGone(o);
+const orderEnded = o => ["CONFIRMED", "COMPLETED"].includes(o.status) && o.end && o.end < TODAY;
+const siteOrder = id => SITE?.orders.find(o => o.id === id) || null;
+const linkedOrders = l => l.links.map(x => x.src === "site" ? siteOrder(x.id) : null).filter(Boolean);
+
+/* ---- синхронизация с сайтом и заявками агентств ----
+   dry — только посчитать, есть ли что менять (без записи). Вызывается при
+   запуске и при изменениях сайта или заявок; запись — внутри change(). */
+const CHARTER_STAGE = { NEW:"new", PENDING:"progress", PAID:"confirmed", CONFIRMED:"confirmed", COMPLETED:"completed", CANCELLED:"lost", REFUNDED:"lost" };
+const APP_STAGE = { pending:"new", approved:"completed", rejected:"lost" };
+function syncCrm(dry){
+  let n = 0;
+  const hit = () => { n++; return !dry; };
+  const leads = O.crm.leads, seen = new Set(O.crm.seen), see = k => { seen.add(k); O.crm.seen.push(k); };
+  const linked = new Set(leads.flatMap(l => l.links.map(x => x.src + ":" + x.id)));
+  const samePhone = ph => digits(ph) && leads.find(l => l.kind !== "b2b" && LEAD_OPEN.includes(l.status) && digits(l.phone) === digits(ph));
+  // 1. Заявка на чартер с сайта → лид. Если у номера уже есть открытый лид —
+  //    заявка ложится в него, второй лид не заводится.
+  for (const o of SITE?.orders || []) {
+    const k = "site:" + o.id;
+    if (!["JET", "HELI"].includes(o.type) || seen.has(k) || !hit()) continue;
+    see(k); if (linked.has(k)) continue;
+    const same = samePhone(o.contact?.phone); linked.add(k);
+    if (same) { same.links.push({ src:"site", id:o.id }); leadEvent(same, { type:"link", no:o.no || "", sys:true }); continue; }
+    const st = CHARTER_STAGE[o.status] || "new", d = o.details || {};
+    newLead(O, { name:o.travellers?.[0]?.given || "", phone:o.contact?.phone || "", source:"site_charter", service:o.type,
+      dest:d.to ? { code:d.to, heli:o.type === "HELI" } : "", budget:d.quote?.usd || null, status:st, createdAt:o.createdAt,
+      lostReason:st === "lost" ? strRef("lost_order_cancelled") : "", links:[{ src:"site", id:o.id }], origin:{ src:"site", id:o.id } });
+  }
+  // 2. Заявка агентства на подключение → лид B2B; решение по заявке двигает лид один раз.
+  for (const a of loadApps()) {
+    const k = "app:" + a.id, l = leads.find(x => x.origin?.app === a.id), st = APP_STAGE[a.status] || "new";
+    if (!seen.has(k)) { if (!hit()) continue; see(k);
+      if (!l) newLead(O, { name:a.company, contact:a.person, phone:a.phone, email:a.email, source:"b2b_app", kind:"b2b", status:st,
+        createdAt:a.at, lostReason:st === "lost" ? a.reason || "" : "", origin:{ app:a.id }, autoDone:a.status === "pending" ? [] : [k + ":" + a.status] });
+      continue; }
+    const key = k + ":" + a.status;
+    if (!l || a.status === "pending" || (l.autoDone || []).includes(key) || !hit()) continue;
+    (l.autoDone ||= []).push(key);
+    if (LEAD_OPEN.includes(l.status)) { leadEvent(l, { type:"status", from:l.status, to:st, sys:true }); l.status = st; l.lostReason = st === "lost" ? a.reason || "" : ""; }
+  }
+  // 3. Заказ сайта с номера лида, сделанный после лида, — в его карточку.
+  //    Заказ принадлежит одному лиду; заявки на чартер разбирает шаг 1.
+  for (const l of leads) {
+    if (l.kind === "b2b" || !digits(l.phone) || !["confirmed", ...LEAD_OPEN].includes(l.status)) continue;
+    for (const o of SITE?.orders || []) {
+      const k = "site:" + o.id;
+      if (digits(o.contact?.phone) !== digits(l.phone) || o.createdAt < l.createdAt || linked.has(k) || ["JET", "HELI"].includes(o.type) || !hit()) continue;
+      l.links.push({ src:"site", id:o.id }); linked.add(k); leadEvent(l, { type:"link", no:o.no || "", sys:true });
+    }
+  }
+  // 4. События заказов двигают лид — каждое один раз (autoDone), поэтому
+  //    этап, который потом поменял менеджер, не перетирается:
+  //    оплачен → «Подтверждён», поездка прошла → «Завершён»,
+  //    отменён и других оплаченных нет → «Потерян».
+  for (const l of leads) {
+    const os = linkedOrders(l); if (!os.length) continue;
+    for (const o of os) for (const tr of orderWon(o) ? (orderEnded(o) ? ["won", "ended"] : ["won"]) : orderGone(o) ? ["gone"] : []) {
+      const key = o.id + ":" + tr;
+      if ((l.autoDone || []).includes(key) || !hit()) continue;
+      (l.autoDone ||= []).push(key);
+      const to = tr === "won" && [...LEAD_OPEN, "lost"].includes(l.status) ? "confirmed" : tr === "ended" && l.status === "confirmed" ? "completed"
+        : tr === "gone" && [...LEAD_OPEN, "confirmed"].includes(l.status) && !os.some(orderWon) ? "lost" : null;
+      if (to) { leadEvent(l, { type:"status", from:l.status, to, sys:true }); l.status = to; l.lostReason = to === "lost" ? strRef("lost_order_cancelled") : ""; }
+    }
+  }
+  return n;
+}
+/* Запустить синхронизацию, если есть что менять. */
+/* Сотрудник печатает — данные сохраняем без перерисовки страницы (как при
+   изменениях из другой вкладки), иначе фокус и набранный текст пропали бы. */
+function crmSync(){
+  if (!O || !syncCrm(true)) return;
+  const f = document.activeElement;
+  if (f?.matches?.("input, textarea, select") && $("#app")?.contains(f)) { O = loadOps() || O; syncCrm(false); saveOps(); renderNav(matchRoute(currentParts()).key); return; }
+  const key = focusKey(f); change(() => syncCrm(false)); refocus(key);
+}
+
+/* ---- клиенты B2C ----
+   Клиент — номер телефона. Собирается из заказов сайта, вошедшего на сайте,
+   лидов и клиентов, заведённых вручную; поверх — данные CRM. */
+function b2cClients(){
+  const map = new Map();
+  const add = (phone, name, at) => {
+    const key = digits(phone); if (!key || key.length < 9) return null;
+    if (!map.has(key)) map.set(key, { key, phone:prettyPhone(phone), name:"", orders:[], leads:[], spent:0, paid:0, last:0, first:at || Date.now() });
+    const c = map.get(key); if (!c.name && name) c.name = name; if (at) { c.last = Math.max(c.last, at); c.first = Math.min(c.first, at); }
+    return c;
+  };
+  // Имя — из лида (его вводит менеджер), затем из заказа (латиницей, как в паспорте).
+  // Лиды — только те, что сотруднику видны: чужие лиды не раскрываются через карточку клиента.
+  for (const l of O.crm.leads) if (l.kind !== "b2b" && canSeeLead(l)) { const c = add(l.phone, l.name, l.createdAt); if (c) c.leads.push(l); }
+  if (SITE?.user?.phone) add(SITE.user.phone, "", 0);
+  for (const o of SITE?.orders || []) {
+    const c = add(o.contact?.phone, o.travellers?.[0] ? `${o.travellers[0].given} ${o.travellers[0].surname}`.trim() : "", o.createdAt); if (!c) continue;
+    c.orders.push(o);
+    if (o.total && orderPaid(o) && !["CANCELLED", "REFUNDED"].includes(o.status)) { c.spent += o.total.uzs; c.paid++; c.lastPaid = Math.max(c.lastPaid || 0, o.createdAt); }
+  }
+  for (const [k, v] of Object.entries(O.crm.clients)) if (k.startsWith("c:") && v.phone) add(v.phone, v.name, v.at);
+  return [...map.values()].map(c => {
+    const d = clientData("c:" + c.key) || {};
+    const src = d.source || [...c.leads].sort((a, b) => a.createdAt - b.createdAt)[0]?.source || (c.orders.length ? "site" : "other");
+    // Данные CRM главнее: пустое значение, которое сотрудник поставил сам, не подменяется данными из лида.
+    return { ...c, name:d.name || c.name, email:d.email !== undefined ? d.email : c.orders.find(o => o.contact?.email)?.contact.email || c.leads.find(l => l.email)?.email || "",
+      country:d.country !== undefined ? d.country : c.leads.find(l => l.country)?.country || "", source:src, manager:"manager" in d ? d.manager : c.leads.find(l => l.manager)?.manager || null,
+      blocked:!!d.blocked, blockReason:d.blockReason || "", segment:segmentOf({ ...c, blocked:!!d.blocked }) };
+  }).sort((a, b) => b.last - a.last);
+}
+function segmentOf(c){
+  if (c.blocked) return "blocked";
+  if (c.spent >= VIP_MIN) return "vip";
+  if (c.lastPaid && Date.now() - c.lastPaid < ACTIVE_DAYS * DAY_MS) return "active";
+  if (c.lastPaid) return "inactive";
+  return "new";
+}
+const clientByKey = key => b2cClients().find(c => c.key === key) || null;
+/* Номера, закрытые для бронирования, — сайт читает их из BLOCK_KEY. */
+const syncBlocked = () => writeJSON(BLOCK_KEY, Object.entries(O.crm.clients).filter(([k, v]) => k.startsWith("c:") && v.blocked).map(([k]) => k.slice(2)));
+
+/* ---- комментарии и задачи ----
+   target: "l:<лид>", "c:<телефон>", "a:<агентство>". */
+const notesFor = targets => O.crm.notes.filter(n => targets.includes(n.target)).sort((a, b) => b.at - a.at);
+const tasksFor = targets => O.crm.tasks.filter(x => targets.includes(x.target));
+const dayEnd = () => new Date().setHours(23, 59, 59, 999);
+/* Напоминания: открытые задачи сотрудника со сроком до конца сегодняшнего дня. */
+const myReminders = () => can("crm.edit") ? O.crm.tasks.filter(x => !x.done && x.assignee === me()?.id && x.due <= dayEnd() && canSeeTarget(x.target)) : [];
+const taskOverdue = x => !x.done && x.due < Date.now();
+const targetLabel = target => {
+  const [k, id] = [target.slice(0, 1), target.slice(2)];
+  if (k === "l") { const l = leadById(id); return l ? `${l.no} · ${l.name}` : "—"; }
+  if (k === "a") return agencyById(id)?.name || "—";
+  return clientData(target)?.name || prettyPhone(id);
+};
+const targetHref = target => { const [k, id] = [target.slice(0, 1), target.slice(2)]; return k === "l" ? `#/crm/${id}` : k === "a" ? `#/agencies/${id}` : `#/customers/${id}`; };
+/* Писать комментарии и ставить задачи по клиенту может CRM или менеджер пассажиров. */
+const canNote = target => target.startsWith("l:") ? !!leadById(target.slice(2)) && canEditLead(leadById(target.slice(2))) : can("crm.edit") || (target.startsWith("c:") && can("b2c.edit"));
+
+/* ---- демо ---- */
+function seedCrm(o){
+  const now = Date.now(), h = 3600e3, day = DAY_MS;
+  const L = (spec, ago, ev = []) => { const l = newLead(o, { ...spec, createdAt:now - ago }); l.updatedAt = now - Math.min(ago, h); l.events.push(...ev); l.events.sort((a, b) => b.at - a.at); return l; };
+  const st = (from, to, ago, by) => ({ at:now - ago, by, type:"status", from, to });
+  L({ name:"Sherzod Aliyev", phone:"+998 93 512 44 10", source:"telegram", service:"TOUR", dest:{ code:"AYT" }, budget:2400 }, 2 * h);
+  const l2 = L({ name:"Madina Xasanova", phone:"+998 94 330 18 22", email:"madina.x@gmail.com", source:"instagram", service:"TOUR", dest:{ code:"DXB" }, budget:3000, status:"contacted", manager:"st8" }, 26 * h, [st("new", "contacted", 20 * h, "st8")]);
+  const l3 = L({ name:"Rustam Karimov", phone:"+998 90 187 55 01", source:"phone", service:"JET", dest:{ code:"IST" }, budget:38000, status:"progress", manager:"st8", country:"Uzbekistan" }, 3 * day,
+    [st("new", "contacted", 3 * day - 2 * h, "st8"), st("contacted", "progress", 2 * day, "st8")]);
+  const l4 = L({ name:"Dilfuza Yo‘ldosheva", phone:"+998 97 440 90 12", source:"whatsapp", service:"HOTEL", dest:{ code:"SSH" }, budget:1500, status:"interested", manager:"st7" }, 5 * day,
+    [st("new", "contacted", 5 * day - h, "st7"), st("contacted", "interested", 3 * day, "st7")]);
+  L({ name:"Oybek Rahimov", phone:"+998 99 801 23 45", source:"referral", service:"FLIGHT", dest:{ code:"DME" }, budget:400, status:"confirmed", manager:"st7" }, 8 * day,
+    [st("new", "contacted", 8 * day - h, "st7"), st("contacted", "confirmed", 6 * day, "st7")]);
+  L({ name:"Nargiza Tursunova", phone:"+998 91 666 72 30", source:"walk_in", service:"TOUR", dest:{ code:"AYT" }, budget:2800, status:"completed", manager:"st8" }, 40 * day,
+    [st("new", "confirmed", 38 * day, "st8"), st("confirmed", "completed", 20 * day, "st8")]);
+  L({ name:"Jamshid Qodirov", phone:"+998 95 210 33 44", source:"phone", service:"HELI", dest:{ code:"chimgan", heli:true }, budget:1200, status:"lost", manager:"st8",
+    lostReason:{ ru:"Дорого, выбрал автомобиль", uz:"Qimmat, avtomobilni tanladi", en:"Too expensive, chose a car" } }, 12 * day, [st("new", "lost", 10 * day, "st8")]);
+  L({ name:"Lola Mirzayeva", phone:"+998 90 777 14 14", email:"lola.m@mail.uz", source:"email", service:"TOUR", dest:{ ru:"Мальдивы", uz:"Maldiv orollari", en:"Maldives" }, budget:6500 }, 5 * h);
+  const note = (target, kind, text, by, ago) => o.crm.notes.push({ id:uid("n"), target, kind, text, by, at:now - ago });
+  note("l:" + l2.id, "call", { ru:"Позвонил: хочет Дубай на 7 ночей в ноябре, двое взрослых.", uz:"Qo‘ng‘iroq qildim: noyabrda Dubayga 7 kecha, ikki kattalar.", en:"Called: wants Dubai for 7 nights in November, two adults." }, "st8", 20 * h);
+  note("l:" + l3.id, "meeting", { ru:"Встреча в офисе: рейс Ташкент — Стамбул на 6 человек, бизнес-джет.", uz:"Ofisda uchrashuv: Toshkent — Istanbul, 6 kishi, biznes-jet.", en:"Office meeting: Tashkent to Istanbul for 6 people, business jet." }, "st8", 2 * day);
+  note("l:" + l4.id, "message", { ru:"Отправили три отеля в WhatsApp, ждём ответа.", uz:"WhatsApp orqali uchta mehmonxona yubordik, javob kutilmoqda.", en:"Sent three hotels on WhatsApp, waiting for a reply." }, "st7", 3 * day);
+  const task = (target, text, assignee, due) => o.crm.tasks.push({ id:uid("tk"), target, text, assignee, by:assignee, at:now - day, due, done:false });
+  task("l:" + l3.id, { ru:"Отправить коммерческое предложение", uz:"Tijorat taklifini yuborish", en:"Send the quote" }, "st8", new Date().setHours(17, 0, 0, 0));
+  task("l:" + l4.id, { ru:"Перезвонить: решение по отелю", uz:"Qayta qo‘ng‘iroq: mehmonxona bo‘yicha qaror", en:"Call back about the hotel choice" }, "st7", now - day);
+  task("l:" + l2.id, { ru:"Подобрать три отеля в Дубае", uz:"Dubayda uchta mehmonxona tanlash", en:"Pick three hotels in Dubai" }, "st8", now + 2 * day);
+}
 
 /* ---- 15-actions.js ---- */
 /* ==========================================================================
@@ -6292,6 +6803,7 @@ function decideApp(id, ok, reason = ""){
     audit(ok ? "app_ok" : "app_rejected", { company:a.company, reason });
   });
   toast(tf(ok ? "t_app_ok" : "t_app_rejected", { company:a.company }));
+  crmSync();                                     // лид агентства переходит в «Завершён» или «Потерян»
   return true;
 }
 function setBlocked(aid, blocked, reason = ""){
@@ -6617,12 +7129,13 @@ Object.assign(IC, {
   tag:    svg('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>'),
   person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>'),
   stamp:  svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.5 2.5 4.9-5.1"/>'),
-  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>')
+  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>'),
+  funnel: svg('<path d="M3 5h18l-7 8v5l-4 2v-7z"/>')
 });
 
 /* Разделы: ключ маршрута, строка, значок, право на просмотр (null — всем). */
 const ADM_NAV = [
-  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["orders", "an_orders", "bag", "orders.view"],
+  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["crm", "an_crm", "funnel", "crm.view"], ["orders", "an_orders", "bag", "orders.view"],
   ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
   ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
   ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
@@ -6831,13 +7344,21 @@ function apTaskSection(){
     ${list.length ? `<span class="count">${list.length}</span>` : ""}</div>
     ${list.length ? `<div class="tasks">${list.map(a => apRow(a, "decide")).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}</section>`;
 }
+/* Напоминания CRM: задачи сотрудника со сроком до конца дня. */
+function reminderSection(){
+  if (!can("crm.edit")) return "";
+  const list = myReminders().sort((a, b) => a.due - b.due);
+  return `<section class="card stack" id="tk-rem"><div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t("tk_rem"))}</h2><span class="muted small">${esc(t("tk_rem_d"))}</span></div>
+    ${list.length ? `<span class="count">${list.length}</span>` : ""}</div>
+    ${list.length ? `<ul class="crm-tasks">${list.map(x => taskRow(x, true)).join("")}</ul>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}</section>`;
+}
 PAGES.tasks = {
   render(){
     const k = tasks(), mine = TASK_KINDS.filter(([, p]) => can(p));
     return `<div class="page">
       <div class="pagehead"><h1>${esc(t("an_tasks"))}</h1><p class="muted">${esc(t("tasks_sub"))}</p></div>
       ${opsLive() ? "" : `<p class="note-live">${IC.clock}<span>${esc(t("live_wait"))}</span></p>`}
-      <div class="stack">${apTaskSection()}${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
+      <div class="stack">${apTaskSection()}${reminderSection()}${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
         <div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t(title))}</h2><span class="muted small">${esc(t(sub))}</span></div>
           ${k[key].length ? `<span class="count">${k[key].length}</span>` : ""}</div>
         ${k[key].length ? `<div class="tasks">${k[key].map(row).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}
@@ -7175,6 +7696,7 @@ PAGES["agencies/:id"] = {
         <section class="card stack"><h2>${esc(t("msg_h"))}</h2><p class="muted small">${esc(t("msg_d"))}</p>
           <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("b2b.edit") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
           <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("msg_send"))}</button></div></section>
+        ${can("crm.view") ? notesBlock("a:" + a.id) : ""}
         <section class="card stack"><h2>${esc(t("ag_orders"))}</h2>
           ${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a, src:a.id }, i, "", true)).join("")}</div>
             ${can("orders.view") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
@@ -7184,6 +7706,7 @@ PAGES["agencies/:id"] = {
             <span class="a-num a-keep mono ${l.amount > 0 ? "plus" : ""}">${l.amount > 0 ? "+" : "−"}${grp(Math.abs(l.amount))}</span><span class="a-num mono muted">${grp(l.after)}</span></div>`).join("")}</div>` : `<p class="muted">${esc(t("ledger_empty"))}</p>`}</section>
       </div>
       <aside class="stack sticky">
+        ${can("crm.view") ? `<div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("a:" + a.id, clientData("a:" + a.id)?.manager || null)}</div></div>${tasksBlock("a:" + a.id)}` : ""}
         <div class="card stack"><span class="lbl">${esc(t("balance_now"))}</span><b class="bal-big mono">${grp(st.balance)}<small>${esc(t("cur_uzs"))}</small></b>
           ${pend.length ? `<div class="tasks compact">${pend.map(p => topupRow(p, a)).join("")}</div>` : ""}</div>
         <div class="card stack"><h3>${esc(t("adjust_h"))}</h3><p class="muted small">${esc(t("adjust_d"))}</p>
@@ -7215,58 +7738,632 @@ ACT.agorders = el => { M.ui.aosrc = el.dataset.v; M.ui.aog = "all"; go("orders")
 
 /* ---- 55-customers.js ---- */
 /* ==========================================================================
-   Пассажиры сайта: покупатели B2C по номеру телефона, их заказы и
-   сохранённые пассажиры. Данные — из демо сайта в этом же браузере.
+   Пассажиры сайта (B2C): список с сегментами и единая карточка клиента —
+   контакты, источник, ответственный, заявки и лиды, заказы и платежи,
+   комментарии, задачи, история. Блокировка закрывает бронирование на сайте
+   для этого номера (список BLOCK_KEY читает сайт).
    ========================================================================== */
 "use strict";
 
-/* Покупатель — номер телефона из контактов заказа; вошедший на сайте — тоже. */
-function customers(){
-  if (!SITE) return [];
-  const map = new Map();
-  const add = (phone, name) => { const k = digits(phone); if (!k) return null; if (!map.has(k)) map.set(k, { key:k, phone:prettyPhone(phone), name:name || "", orders:[], spent:0, last:0 }); return map.get(k); };
-  if (SITE.user?.phone) add(SITE.user.phone, "");
-  for (const o of SITE.orders) {
-    const c = add(o.contact?.phone, o.travellers[0] ? `${o.travellers[0].given} ${o.travellers[0].surname}`.trim() : ""); if (!c) continue;
-    c.orders.push(o); c.last = Math.max(c.last, o.createdAt); if (!c.name && o.travellers[0]) c.name = `${o.travellers[0].given} ${o.travellers[0].surname}`.trim();
-    if (o.total && !["NEW", "PENDING", "CANCELLED", "REFUNDED"].includes(o.status)) c.spent += o.total.uzs;
-  }
-  return [...map.values()].sort((a, b) => b.last - a.last);
-}
 const noSite = () => `<div class="card empty"><h3>${esc(t("site_none"))}</h3><p class="muted">${esc(t("site_none_d"))}</p>
   <a class="solid" href="../b2c/" target="_blank" rel="noopener">${esc(t("open_site"))}</a></div>`;
 
+function custRows(){
+  const sg = M.ui.bsg || "all", q = (M.ui.bq || "").trim().toLowerCase();
+  return b2cClients().filter(c => (sg === "all" || c.segment === sg) && (!q || [c.name, c.phone, c.email].join(" ").toLowerCase().includes(q)));
+}
 PAGES.customers = {
   render(){
-    const list = customers();
+    const sg = M.ui.bsg || "all";
     return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_customers"))}</h1><p class="muted">${esc(t("customers_sub"))}</p></div>
-      ${!SITE ? noSite() : !list.length ? `<div class="card empty"><h3>${esc(t("customers_empty"))}</h3></div>`
-      : `<div class="card"><div class="atable" style="--cols:minmax(0,2fr) minmax(0,1.3fr) 110px minmax(0,1.2fr) 140px">
-        <div class="arow ahead" aria-hidden="true"><span>${esc(t("customer"))}</span><span>${esc(t("phone_label"))}</span><span class="a-num">${esc(t("an_orders"))}</span>
-          <span class="a-num">${esc(t("col_spent"))}</span><span class="a-end">${esc(t("col_last"))}</span></div>
-        ${list.map((c, i) => `<a class="arow" style="--i:${i}" href="#/customers/${c.key}"><span class="a-main a-with-mark"><span class="avatar sm">${esc(monogram(c.name || "?"))}</span>
-          <b>${esc(c.name || t("guest"))}</b></span><span class="a-cell a-sub mono">${esc(c.phone)}</span><span class="a-num mono">${c.orders.length}</span>
-          <span class="a-num a-keep mono">${fmtUZS(c.spent)}</span><span class="a-end muted small">${c.last ? esc(fdt(c.last)) : "—"}</span></a>`).join("")}</div></div>`}</div>`;
-  }
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_customers"))}</h1><p class="muted">${esc(t("customers_sub"))}</p></div>
+        <button type="button" class="solid" data-act="cnew" ${can("crm.create") || can("b2c.edit") ? "" : guard("b2c.edit")}>${IC.plus}<span>${esc(t("cust_new"))}</span></button></div>
+      ${M.ui.cDraft && !M.ui.cDraft.key ? custForm() : ""}
+      ${!SITE && !b2cClients().length ? noSite() : `<div class="card stack"><div class="ofind au-find">
+          <select id="bsg" class="minisel" aria-label="${esc(t("crm_segment"))}"><option value="all">${esc(t("crm_all_segments"))}</option>${SEGMENTS.map(x => `<option value="${x}" ${sg === x ? "selected" : ""}>${esc(t("seg_" + x))}</option>`).join("")}</select>
+          <label class="search">${IC.search}<input id="bq" type="search" value="${esc(M.ui.bq || "")}" placeholder="${esc(t("crm_search_c"))}" aria-label="${esc(t("crm_search_c"))}"></label>
+          <button type="button" class="ghost sm" data-act="bcsv" ${guard("b2c.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button></div>
+        <p class="muted small" id="bcount" aria-live="polite">${esc(tf("crm_count", { n:custRows().length }))}</p>
+        <div id="blist">${clientTable(custRows(), t("an_customers"), false)}</div></div>`}</div>`;
+  },
+  after(){ if (M.ui.cDraft && M.ui.cFocus) { $("#cedit [data-cf=name]")?.focus(); M.ui.cFocus = false; } crmSync(); }
 };
+
+/* ---- новый клиент и правка контактов ---- */
+const CUST_FIELDS = [["name", "crm_name"], ["phone", "phone_label"], ["email", "agency_email"], ["country", "crm_country"], ["source", "crm_source"]];
+const canEditClient = () => can("b2c.edit") || can("crm.edit");
+function custForm(){
+  const d = M.ui.cDraft; if (!d) return "";
+  const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-cf="${k}" value="${esc(d[k])}" ${attrs}></label>`;
+  return `<section class="card stack cl-edit" id="cedit" aria-labelledby="cedit-h"><div class="card-h"><h2 id="cedit-h">${esc(t(d.key ? "cust_edit" : "cust_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="cclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-3">${f("name", "crm_name", 'maxlength="60" autocomplete="off"')}${f("phone", "phone_label", `type="tel" placeholder="+998" autocomplete="off" ${d.key ? "readonly" : ""}`)}
+      ${f("email", "agency_email", 'type="email" maxlength="80" autocomplete="off"')}${f("country", "crm_country", 'maxlength="40" autocomplete="off"')}
+      <label class="field"><span>${esc(t("crm_source"))}</span><select data-cf="source">${LEAD_SOURCES.filter(x => !AUTO_SOURCES.includes(x) || x === d.source).map(x => `<option value="${x}" ${d.source === x ? "selected" : ""}>${esc(t("src_" + x))}</option>`).join("")}</select></label></div>
+    <div class="err" id="cerr2" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="csave">${esc(t(d.key ? "st_save" : "cust_create"))}</button><button type="button" class="link" data-act="cclose">${esc(t("cancel"))}</button></div></section>`;
+}
+function saveClient(){
+  const d = M.ui.cDraft; if (!d) return;
+  if (!canEditClient()) return toast(t("no_rights"));
+  const bad = d.name.trim().length < 2 ? ["err_name_short", "name"] : !validPhone(d.phone) ? ["err_phone", "phone"] : d.email.trim() && !validEmail(d.email.trim()) ? ["err_email", "email"]
+    : !d.key && b2cClients().some(c => c.key === digits(d.phone)) ? ["err_cust_dup", "phone"] : null;
+  $$("#cedit [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+  if (bad) { const f = $(`#cedit [data-cf="${bad[1]}"]`); f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", "cerr2"); showErr("#cerr2", t(bad[0])); f?.focus({ preventScroll:true }); return; }
+  const key = d.key || digits(d.phone), c0 = clientByKey(key), target = "c:" + key;
+  const rec = { name:d.name.trim().replace(/\s+/g, " "), email:d.email.trim(), country:d.country.trim(), source:LEAD_SOURCES.includes(d.source) ? d.source : "other" };
+  change(() => {
+    const r = clientRec(target), diff = CUST_FIELDS.filter(([k]) => k !== "phone" && (c0 ? c0[k] : "") !== rec[k])
+      .map(([k, label]) => ({ k:label, from:k === "source" ? (c0 ? strRef("src_" + c0.source) : "") : c0?.[k] || "", to:k === "source" ? strRef("src_" + rec.source) : rec[k] }));
+    Object.assign(r, rec, { phone:prettyPhone(d.phone) }); if (!r.at) r.at = Date.now();
+    r.events.unshift({ at:Date.now(), by:me().id, type:c0 ? "edit" : "created" });
+    audit(c0 ? "client_edit" : "client_new", { name:rec.name }, { module:"b2c", diff });
+  });
+  M.ui.cDraft = null;
+  if (d.key) { rerender(); toast(t("t_client_saved")); } else { toast(tf("t_client_new", { name:rec.name })); go("customers/" + key); }
+}
+
+/* ---- карточка клиента ---- */
+function clientPayments(c){
+  const rows = [];
+  for (const o of c.orders) {
+    if (orderPaid(o) && o.total) rows.push({ at:o.history?.find(h => h.s === "PAID")?.at || o.createdAt, o, kind:"pay", uzs:o.total.uzs });
+    if (o.refund?.done) rows.push({ at:o.refund.at, o, kind:"refund", uzs:o.refund.uzs });
+  }
+  return rows.sort((a, b) => b.at - a.at);
+}
+/* История клиента: события CRM, этапы его лидов, статусы заказов. */
+function clientHistory(c){
+  const items = [
+    ...(clientData("c:" + c.key)?.events || []).map(e => ({ at:e.at, by:e.by, text:e.type === "block" ? tf("ce_block", { reason:e.reason || "" }) : e.type === "unblock" ? t("ce_unblock")
+      : e.type === "assign" ? tf("le_assign", { name:e.to ? staffName(e.to) : t("crm_nobody") }) : e.type === "created" ? t("ce_created") : t("ce_edit") })),
+    ...c.leads.flatMap(l => l.events.filter(e => e.type === "status" || e.type === "created").map(e => ({ at:e.at, by:e.by, sys:e.sys,
+      text:`${l.no}: ${e.type === "created" ? tf("le_created", { src:t("src_" + l.source) }) : tf("le_status", { from:t("ls_" + e.from), to:t("ls_" + e.to) })}` }))),
+    ...c.orders.flatMap(o => (o.history || []).map(h => ({ at:h.at, by:null, sys:true, text:`${o.no}: ${t("st_" + h.s)}` })))
+  ].sort((a, b) => b.at - a.at).slice(0, 60);
+  return items.length ? `<ol class="feed">${items.map(x => `<li><span class="feed-dot" aria-hidden="true"></span><span class="stack" style="gap:2px"><span>${esc(x.text)}</span>
+    <span class="muted small">${esc(x.by ? staffName(x.by) : t("le_system"))} · ${esc(fdt(x.at))}</span></span></li>`).join("")}</ol>` : `<p class="muted">${esc(t("audit_empty"))}</p>`;
+}
+const ORDER_TYPES = ["all", "FLIGHT", "TOUR", "HOTEL", "JET", "HELI"];
 PAGES["customers/:phone"] = {
   render({ phone }){
-    const c = customers().find(x => x.key === phone);
+    const c = clientByKey(phone);
     if (!c) return `<div class="page">${backLink("customers", t("an_customers"))}<div class="card empty"><h1 class="h-empty">${esc(t("customer_missing"))}</h1></div></div>`;
-    const signedIn = SITE.user?.phone && digits(SITE.user.phone) === c.key;
+    // Лиды в карточке — только видимые сотруднику (b2cClients уже отфильтровал).
+    const target = "c:" + c.key, leadTargets = c.leads.map(l => "l:" + l.id), signedIn = SITE?.user?.phone && digits(SITE.user.phone) === c.key, ot = M.ui.cot || "all";
+    const orders = c.orders.filter(o => ot === "all" || o.type === ot), pays = clientPayments(c), reqs = c.orders.filter(o => o.req);
+    const row = (k, v, mono) => `<div><span class="k">${esc(t(k))}</span><span class="v ${mono ? "mono" : ""}">${v ? esc(v) : "—"}</span></div>`;
+    const blockKey = "cb" + c.key;
     return `<div class="page">${backLink("customers", t("an_customers"))}
-      <div class="ohead"><span class="avatar">${esc(monogram(c.name || "?"))}</span><div><span class="lbl">${esc(t("customer"))}</span><h1>${esc(c.name || t("guest"))}</h1>
-        <p class="muted mono">${esc(c.phone)}</p></div>${signedIn ? `<span class="pill st-CONFIRMED">${esc(t("signed_site"))}</span>` : ""}</div>
-      <div class="twocol"><section class="card stack"><h2>${esc(t("an_orders"))}</h2>
-          ${c.orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${c.orders.map((o, i) => admOrderRow({ o, a:null, src:"site" }, i, "", true)).join("")}</div>` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
-        <aside class="stack sticky"><div class="card stack"><span class="lbl">${esc(t("saved_travellers"))}</span>
-          ${signedIn && SITE.travellers.length ? SITE.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b><span class="mono small muted">${esc(x.passport.slice(0, 2))}•••${esc(x.passport.slice(-3))}</span></div>`).join("")
-            : `<p class="muted small">${esc(t("travellers_none"))}</p>`}
-          <p class="muted small">${esc(t("pii_note"))}</p></div>
-          <div class="card stack"><div class="rows"><div><span class="k">${esc(t("col_spent"))}</span><span class="v mono">${fmtUZS(c.spent)}</span></div></div></div></aside></div></div>`;
-  }
+      ${M.ui.cDraft?.key === c.key ? custForm() : ""}
+      ${c.blocked ? `<p class="blockbar inline">${IC.lock}<span><b>${esc(t("cust_blocked_h"))}</b> ${esc(c.blockReason)}</span></p>` : ""}
+      <div class="ohead"><span class="avatar">${esc(monogram(c.name || "?"))}</span><div><span class="lbl">${esc(t("customer"))} · B2C</span><h1>${esc(c.name || t("guest"))}</h1>
+        <p class="muted mono">${esc(c.phone)}</p></div><span class="row" style="gap:8px">${segPill(c.segment)}${signedIn ? `<span class="pill st-CONFIRMED">${esc(t("signed_site"))}</span>` : ""}</span></div>
+      <div class="twocol"><div class="stack">
+          <section class="card stack"><div class="card-h"><h2>${esc(t("crm_requests"))}</h2>${can("crm.create") ? `<button type="button" class="link" data-act="cleadnew" data-v="${c.key}">${esc(t("crm_lead_new"))}</button>` : ""}</div>
+            ${c.leads.length || reqs.length ? `<div class="atable" style="--cols:88px minmax(0,2fr) minmax(0,1fr) 130px">${c.leads.map(l => `<a class="arow" href="#/crm/${l.id}"><span class="a-cell mono small">${esc(l.no)}</span>
+                <span class="a-main"><b>${esc(leadWhat(l) || t("crm_no_interest"))}</b><span class="small muted">${esc(t("src_" + l.source))} · ${esc(fdt(l.createdAt))}</span></span>
+                <span class="a-cell small">${l.manager ? esc(staffName(l.manager)) : ""}</span><span class="a-end">${stagePill(l.status)}</span></a>`).join("")}
+              ${reqs.map(o => `<a class="arow" href="#/orders/site/${o.id}"><span class="a-cell mono small">${esc(o.no)}</span><span class="a-main"><b>${esc(t("req_kind_" + o.req.kind))}</b><span class="small muted">${esc(o.req.note || "")}</span></span>
+                <span class="a-cell small">${esc(fdt(o.req.at))}</span><span class="a-end"><span class="pill ${o.req.status ? "st-CONFIRMED" : "st-PENDING"}">${esc(t(o.req.status ? "req_status_" + o.req.status : "ap_wait"))}</span></span></a>`).join("")}</div>`
+              : `<p class="muted">${esc(t("crm_requests_none"))}</p>`}</section>
+          <section class="card stack"><div class="card-h"><h2>${esc(t("an_orders"))}</h2><span class="muted small">${esc(tf("crm_count", { n:c.orders.length }))}</span></div>
+            ${c.orders.length ? `<div class="chipbar">${ORDER_TYPES.filter(x => x === "all" || c.orders.some(o => o.type === x)).map(x => `<button type="button" class="chip" data-act="cot" data-v="${x}" aria-pressed="${ot === x}">${esc(x === "all" ? t("crm_all") : t("type_" + x))}</button>`).join("")}</div>
+              <div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a:null, src:"site" }, i, "", true)).join("")}</div>` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
+          <section class="card stack"><h2>${esc(t("crm_payments"))}</h2>${pays.length ? `<div class="atable" style="--cols:150px minmax(0,2fr) minmax(0,1fr)">${pays.map(p => `<a class="arow" href="#/orders/site/${p.o.id}">
+              <span class="a-cell a-sub muted small">${esc(fdt(p.at))}</span><span class="a-main"><b>${esc(t(p.kind === "pay" ? "crm_pay" : "crm_refund"))}</b><span class="small muted">${esc(p.o.no)} · ${esc(t("type_" + p.o.type))}</span></span>
+              <span class="a-num a-keep mono">${p.kind === "refund" ? "−" : ""}${fmtUZS(p.uzs)}</span></a>`).join("")}</div>` : `<p class="muted">${esc(t("crm_payments_none"))}</p>`}</section>
+          ${can("crm.view") || can("b2c.edit") ? notesBlock(target, [target, ...(can("crm.view") ? leadTargets : [])]) : ""}
+          <section class="card stack"><h2>${esc(t("crm_history"))}</h2>${clientHistory(c)}</section></div>
+        <aside class="stack sticky">
+          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditClient() ? `<button type="button" class="link" data-act="cedit" data-v="${c.key}">${esc(t("edit"))}</button>` : ""}</div>
+            <div class="rows">${row("phone_label", c.phone, true)}${row("agency_email", c.email)}${row("crm_country", c.country)}${row("crm_source", t("src_" + c.source))}
+              ${row("crm_since", c.first ? fdate(ymd(new Date(c.first))) : "")}${row("col_spent", fmtUZS(c.spent), true)}</div></div>
+          <div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField(target, c.manager)}</div></div>
+          ${can("crm.view") ? tasksBlock(target, [target, ...leadTargets]) : ""}
+          ${signedIn && SITE.travellers?.length ? `<div class="card stack"><span class="lbl">${esc(t("saved_travellers"))}</span>${SITE.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b><span class="mono small muted">${esc(x.passport.slice(0, 2))}•••${esc(x.passport.slice(-2))}</span></div>`).join("")}
+            <p class="muted small">${esc(t("pii_note"))}</p></div>` : ""}
+          <div class="card stack"><span class="lbl">${esc(t("cust_access"))}</span><p class="muted small">${esc(t(c.blocked ? "cust_blocked_d" : "cust_active_d"))}</p>
+            ${c.blocked ? `<button type="button" class="solid sm" data-act="cunblock" data-v="${c.key}" ${guard("b2c.manage")}>${esc(t("unblock_cta"))}</button>`
+              : !M.ui.ask?.[blockKey] ? `<button type="button" class="ghost sm danger-ghost" data-act="aask" data-k="${blockKey}" ${guard("b2c.manage")}>${esc(t("block_cta"))}</button>`
+              : `<span class="why">${inpField("why:" + blockKey, { label:t("reason"), ph:t("cust_block_ph"), extra:'maxlength="120"' })}
+                <button type="button" class="solid sm danger-solid" data-act="cblock" data-v="${c.key}" ${guard("b2c.manage")}>${esc(t("block_cta"))}</button>
+                <button type="button" class="link" data-act="aask" data-k="${blockKey}">${esc(t("cancel"))}</button></span>`}</div>
+        </aside></div></div>`;
+  },
+  after(){ if (M.ui.cDraft && M.ui.cFocus) { $("#cedit [data-cf=name]")?.focus(); M.ui.cFocus = false; } }
 };
+/* Блокировка: номер попадает в список, который читает сайт, — бронировать с него нельзя. */
+function setClientBlocked(key, on, reason = ""){
+  if (denied("b2c.manage")) return false;
+  if (on && !reason) { toast(t("err_reason")); return false; }
+  const c = clientByKey(key); if (!c) return false;
+  if (on && !reason.trim()) { toast(t("err_reason")); return false; }
+  change(() => { const r = clientRec("c:" + key); if (!r.phone) r.phone = c.phone; if (!r.name && c.name) r.name = c.name;
+    r.blocked = on; r.blockReason = on ? reason : ""; r.events.unshift({ at:Date.now(), by:me().id, type:on ? "block" : "unblock", reason });
+    syncBlocked();
+    audit(on ? "client_block" : "client_unblock", { name:c.name || c.phone, reason }, { module:"b2c", diff:[{ k:"col_status", from:strRef(on ? "cust_st_on" : "cust_st_off"), to:strRef(on ? "cust_st_off" : "cust_st_on") }] }); });
+  toast(t(on ? "t_client_blocked" : "t_client_unblocked"));
+  return true;
+}
+Object.assign(ACT, {
+  cnew:     () => { if (!canEditClient()) return toast(t("no_rights")); M.ui.cDraft = { key:null, name:"", phone:"", email:"", country:"", source:"phone" }; M.ui.cFocus = true; rerender(); },
+  cedit:    el => { const c = clientByKey(el.dataset.v); if (!c || !canEditClient()) return; M.ui.cDraft = { key:c.key, name:c.name, phone:c.phone, email:c.email, country:c.country, source:c.source }; M.ui.cFocus = true; rerender(); },
+  cclose:   () => { M.ui.cDraft = null; rerender(); },
+  csave:    () => saveClient(),
+  cot:      el => { M.ui.cot = el.dataset.v; rerender(); },
+  cblock:   el => { if (setClientBlocked(el.dataset.v, true, takeInp("why:cb" + el.dataset.v))) { M.ui.ask["cb" + el.dataset.v] = false; rerender(); $('[data-act="cunblock"]')?.focus(); } },
+  cunblock: el => { if (setClientBlocked(el.dataset.v, false)) $('[data-act="aask"][data-k^="cb"]')?.focus(); },
+  cleadnew: el => { const c = clientByKey(el.dataset.v); if (!c || denied("crm.create")) return; M.ui.leadDraft = blankLead({ name:c.name, phone:c.phone, email:c.email, country:c.country }); M.ui.ldFocus = true; go("crm"); },
+  bcsv:     () => {
+    if (denied("b2c.export")) return;
+    csvDownload([[t("customer"), t("phone_label"), t("agency_email"), t("crm_country"), t("crm_segment"), t("crm_source"), t("crm_manager"), t("an_orders"), t("col_spent")],
+      ...custRows().map(c => [c.name, c.phone, c.email, c.country, t("seg_" + c.segment), t("src_" + c.source), c.manager ? staffName(c.manager) : "", c.orders.length, c.spent])], "customers");
+    change(() => audit("export", { what:strRef("an_customers") }, { module:"b2c" }));
+  }
+});
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.cf; if (k && M.ui.cDraft) M.ui.cDraft[k] = e.target.value;
+  if (e.target.id === "bq") { M.ui.bq = e.target.value; bRefresh(); }
+});
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.cf; if (k && M.ui.cDraft) M.ui.cDraft[k] = e.target.value;
+  if (e.target.id === "bsg") { M.ui.bsg = e.target.value; bRefresh(); }
+});
+const bRefresh = () => { const l = $("#blist"); if (l) l.innerHTML = clientTable(custRows(), t("an_customers"), false); const c = $("#bcount"); if (c) c.textContent = tf("crm_count", { n:custRows().length }); };
+
+/* ---- 56-crm.js ---- */
+/* ==========================================================================
+   CRM: воронка лидов, список лидов, клиенты (пассажиры и агентства), задачи;
+   карточка лида. Этапы: новый → связались → в работе → заинтересован →
+   подтверждён → завершён | потерян (с причиной).
+   ========================================================================== */
+"use strict";
+
+const CRM_TABS = ["board", "leads", "clients", "tasks"];
+
+/* ---- форма лида: новый и правка ---- */
+const LEAD_FIELDS = [["name", "crm_name"], ["phone", "phone_label"], ["email", "agency_email"], ["country", "crm_country"], ["source", "crm_source"],
+  ["service", "crm_service"], ["dest", "crm_dest"], ["budget", "crm_budget"]];
+const blankLead = (x = {}) => ({ id:null, name:"", phone:"", email:"", country:"", source:"phone", service:"TOUR", dest:"", budget:"", manager:can("crm.manage") ? "" : me().id, note:"", ...x });
+/* forId — чья страница: на карточке лида — его id, в списке CRM — null
+   (там только новый лид). Черновик с другой карточки не показываем. */
+function leadForm(forId = null){
+  const d = M.ui.leadDraft; if (!d || (d.id || null) !== forId) return "";
+  const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-lf="${k}" value="${esc(d[k])}" ${attrs}></label>`;
+  const srcs = LEAD_SOURCES.filter(x => !AUTO_SOURCES.includes(x) || x === d.source);
+  return `<section class="card stack cl-edit" id="ledit" aria-labelledby="ledit-h"><div class="card-h"><h2 id="ledit-h">${esc(t(d.id ? "crm_lead_edit" : "crm_lead_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="ledclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-3">
+      ${f("name", "crm_name", 'maxlength="60" autocomplete="off"')}${f("phone", "phone_label", 'type="tel" placeholder="+998" autocomplete="off"')}${f("email", "agency_email", 'type="email" maxlength="80" autocomplete="off"')}
+      ${f("country", "crm_country", 'maxlength="40" autocomplete="off"')}
+      <label class="field"><span>${esc(t("crm_source"))}</span><select data-lf="source">${srcs.map(x => `<option value="${x}" ${d.source === x ? "selected" : ""}>${esc(t("src_" + x))}</option>`).join("")}</select></label>
+      <label class="field"><span>${esc(t("crm_service"))}</span><select data-lf="service"><option value="">—</option>${LEAD_SERVICES.map(x => `<option value="${x}" ${d.service === x ? "selected" : ""}>${esc(t("type_" + x))}</option>`).join("")}</select></label>
+      ${f("dest", "crm_dest", 'maxlength="60" autocomplete="off"')}${f("budget", "crm_budget", 'inputmode="numeric" maxlength="9" placeholder="$"')}
+      ${!d.id && crmAll() ? `<label class="field"><span>${esc(t("crm_manager"))}</span><select data-lf="manager"><option value="">${esc(t("crm_nobody"))}</option>${crmStaff().map(s => `<option value="${s.id}" ${d.manager === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label>` : ""}
+    </div>
+    ${d.id ? "" : `<label class="field"><span>${esc(t("crm_first_note"))}</span><textarea data-lf="note" rows="2" maxlength="${NOTE_MAX}">${esc(d.note)}</textarea></label>`}
+    <div class="err" id="lerr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="ledsave">${esc(t(d.id ? "st_save" : "crm_lead_create"))}</button><button type="button" class="link" data-act="ledclose">${esc(t("cancel"))}</button></div></section>`;
+}
+/* Ошибка и поле, к которому она относится. */
+function leadError(d){
+  if (d.name.trim().length < 2) return ["err_name_short", "name"];
+  if (d.phone.trim() && !validPhone(d.phone)) return ["err_phone", "phone"];
+  if (!validPhone(d.phone) && !(d.email.trim() && validEmail(d.email.trim()))) return ["err_lead_contact", "phone"];
+  if (d.email.trim() && !validEmail(d.email.trim())) return ["err_email", "email"];
+  if (d.budget !== "" && !/^\d{1,8}$/.test(String(d.budget).replace(/\s/g, ""))) return ["err_budget", "budget"];
+  const dup = validPhone(d.phone) && O.crm.leads.find(l => l.id !== d.id && LEAD_OPEN.includes(l.status) && digits(l.phone) === digits(d.phone));
+  if (dup) return [{ key:"err_lead_dup", no:dup.no }, "phone"];
+  return null;
+}
+function saveLead(){
+  const d = M.ui.leadDraft; if (!d) return;
+  const l0 = d.id ? leadById(d.id) : null;
+  if (l0 ? !canEditLead(l0) : denied("crm.create")) return l0 && toast(t("no_rights"));
+  const err = leadError(d);
+  if (err) {
+    $$("#ledit [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
+    const fld = $(`#ledit [data-lf="${err[1]}"]`); if (fld) { fld.setAttribute("aria-invalid", "true"); fld.setAttribute("aria-describedby", "lerr"); }
+    showErr("#lerr", typeof err[0] === "object" ? tf(err[0].key, { no:err[0].no }) : t(err[0])); fld?.focus({ preventScroll:true }); return;
+  }
+  const rec = { name:d.name.trim().replace(/\s+/g, " "), phone:validPhone(d.phone) ? prettyPhone(d.phone) : "", email:d.email.trim(), country:d.country.trim(),
+    source:LEAD_SOURCES.includes(d.source) ? d.source : "other", service:LEAD_SERVICES.includes(d.service) ? d.service : null,
+    budget:d.budget === "" ? null : Number(String(d.budget).replace(/\s/g, "")) };
+  let id = d.id;
+  change(() => {
+    if (l0) {
+      const l = leadById(l0.id), destTxt = d.dest.trim(), next = { ...rec, dest:destTexts(l).includes(destTxt) ? l.dest : destTxt };
+      const val = (k, x) => k === "dest" ? destVal(x) : k === "source" ? strRef("src_" + x[k]) : k === "service" ? (x[k] ? strRef("type_" + x[k]) : "") : String(x[k] ?? "");
+      const diff = LEAD_FIELDS.filter(([k]) => JSON.stringify(l[k] ?? "") !== JSON.stringify(next[k] ?? "")).map(([k, label]) => ({ k:label, from:val(k, l), to:val(k, next) }));
+      if (!diff.length) return;
+      Object.assign(l, next); leadEvent(l, { type:"edit", fields:diff.map(x => x.k) });
+      audit("lead_edit", { no:l.no, name:l.name }, { module:"crm", diff });
+    } else {
+      const mgr = crmAll() ? (crmStaff().some(s => s.id === d.manager) ? d.manager : null) : me().id;
+      const l = newLead(O, { ...rec, dest:d.dest.trim(), manager:mgr, by:me().id }); id = l.id;
+      if (d.note.trim()) O.crm.notes.unshift({ id:uid("n"), target:"l:" + l.id, kind:"note", text:d.note.trim(), by:me().id, at:Date.now() });
+      audit("lead_new", { no:l.no, name:l.name }, { module:"crm" });
+    }
+  });
+  M.ui.leadDraft = null;
+  if (!l0) { toast(tf("t_lead_new", { no:leadById(id)?.no || "" })); go("crm/" + id); } else { rerender(); toast(t("t_lead_saved")); $("h1")?.focus(); }
+}
+/* Смена этапа. «Потерян» — только с причиной. */
+function setStage(id, to, reason = ""){
+  const l = leadById(id); if (!l || !LEAD_STAGES.includes(to)) return false;
+  if (!canEditLead(l)) { toast(t("no_rights")); return false; }
+  if (l.status === to) return false;
+  if (to === "lost" && !reason) { toast(t("err_reason")); return false; }
+  change(() => { const x = leadById(id); const from = x.status; leadEvent(x, { type:"status", from, to, ...(to === "lost" ? { reason } : {}) }); x.status = to; x.lostReason = to === "lost" ? reason : "";
+    audit("lead_status", { no:x.no, name:x.name }, { module:"crm", diff:[{ k:"crm_stage", from:strRef("ls_" + from), to:strRef("ls_" + to) },
+      ...(to === "lost" ? [{ k:"crm_lost_reason", from:"", to:reason }] : [])] }); });
+  toast(tf("t_lead_stage", { stage:t("ls_" + to) }));
+  return true;
+}
+/* Направление лида на всех языках (для сравнения) и без языка (для журнала). */
+const destTexts = l => !l.dest ? [""] : typeof l.dest === "string" ? [l.dest] : ["ru", "uz", "en"].map(lang => { const k = S.lang; S.lang = lang; const v = leadDest(l); S.lang = k; return v; });
+const destVal = l => !l.dest ? "" : typeof l.dest === "string" ? l.dest : l.dest.code ? { dest:l.dest } : l.dest;
+const nextStage = st => ({ new:"contacted", contacted:"progress", progress:"interested", interested:"confirmed", confirmed:"completed" })[st] || null;
+
+/* ---- воронка ---- */
+function leadCard(l){
+  const over = tasksFor(["l:" + l.id]).some(taskOverdue), nx = nextStage(l.status);
+  return `<article class="lcard" aria-label="${esc(l.name)}"><a class="lcard-main" href="#/crm/${l.id}"><span class="mono small muted">${esc(l.no)}</span><b>${esc(l.name)}</b>
+      <span class="small muted">${esc(leadWhat(l) || t("crm_no_interest"))}</span></a>
+    <div class="lcard-foot"><span class="mono small">${esc(usd(l.budget))}</span>${over ? `<span class="warn-t small" title="${esc(t("crm_overdue"))}">${IC.clock}<span class="sr-only">${esc(t("crm_overdue"))}</span></span>` : ""}
+      <span class="small muted">${esc(ago(l.createdAt))}</span>${l.manager ? `<span class="avatar xs" title="${esc(staffName(l.manager))}" aria-label="${esc(staffName(l.manager))}">${esc(monogram(staffName(l.manager)))}</span>` : ""}</div>
+    ${nx && canEditLead(l) ? `<button type="button" class="link small" data-act="lednext" data-v="${l.id}" aria-label="${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}: ${esc(l.name)}">${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}</button>` : ""}</article>`;
+}
+function crmBoard(){
+  const leads = visibleLeads();
+  return `<div class="lboard" role="region" aria-label="${esc(t("crm_board"))}" tabindex="0">${LEAD_STAGES.map(st => {
+    const list = leads.filter(l => l.status === st), sum = list.reduce((s, l) => s + (l.budget || 0), 0);
+    return `<section class="bcol bcol-${st}" aria-labelledby="bc-${st}"><header class="bcol-h"><h3 id="bc-${st}">${esc(t("ls_" + st))}</h3><span class="count">${list.length}</span>
+        ${sum ? `<span class="small muted mono">${esc(usd(sum))}</span>` : ""}</header>
+      <div class="bcards">${list.map(leadCard).join("") || `<p class="small muted">${esc(t("crm_col_empty"))}</p>`}</div></section>`; }).join("")}</div>`;
+}
+
+/* ---- список лидов ---- */
+function leadRows(){
+  const st = M.ui.lst || "all", src = M.ui.lsrc || "all", mg = M.ui.lmg || "all", q = (M.ui.lq || "").trim().toLowerCase();
+  return visibleLeads().filter(l => (st === "all" || (st === "open" ? LEAD_OPEN.includes(l.status) : l.status === st)) && (src === "all" || l.source === src)
+    && (mg === "all" || (mg === "none" ? !l.manager : l.manager === mg))
+    && (!q || [l.no, l.name, l.phone, l.email, leadWhat(l)].join(" ").toLowerCase().includes(q)));
+}
+function leadsList(){
+  const rows = leadRows();
+  if (!rows.length) return `<p class="muted">${esc(t("crm_none_match"))}</p>`;
+  return `<div class="atable" style="--cols:88px minmax(0,1.6fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr) 130px">
+    <div class="arow ahead" aria-hidden="true"><span>№</span><span>${esc(t("crm_name"))}</span><span>${esc(t("crm_interest"))}</span>
+      <span>${esc(t("crm_source"))}</span><span>${esc(t("crm_manager"))}</span><span class="a-end">${esc(t("crm_stage"))}</span></div>
+    ${rows.map(l => `<a class="arow" href="#/crm/${l.id}"><span class="a-cell mono small">${esc(l.no)}</span>
+      <span class="a-main"><b>${esc(l.name)}</b><span class="mono">${esc(l.phone || l.email)}</span></span>
+      <span class="a-cell a-sub wrap">${esc(leadWhat(l) || "—")}${l.budget ? ` · <span class="mono">${esc(usd(l.budget))}</span>` : ""}</span>
+      <span class="a-cell small">${esc(t("src_" + l.source))}</span><span class="a-cell small">${l.manager ? esc(staffName(l.manager)) : `<span class="muted">${esc(t("crm_nobody"))}</span>`}</span>
+      <span class="a-end">${stagePill(l.status)}</span></a>`).join("")}</div>`;
+}
+function leadsTab(){
+  const st = M.ui.lst || "all", src = M.ui.lsrc || "all", mg = M.ui.lmg || "all";
+  return `<div class="card stack"><div class="ofind au-find">
+      <select id="lst" class="minisel" aria-label="${esc(t("crm_stage"))}"><option value="all">${esc(t("crm_all_stages"))}</option><option value="open" ${st === "open" ? "selected" : ""}>${esc(t("crm_open"))}</option>
+        ${LEAD_STAGES.map(x => `<option value="${x}" ${st === x ? "selected" : ""}>${esc(t("ls_" + x))}</option>`).join("")}</select>
+      <select id="lsrc" class="minisel" aria-label="${esc(t("crm_source"))}"><option value="all">${esc(t("crm_all_sources"))}</option>${LEAD_SOURCES.map(x => `<option value="${x}" ${src === x ? "selected" : ""}>${esc(t("src_" + x))}</option>`).join("")}</select>
+      ${crmAll() ? `<select id="lmg" class="minisel" aria-label="${esc(t("crm_manager"))}"><option value="all">${esc(t("crm_all_managers"))}</option><option value="none" ${mg === "none" ? "selected" : ""}>${esc(t("crm_nobody"))}</option>
+        ${crmStaff().map(s => `<option value="${s.id}" ${mg === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>` : ""}
+      <label class="search">${IC.search}<input id="lq" type="search" value="${esc(M.ui.lq || "")}" placeholder="${esc(t("crm_search"))}" aria-label="${esc(t("crm_search"))}"></label>
+      <button type="button" class="ghost sm" data-act="lcsv" ${guard("crm.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button></div>
+    <p class="muted small" id="lcount" aria-live="polite">${esc(tf("crm_count", { n:leadRows().length }))}</p>
+    <div id="llist">${leadsList()}</div></div>`;
+}
+
+/* ---- клиенты: пассажиры и агентства ---- */
+function agencyClients(){
+  return agencies().map(a => {
+    const paid = a.st.orders.filter(o => o.paidAt && !["CANCELLED", "REFUNDED"].includes(o.status)), d = clientData("a:" + a.id) || {};
+    const c = { key:a.id, b2b:true, name:a.name, phone:a.phone || "", orders:a.st.orders, spent:paid.reduce((s, o) => s + (o.total?.uzs || 0), 0), paid:paid.length,
+      lastPaid:Math.max(0, ...paid.map(o => o.paidAt)), last:Math.max(0, ...a.st.orders.map(o => o.createdAt)), manager:d.manager || null, source:"b2b_app", blocked:!agencyActiveOf(a) };
+    return { ...c, segment:segmentOf(c) };
+  });
+}
+const SEGMENTS = ["new", "active", "vip", "inactive", "blocked"];
+const segPill = s => `<span class="pill seg-${s}">${esc(t("seg_" + s))}</span>`;
+function clientRows(){
+  const ty = M.ui.cty || "all", sg = M.ui.csg || "all", q = (M.ui.cq || "").trim().toLowerCase();
+  const list = [...(ty !== "b2b" && (can("b2c.view") || can("crm.view")) ? b2cClients() : []), ...(ty !== "b2c" && can("b2b.view") ? agencyClients() : [])];
+  return list.filter(c => (sg === "all" || c.segment === sg) && (!q || [c.name, c.phone, c.email || ""].join(" ").toLowerCase().includes(q))).sort((a, b) => b.last - a.last);
+}
+function clientTable(rows, label, showType = true){
+  if (!rows.length) return `<p class="muted">${esc(t("crm_none_match"))}</p>`;
+  return `<div class="atable" style="--cols:minmax(0,2fr) ${showType ? "70px " : ""}minmax(0,1fr) minmax(0,1.2fr) 80px minmax(0,1.2fr) 120px">
+    <div class="arow ahead" aria-hidden="true"><span>${esc(t("customer"))}</span>${showType ? `<span>${esc(t("crm_type"))}</span>` : ""}<span>${esc(t("crm_segment"))}</span>
+      <span>${esc(t("crm_manager"))}</span><span class="a-num">${esc(t("an_orders"))}</span><span class="a-num">${esc(t("col_spent"))}</span><span class="a-end">${esc(t("crm_last_activity"))}</span></div>
+    ${rows.map(c => `<a class="arow" href="${c.b2b ? `#/agencies/${c.key}` : `#/customers/${c.key}`}"><span class="a-main a-with-mark"><span class="avatar sm" aria-hidden="true">${esc(monogram(c.name || "?"))}</span>
+        <span class="stack" style="gap:1px;min-width:0"><b>${esc(c.name || t("guest"))}</b><span class="mono small muted">${esc(c.phone)}</span></span></span>
+      ${showType ? `<span class="a-cell small">${c.b2b ? "B2B" : "B2C"}</span>` : ""}<span class="a-sub">${segPill(c.segment)}</span>
+      <span class="a-cell small">${c.manager ? esc(staffName(c.manager)) : `<span class="muted">${esc(t("crm_nobody"))}</span>`}</span>
+      <span class="a-num mono"><span class="sr-only">${esc(t("an_orders"))}: </span>${c.orders.length}</span><span class="a-num a-keep mono"><span class="sr-only">${esc(t("col_spent"))}: </span>${fmtUZS(c.spent)}</span>
+      <span class="a-end muted small">${c.last ? esc(fdate(ymd(new Date(c.last)))) : "—"}</span></a>`).join("")}</div>`;
+}
+function clientsTab(){
+  const ty = M.ui.cty || "all", sg = M.ui.csg || "all";
+  return `<div class="card stack"><div class="ofind au-find">
+      ${seg("cty", [["all", t("crm_all")], ["b2c", "B2C"], ["b2b", "B2B"]], ty)}
+      <select id="csg" class="minisel" aria-label="${esc(t("crm_segment"))}"><option value="all">${esc(t("crm_all_segments"))}</option>${SEGMENTS.map(x => `<option value="${x}" ${sg === x ? "selected" : ""}>${esc(t("seg_" + x))}</option>`).join("")}</select>
+      <label class="search">${IC.search}<input id="cq" type="search" value="${esc(M.ui.cq || "")}" placeholder="${esc(t("crm_search_c"))}" aria-label="${esc(t("crm_search_c"))}"></label>
+      <button type="button" class="ghost sm" data-act="ccsv" ${can("crm.export") || can("b2c.export") ? "" : guard("crm.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button></div>
+    <p class="muted small" id="ccount" aria-live="polite">${esc(tf("crm_count", { n:clientRows().length }))}</p>
+    <div id="clist">${clientTable(clientRows(), t("crm_clients"))}</div>
+    <p class="muted small">${esc(tf("seg_note", { vip:fmtUZS(VIP_MIN), days:ACTIVE_DAYS }))}</p></div>`;
+}
+
+/* ---- задачи ---- */
+function tasksTab(){
+  const who = crmAll() ? M.ui.tkw || "me" : "me", done = M.ui.tkd === "done";
+  const list = O.crm.tasks.filter(x => (who === "all" || x.assignee === (who === "me" ? me().id : who)) && x.done === done
+    && (!x.target.startsWith("l:") || (leadById(x.target.slice(2)) && canSeeLead(leadById(x.target.slice(2)))))).sort((a, b) => done ? b.doneAt - a.doneAt : a.due - b.due);
+  const groups = done ? [["crm_done", list.slice(0, 50)]] : [["crm_overdue", list.filter(taskOverdue)], ["crm_today", list.filter(x => !taskOverdue(x) && x.due <= dayEnd())], ["crm_later", list.filter(x => x.due > dayEnd())]];
+  return `<div class="card stack"><div class="ofind au-find">
+      ${seg("tkd", [["open", t("crm_open_tasks")], ["done", t("crm_done")]], done ? "done" : "open")}
+      ${crmAll() ? `<select id="tkw" class="minisel" aria-label="${esc(t("crm_assignee"))}"><option value="me" ${who === "me" ? "selected" : ""}>${esc(t("crm_mine"))}</option><option value="all" ${who === "all" ? "selected" : ""}>${esc(t("crm_all_managers"))}</option>
+        ${crmStaff().map(s => `<option value="${s.id}" ${who === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>` : ""}</div>
+    ${list.length ? groups.filter(([, g]) => g.length).map(([k, g]) => `<div class="stack" style="gap:6px"><h3 class="lbl">${esc(t(k))} · ${g.length}</h3><ul class="crm-tasks">${g.map(x => taskRow(x, true)).join("")}</ul></div>`).join("")
+      : `<p class="calm">${IC.ok}<span>${esc(t(done ? "crm_tasks_none" : "crm_tasks_clear"))}</span></p>`}</div>`;
+}
+
+PAGES.crm = {
+  render(){
+    const tab = CRM_TABS.includes(M.ui.crmTab) ? M.ui.crmTab : "board";
+    return `<div class="page">
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_crm"))}</h1><p class="muted">${esc(t(crmAll() ? "crm_sub_all" : "crm_sub_mine"))}</p></div>
+        <button type="button" class="solid" data-act="lednew" ${guard("crm.create")}>${IC.plus}<span>${esc(t("crm_lead_new"))}</span></button></div>
+      ${leadForm(null)}
+      <div class="stack">${seg("crmtab", CRM_TABS.map(k => [k, t("crm_tab_" + k)]), tab)}
+        ${{ board:crmBoard, leads:leadsTab, clients:clientsTab, tasks:tasksTab }[tab]()}</div></div>`;
+  },
+  after(){ if (M.ui.leadDraft && M.ui.ldFocus) { $("#ledit [data-lf=name]")?.focus(); M.ui.ldFocus = false; } crmSync(); }
+};
+
+/* ---- карточка лида ---- */
+function leadHistory(l){
+  const txt = e => e.type === "created" ? tf("le_created", { src:t("src_" + l.source) })
+    : e.type === "status" ? tf("le_status", { from:t("ls_" + e.from), to:t("ls_" + e.to) }) + (e.sys ? " · " + t("le_auto") : "") + (e.reason ? ` · «${auditVal(e.reason)}»` : "")
+    : e.type === "assign" ? tf("le_assign", { name:e.to ? staffName(e.to) : t("crm_nobody") })
+    : e.type === "link" ? tf("le_link", { no:e.no || "" }) : e.type === "edit" ? tf("le_edit", { fields:(e.fields || []).map(k => t(k)).join(", ") }) : "";
+  return `<ol class="feed">${l.events.map(e => `<li><span class="feed-dot" aria-hidden="true"></span><span class="stack" style="gap:2px"><span>${esc(txt(e))}</span>
+    <span class="muted small">${esc(e.by ? staffName(e.by) : t("le_system"))} · ${esc(fdt(e.at))}</span></span></li>`).join("")}</ol>`;
+}
+function stageStepper(l){
+  const edit = canEditLead(l), i = LEAD_STAGES.indexOf(l.status);
+  return `<div class="lstepper" role="group" aria-label="${esc(t("crm_stage"))}">${LEAD_STAGES.map((st, k) => `<button type="button" class="lstep ${k < i && l.status !== "lost" ? "past" : ""} ls-${st}"
+      data-act="${st === "lost" ? "aask" : "ledstage"}" ${st === "lost" ? `data-k="lost${l.id}"` : `data-s="${st}" data-v="${l.id}"`} aria-pressed="${l.status === st}" ${edit && !(st === "lost" && l.status === "lost") ? "" : "disabled"}>${esc(t("ls_" + st))}</button>`).join("")}</div>
+    ${M.ui.ask?.["lost" + l.id] && edit ? `<span class="why">${inpField("why:lost" + l.id, { label:t("reason"), ph:t("crm_lost_ph"), extra:'maxlength="120"' })}
+      <button type="button" class="solid sm danger-solid" data-act="ledlost" data-v="${l.id}">${esc(t("crm_mark_lost"))}</button>
+      <button type="button" class="link" data-act="aask" data-k="lost${l.id}">${esc(t("cancel"))}</button></span>` : ""}
+    ${l.status === "lost" && l.lostReason ? `<p class="small"><b>${esc(t("crm_lost_reason"))}:</b> ${esc(auditVal(l.lostReason))}</p>` : ""}`;
+}
+PAGES["crm/:id"] = {
+  render({ id }){
+    const l = leadById(id);
+    if (!l || !canSeeLead(l)) return `<div class="page">${backLink("crm", t("an_crm"))}<div class="card empty"><h1 class="h-empty">${esc(t("crm_lead_missing"))}</h1></div></div>`;
+    const orders = linkedOrders(l), key = digits(l.phone), row = (k, v, mono) => v ? `<div><span class="k">${esc(t(k))}</span><span class="v ${mono ? "mono" : ""}">${esc(v)}</span></div>` : "";
+    return `<div class="page">${backLink("crm", t("an_crm"))}
+      ${leadForm(l.id)}
+      <div class="ohead"><span class="avatar">${esc(monogram(l.name || "?"))}</span><div><span class="lbl">${esc(l.no)} · ${esc(t(l.kind === "b2b" ? "crm_lead_b2b" : "crm_lead"))}</span><h1>${esc(l.name)}</h1>
+        <p class="muted">${esc(leadWhat(l) || t("crm_no_interest"))}${l.budget ? ` · <span class="mono">${esc(usd(l.budget))}</span>` : ""}</p></div>${stagePill(l.status)}</div>
+      <section class="card stack"><h2>${esc(t("crm_stage"))}</h2>${stageStepper(l)}</section>
+      <div class="twocol" style="margin-top:20px"><div class="stack">
+          ${notesBlock("l:" + l.id)}
+          <section class="card stack"><h2>${esc(t("an_orders"))}</h2>${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a:null, src:"site" }, i, "", true)).join("")}</div>`
+            : `<p class="muted">${esc(t("crm_orders_none"))}</p>`}</section>
+          <section class="card stack"><h2>${esc(t("crm_history"))}</h2>${leadHistory(l)}</section></div>
+        <aside class="stack sticky">
+          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditLead(l) ? `<button type="button" class="link" data-act="ledit" data-v="${l.id}">${esc(t("edit"))}</button>` : ""}</div>
+            <div class="rows">${row("phone_label", l.phone, true)}${row("agency_email", l.email)}${row("crm_person", l.contact)}${row("crm_country", l.country)}${row("crm_source", t("src_" + l.source))}
+              ${row("crm_created", fdt(l.createdAt))}</div>
+            ${key && l.kind !== "b2b" ? `<a class="link" href="#/customers/${key}">${esc(t("crm_client_card"))}</a>` : ""}
+            ${l.origin?.app && can("b2b.view") ? `<a class="link" href="#/agencies">${esc(t("an_agencies"))}</a>` : ""}</div>
+          <div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("l:" + l.id, l.manager)}</div></div>
+          ${tasksBlock("l:" + l.id)}
+          ${can("crm.delete") ? `<button type="button" class="link danger" data-act="leddel" data-v="${l.id}">${esc(t("crm_lead_delete"))}</button>` : ""}
+        </aside></div></div>`;
+  },
+  after(){ if (M.ui.leadDraft && M.ui.ldFocus) { $("#ledit [data-lf=name]")?.focus(); M.ui.ldFocus = false; } }
+};
+
+/* ---- действия и поля ---- */
+const leadDraftOf = l => blankLead({ id:l.id, name:l.name, phone:l.phone, email:l.email, country:l.country, source:l.source, service:l.service || "", dest:leadDest(l), budget:l.budget == null ? "" : String(l.budget) });
+function csvDownload(rows, name){
+  const blob = new Blob([csvText(rows)], { type:"text/csv;charset=utf-8" });
+  const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-${name}-${TODAY}.csv` });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+Object.assign(ACT, {
+  crmtab:  el => { M.ui.crmTab = el.dataset.v; rerender(); },
+  lednew:  () => { if (denied("crm.create")) return; M.ui.leadDraft = blankLead(); M.ui.ldFocus = true; rerender(); },
+  ledit:   el => { const l = leadById(el.dataset.v); if (!l || !canEditLead(l)) return toast(t("no_rights")); M.ui.leadDraft = leadDraftOf(l); M.ui.ldFocus = true; rerender(); },
+  ledclose:() => { M.ui.leadDraft = null; rerender(); },
+  ledsave: () => saveLead(),
+  ledstage:el => { setStage(el.dataset.v, el.dataset.s); },
+  ledlost: el => { if (setStage(el.dataset.v, "lost", takeInp("why:lost" + el.dataset.v))) { M.ui.ask["lost" + el.dataset.v] = false; rerender(); } },
+  lednext: el => { const l = leadById(el.dataset.v), nx = l && nextStage(l.status); if (nx) setStage(l.id, nx); },
+  leddel:  el => {
+    const l = leadById(el.dataset.v); if (!l || denied("crm.delete") || !canSeeLead(l)) return;
+    if (!confirm(tf("crm_lead_delete_q", { no:l.no }))) return;
+    // Разговоры с клиентом остаются в его карточке; задачи по лиду удаляются.
+    change(() => {
+      const target = "l:" + l.id, key = digits(l.phone), tasks = O.crm.tasks.filter(x => x.target === target).length;
+      if (key && l.kind !== "b2b") { const r = clientRec("c:" + key); if (!r.phone) r.phone = l.phone; if (!r.name) r.name = l.name;
+        for (const n of O.crm.notes) if (n.target === target) n.target = "c:" + key; }
+      else O.crm.notes = O.crm.notes.filter(n => n.target !== target);
+      O.crm.leads = O.crm.leads.filter(x => x.id !== l.id); O.crm.tasks = O.crm.tasks.filter(x => x.target !== target);
+      audit("lead_delete", { no:l.no, name:l.name, tasks:String(tasks) }, { module:"crm" }); });
+    toast(t("t_lead_deleted")); go("crm");
+  },
+  lcsv: () => {
+    if (denied("crm.export")) return;
+    csvDownload([[ "№", t("crm_name"), t("phone_label"), t("agency_email"), t("crm_country"), t("crm_source"), t("crm_service"), t("crm_dest"), t("crm_budget"), t("crm_stage"), t("crm_manager"), t("crm_created")],
+      ...leadRows().map(l => [l.no, l.name, l.phone, l.email, l.country, t("src_" + l.source), l.service ? t("type_" + l.service) : "", leadDest(l), l.budget ?? "", t("ls_" + l.status),
+        l.manager ? staffName(l.manager) : "", new Date(l.createdAt).toLocaleString(LOC[S.lang])])], "leads");
+    change(() => audit("export", { what:strRef("crm_leads") }, { module:"crm" }));
+  },
+  ccsv: () => {
+    if (!can("crm.export") && !can("b2c.export")) return toast(t("no_rights"));
+    csvDownload([[t("customer"), t("crm_type"), t("phone_label"), t("agency_email"), t("crm_segment"), t("crm_source"), t("crm_manager"), t("an_orders"), t("col_spent")],
+      ...clientRows().map(c => [c.name, c.b2b ? "B2B" : "B2C", c.phone, c.email || "", t("seg_" + c.segment), t("src_" + c.source), c.manager ? staffName(c.manager) : "", c.orders.length, c.spent])], "clients");
+    change(() => audit("export", { what:strRef("crm_clients") }, { module:"crm" }));
+  },
+  cty: el => { M.ui.cty = el.dataset.v; rerender(); },
+  tkd: el => { M.ui.tkd = el.dataset.v; rerender(); }
+});
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.lf; if (k && M.ui.leadDraft) M.ui.leadDraft[k] = e.target.value;
+  if (e.target.id === "lq") { M.ui.lq = e.target.value; lRefresh(); }
+  if (e.target.id === "cq") { M.ui.cq = e.target.value; cRefresh(); }
+});
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.lf; if (k && M.ui.leadDraft) M.ui.leadDraft[k] = e.target.value;
+  const f = { lst:"lst", lsrc:"lsrc", lmg:"lmg" }[e.target.id]; if (f) { M.ui[f] = e.target.value; lRefresh(); }
+  if (e.target.id === "csg") { M.ui.csg = e.target.value; cRefresh(); }
+  if (e.target.id === "tkw") { M.ui.tkw = e.target.value; rerender(); $("#tkw")?.focus(); }
+});
+const lRefresh = () => { const l = $("#llist"); if (l) l.innerHTML = leadsList(); const c = $("#lcount"); if (c) c.textContent = tf("crm_count", { n:leadRows().length }); };
+const cRefresh = () => { const l = $("#clist"); if (l) l.innerHTML = clientTable(clientRows(), t("crm_clients")); const c = $("#ccount"); if (c) c.textContent = tf("crm_count", { n:clientRows().length }); };
+
+/* ---- 57-crm-parts.js ---- */
+/* ==========================================================================
+   Общие куски CRM: комментарии и контакты, задачи, ответственный, история.
+   Ими пользуются карточка лида, карточка клиента и страница агентства.
+   ========================================================================== */
+"use strict";
+
+const cssKey = s => String(s).replace(/[^a-zA-Z0-9_-]/g, "_");
+const staffChip = id => { const s = O.staff.find(x => x.id === id);
+  return s ? `<span class="who-chip"><span class="avatar xs" aria-hidden="true">${esc(monogram(s.name))}</span><span>${esc(s.name)}</span></span>` : `<span class="muted">${esc(t("crm_nobody"))}</span>`; };
+const usd = n => n ? "$" + grp(n) : "—";
+const stagePill = st => `<span class="pill ls-${st}">${esc(t("ls_" + st))}</span>`;
+
+/* ---- комментарии и контакты ----
+   targets — чьи записи показать: у клиента — его и всех его лидов. */
+function notesBlock(target, targets = [target]){
+  const list = notesFor(targets), id = "nt-" + cssKey(target), canW = canNote(target);
+  return `<section class="card stack" aria-labelledby="${id}"><h2 id="${id}">${esc(t("crm_notes"))}</h2>
+    ${canW ? `<div class="note-form">
+      <select class="minisel" data-inp="nk:${esc(target)}" aria-label="${esc(t("crm_note_kind"))}">${NOTE_KINDS.map(k => `<option value="${k}" ${inp("nk:" + target, "call") === k ? "selected" : ""}>${esc(t("nk_" + k))}</option>`).join("")}</select>
+      <textarea data-inp="nt:${esc(target)}" rows="2" maxlength="${NOTE_MAX}" placeholder="${esc(t("crm_note_ph"))}" aria-label="${esc(t("crm_note_text"))}">${esc(inp("nt:" + target))}</textarea>
+      <button type="button" class="solid sm" data-act="crmnote" data-v="${esc(target)}">${esc(t("crm_note_add"))}</button></div>` : ""}
+    ${list.length ? `<ol class="feed">${list.map(n => `<li><span class="feed-dot nk-${n.kind}" aria-hidden="true"></span><span class="stack" style="gap:2px">
+        <span><b>${esc(t("nk_" + n.kind))}</b> · ${esc(loc(n.text))}</span>
+        <span class="muted small">${esc(staffName(n.by))} · ${esc(fdt(n.at))}${n.target !== target ? ` · <a class="link" href="${targetHref(n.target)}">${esc(targetLabel(n.target))}</a>` : ""}</span></span></li>`).join("")}</ol>`
+      : `<p class="muted">${esc(t("crm_notes_none"))}</p>`}</section>`;
+}
+
+/* ---- задачи и напоминания ---- */
+/* Поручить задачу можно тому, кто ведёт лиды и видит, к чему она относится. */
+const taskAssignees = target => crmStaff().filter(s => canSeeTarget(target, s));
+/* Срок по умолчанию — через 1–2 часа, ровно по часам; вечером и ночью — завтра в 10:00. */
+function defaultDue(){
+  const d = new Date(); d.setMinutes(0, 0, 0); d.setHours(d.getHours() + 2);
+  if (d.getHours() >= 21 || d.getHours() < 9 || ymd(d) !== TODAY) { const x = parseYMD(addDays(TODAY, 1)); return { date:ymd(x), time:"10:00" }; }
+  return { date:ymd(d), time:`${String(d.getHours()).padStart(2, "0")}:00` };
+}
+const canToggleTask = x => can("crm.edit") && (x.assignee === me()?.id || crmAll());
+function taskRow(x, withTarget){
+  const over = taskOverdue(x);
+  return `<li class="crm-task ${x.done ? "done" : ""}"><label class="chk"><input type="checkbox" data-task="${x.id}" ${x.done ? "checked" : ""} ${canToggleTask(x) ? "" : "disabled"}>
+      <span>${esc(loc(x.text))}</span></label>
+    <span class="crm-task-meta"><span class="small ${over ? "warn-t" : "muted"}">${over ? esc(t("crm_overdue")) + " · " : ""}${esc(fdt(x.due))}</span>
+      <span class="small">${staffChip(x.assignee)}</span>
+      ${withTarget ? `<a class="link small" href="${targetHref(x.target)}">${esc(targetLabel(x.target))}</a>` : ""}</span></li>`;
+}
+function tasksBlock(target, targets = [target]){
+  const list = tasksFor(targets).sort((a, b) => a.done - b.done || a.due - b.due), id = "tk-" + cssKey(target), canW = can("crm.edit") && canNote(target);
+  const k = s => `${s}:${target}`, dd = defaultDue();
+  return `<section class="card stack" aria-labelledby="${id}"><h2 id="${id}">${esc(t("crm_tasks"))}</h2>
+    ${list.length ? `<ul class="crm-tasks">${list.map(x => taskRow(x, targets.length > 1 && x.target !== target)).join("")}</ul>` : `<p class="muted">${esc(t("crm_tasks_none"))}</p>`}
+    ${canW ? `<div class="task-form stack">
+      <label class="field"><span>${esc(t("crm_task_text"))}</span><input data-inp="${esc(k("tt"))}" value="${esc(inp(k("tt")))}" maxlength="${TASK_MAX}" placeholder="${esc(t("crm_task_ph"))}"></label>
+      <div class="sgrid sgrid-2">
+        <label class="field"><span>${esc(t("crm_task_due"))}</span><input type="date" data-inp="${esc(k("td"))}" value="${esc(inp(k("td"), dd.date))}" min="${TODAY}"></label>
+        <label class="field"><span>${esc(t("time"))}</span><input type="time" data-inp="${esc(k("th"))}" value="${esc(inp(k("th"), dd.time))}"></label>
+      </div>
+      <label class="field"><span>${esc(t("crm_assignee"))}</span><select data-inp="${esc(k("ta"))}">${taskAssignees(target).map(s => `<option value="${s.id}" ${inp(k("ta"), me().id) === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select></label><div class="err" id="terr-${cssKey(target)}" hidden></div>
+      <div class="row"><button type="button" class="ghost sm" data-act="crmtask" data-v="${esc(target)}">${IC.plus}<span>${esc(t("crm_task_add"))}</span></button></div></div>` : ""}</section>`;
+}
+
+/* ---- ответственный ----
+   Назначать может «CRM: управление»; остальные — только взять ничьего себе. */
+function managerField(target, cur){
+  const all = crmAll() && can("crm.edit");
+  if (all) return `<select class="minisel" data-mgr="${esc(target)}" aria-label="${esc(t("crm_manager"))}"><option value="">${esc(t("crm_nobody"))}</option>
+    ${crmStaff().map(s => `<option value="${s.id}" ${cur === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>`;
+  return `${staffChip(cur)}${!cur && can("crm.edit") ? ` <button type="button" class="link" data-act="crmtake" data-v="${esc(target)}">${esc(t("crm_take"))}</button>` : ""}`;
+}
+
+/* ---- действия ---- */
+function addNote(target){
+  if (!canNote(target)) return toast(t("no_rights"));
+  const kind = NOTE_KINDS.includes(inp("nk:" + target, "call")) ? inp("nk:" + target, "call") : "note", text = inp("nt:" + target).trim();
+  const box = $(`[data-inp="${CSS.escape("nt:" + target)}"]`);
+  if (text.length < 2) { toast(t("err_note")); box?.setAttribute("aria-invalid", "true"); box?.focus(); return; }
+  change(() => {
+    O.crm.notes.unshift({ id:uid("n"), target, kind, text, by:me().id, at:Date.now() });
+    const l = target.startsWith("l:") ? leadById(target.slice(2)) : null;
+    // Первый контакт с новым лидом — лид сам переходит в «Связались».
+    if (l && l.status === "new" && kind !== "note") { leadEvent(l, { type:"status", from:"new", to:"contacted" }); l.status = "contacted"; }
+    audit("crm_note", { what:strRef("nk_" + kind), target:targetLabel(target) }, { module:"crm", diff:[{ k:"crm_note_text", from:"", to:text }] });
+  });
+  if (M.ui.inp) delete M.ui.inp["nt:" + target];
+  rerender(); toast(t("t_crm_note")); $(`[data-inp="${CSS.escape("nt:" + target)}"]`)?.focus();
+}
+function addTask(target){
+  if (!can("crm.edit") || !canNote(target)) return toast(t("no_rights"));
+  const dd = defaultDue(), k = s => `${s}:${target}`, text = inp(k("tt")).trim(), date = inp(k("td"), dd.date), time = inp(k("th"), dd.time), who = inp(k("ta"), me().id);
+  const [hh, mm] = time.split(":").map(Number), due = parseYMD(date).setHours(hh || 0, mm || 0, 0, 0);
+  const bad = text.length < 3 ? ["err_task_text", "tt"] : !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(due) ? ["err_task_due", "td"] : !taskAssignees(target).some(s => s.id === who) ? ["err_task_who", "ta"] : null;
+  $$(`[data-inp$="${CSS.escape(":" + target)}"][aria-invalid]`).forEach(x => x.removeAttribute("aria-invalid"));
+  if (bad) { const f = $(`[data-inp="${CSS.escape(k(bad[1]))}"]`), eid = "terr-" + cssKey(target);
+    f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", eid); showErr("#" + eid, t(bad[0])); f?.focus({ preventScroll:true }); return; }
+  change(() => { O.crm.tasks.push({ id:uid("tk"), target, text, due, assignee:who, by:me().id, at:Date.now(), done:false });
+    audit("task_new", { text, target:targetLabel(target), name:staffName(who) }, { module:"crm" }); });
+  if (M.ui.inp) delete M.ui.inp[k("tt")];
+  rerender(); toast(tf("t_task_new", { name:staffName(who) })); $(`[data-inp="${CSS.escape(k("tt"))}"]`)?.focus();
+}
+function setManager(target, id){
+  const l = target.startsWith("l:") ? leadById(target.slice(2)) : null;
+  if (!can("crm.edit") || (l && !canEditLead(l))) return toast(t("no_rights"));
+  // Назначить другого — только с «CRM: управление»; без него — взять ничьего себе.
+  const cur = l ? l.manager : target.startsWith("c:") ? clientByKey(target.slice(2))?.manager || null : clientData(target)?.manager || null;
+  if (!crmAll() && !(cur == null && id === me().id)) return toast(t("no_rights"));
+  if (id && !crmStaff().some(s => s.id === id)) return;
+  if ((cur || null) === (id || null)) return;
+  change(() => {
+    if (l) { const x = leadById(l.id); leadEvent(x, { type:"assign", from:x.manager, to:id || null }); x.manager = id || null; }
+    else { const r = clientRec(target); if (target.startsWith("c:")) { const c = clientByKey(target.slice(2)); if (c && !r.phone) r.phone = c.phone; } r.manager = id || null; r.events.unshift({ at:Date.now(), by:me().id, type:"assign", to:id || null }); }
+    audit("crm_assign", { target:targetLabel(target) }, { module:"crm", diff:[{ k:"crm_manager", from:cur ? staffName(cur) : "", to:id ? staffName(id) : "" }] });
+  });
+  toast(tf("t_crm_assign", { name:id ? staffName(id) : t("crm_nobody") }));
+}
+Object.assign(ACT, {
+  crmnote: el => addNote(el.dataset.v),
+  crmtask: el => addTask(el.dataset.v),
+  crmtake: el => { setManager(el.dataset.v, me().id); }
+});
+document.addEventListener("change", e => {
+  const tid = e.target.dataset?.task, mgr = e.target.dataset?.mgr;
+  if (tid) {
+    const x = O.crm.tasks.find(y => y.id === tid); if (!x || !canToggleTask(x)) return;
+    const on = e.target.checked;
+    // Если строка уйдёт из списка (фильтр «открытые»), фокус — на соседнюю задачу или заголовок блока.
+    const boxes = $$("[data-task]"), i = boxes.indexOf(e.target), near = [boxes[i + 1], boxes[i - 1]].filter(Boolean).map(b => b.dataset.task);
+    const head = e.target.closest("section, .card")?.querySelector("h2, h3")?.id;
+    change(() => { const y = O.crm.tasks.find(z => z.id === tid); if (!y) return; Object.assign(y, { done:on, doneAt:on ? Date.now() : null, doneBy:on ? me().id : null });
+      audit(on ? "task_done" : "task_reopen", { text:y.text, target:targetLabel(y.target) }, { module:"crm" }); });
+    const next = $(`[data-task="${tid}"]`) || near.map(id => $(`[data-task="${id}"]`)).find(Boolean);
+    if (next) next.focus(); else { const h = (head && $("#" + CSS.escape(head))) || $("#app h1"); if (h) { h.tabIndex = -1; h.focus(); } }
+  }
+  if (mgr != null) { setManager(mgr, e.target.value); $(`[data-mgr="${CSS.escape(mgr)}"]`)?.focus(); }
+});
 
 /* ---- 60-finance.js ---- */
 /* ==========================================================================
@@ -7844,7 +8941,7 @@ Object.assign(ACT, {
   areset:     () => {
     if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY]) try { localStorage.removeItem(k); } catch(e) {}
     PRICES = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
     // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.
@@ -8173,6 +9270,8 @@ SITE = loadSite();
 seedApps();
 adminPrefs();
 heartbeat();
+crmSync();                        // заявки с сайта и агентств → лиды до первого показа
+syncBlocked();                    // сайт закрывает бронирование ровно тем номерам, что заблокированы в CRM
 render(true);
 
 </script>

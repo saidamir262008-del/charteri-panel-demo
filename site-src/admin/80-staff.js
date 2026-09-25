@@ -194,7 +194,7 @@ Object.assign(ACT, {
   areset:     () => {
     if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY]) try { localStorage.removeItem(k); } catch(e) {}
     PRICES = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
     // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.

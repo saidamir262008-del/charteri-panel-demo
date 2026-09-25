@@ -20,13 +20,21 @@ function apTaskSection(){
     ${list.length ? `<span class="count">${list.length}</span>` : ""}</div>
     ${list.length ? `<div class="tasks">${list.map(a => apRow(a, "decide")).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}</section>`;
 }
+/* Напоминания CRM: задачи сотрудника со сроком до конца дня. */
+function reminderSection(){
+  if (!can("crm.edit")) return "";
+  const list = myReminders().sort((a, b) => a.due - b.due);
+  return `<section class="card stack" id="tk-rem"><div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t("tk_rem"))}</h2><span class="muted small">${esc(t("tk_rem_d"))}</span></div>
+    ${list.length ? `<span class="count">${list.length}</span>` : ""}</div>
+    ${list.length ? `<ul class="crm-tasks">${list.map(x => taskRow(x, true)).join("")}</ul>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}</section>`;
+}
 PAGES.tasks = {
   render(){
     const k = tasks(), mine = TASK_KINDS.filter(([, p]) => can(p));
     return `<div class="page">
       <div class="pagehead"><h1>${esc(t("an_tasks"))}</h1><p class="muted">${esc(t("tasks_sub"))}</p></div>
       ${opsLive() ? "" : `<p class="note-live">${IC.clock}<span>${esc(t("live_wait"))}</span></p>`}
-      <div class="stack">${apTaskSection()}${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
+      <div class="stack">${apTaskSection()}${reminderSection()}${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
         <div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t(title))}</h2><span class="muted small">${esc(t(sub))}</span></div>
           ${k[key].length ? `<span class="count">${k[key].length}</span>` : ""}</div>
         ${k[key].length ? `<div class="tasks">${k[key].map(row).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}

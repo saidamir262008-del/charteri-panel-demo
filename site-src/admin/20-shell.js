@@ -14,12 +14,13 @@ Object.assign(IC, {
   tag:    svg('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>'),
   person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>'),
   stamp:  svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.5 2.5 4.9-5.1"/>'),
-  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>')
+  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>'),
+  funnel: svg('<path d="M3 5h18l-7 8v5l-4 2v-7z"/>')
 });
 
 /* Разделы: ключ маршрута, строка, значок, право на просмотр (null — всем). */
 const ADM_NAV = [
-  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["orders", "an_orders", "bag", "orders.view"],
+  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["crm", "an_crm", "funnel", "crm.view"], ["orders", "an_orders", "bag", "orders.view"],
   ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
   ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
   ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]

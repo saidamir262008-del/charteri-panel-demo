@@ -12,7 +12,8 @@ const PERM_ACTS = ["view", "create", "edit", "delete", "approve", "cancel", "ref
 const PERM_MODS = {
   orders:   ["view", "edit", "approve", "cancel"],
   b2b:      ["view", "create", "edit", "approve", "manage"],
-  b2c:      ["view", "edit"],
+  b2c:      ["view", "edit", "manage", "export"],
+  crm:      ["view", "create", "edit", "delete", "export", "manage"],
   finance:  ["view", "approve", "refund", "manage", "export"],
   pricing:  ["view", "edit", "approve"],
   services: ["view", "create", "edit", "delete", "approve"],
@@ -29,14 +30,20 @@ const SYS_ROLES = {
   owner:    { ...ALL_PERMS(), roles:["view", "approve"] },
   sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
   finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
-  b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"] },
-  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit"], pricing:["view"] },
-  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"] },
-  ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"] },
+  b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"], crm:["view", "create", "edit", "export"] },
+  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"] },
+  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"] },
+  ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"], crm:["view"] },
   content:  { services:["view", "create", "edit"] },
-  support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"] },
-  viewer:   { orders:["view"], b2b:["view"], b2c:["view"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"] }
+  support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"], crm:["view", "create", "edit"] },
+  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"] }
 };
+/* Права, добавленные в новых версиях: у системных ролей из сохранённой админки
+   их ещё нет — дописываются по умолчанию один раз (O.permsV). Свои роли
+   основатель настраивает сам. */
+const PERMS_V = 2;
+const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"] };
+const PERMS_NEW_MODS = { 2:["crm"] };
 /* Основатель и владелец: их назначает и меняет только основатель. */
 const TOP_ROLES = ["founder", "owner"];
 /* Роли прошлой версии админки → роли из ТЗ. */
@@ -60,6 +67,8 @@ const roleById = id => O?.roles?.find(r => r.id === id) || null;
 const liveRoles = () => (O?.roles || []).filter(r => !r.deleted);
 const permsOf = id => id === "founder" ? ALL_PERMS() : roleById(id)?.perms || {};
 const hasPerm = (perms, p) => { const [m, a] = p.split("."); return !!perms[m]?.includes(a); };
+/* Право сотрудника s (не только вошедшего). */
+const canAs = (s, p) => !!s && (s.role === "founder" || hasPerm(permsOf(s.role), p));
 const isFounder = () => me()?.role === "founder";
 
 /* Право текущего сотрудника. Два права — сборные: «задачи» есть у того, кому
@@ -67,8 +76,9 @@ const isFounder = () => me()?.role === "founder";
    запросы или сам их отправлял. */
 function can(p){
   const u = me(); if (!u) return false;
-  if (p === "tasks") return TASK_KINDS.some(([, need]) => can(need)) || canDecideAny();
+  if (p === "tasks") return TASK_KINDS.some(([, need]) => can(need)) || canDecideAny() || can("crm.edit");
   if (p === "approvals") return canDecideAny() || O.approvals.some(a => a.by === u.id);
+  if (p === "clients") return can("b2c.view") || can("crm.view");
   return u.role === "founder" || hasPerm(permsOf(u.role), p);
 }
 
@@ -106,6 +116,15 @@ function migrateRoles(o){
   o.roles = (Array.isArray(o.roles) ? o.roles : []).filter(r => r && typeof r.id === "string")
     .map(r => ({ ...r, sys:SYS_ORDER.includes(r.id), perms:r.id === "founder" ? ALL_PERMS() : cleanPerms(r.perms) }));
   for (const id of SYS_ORDER) if (!o.roles.some(r => r.id === id)) o.roles.push({ id, sys:true, perms:id === "founder" ? ALL_PERMS() : cleanPerms(SYS_ROLES[id]) });
+  for (let v = (o.permsV || 1) + 1; v <= PERMS_V; v++) for (const r of o.roles) if (r.sys && r.id !== "founder") {
+    const def = SYS_ROLES[r.id] || {}, next = Object.fromEntries(Object.entries(r.perms).map(([m, a]) => [m, [...a]]));
+    // Новое действие добавляем, только если раздел у роли остался: раздел,
+    // который основатель у роли снял, не возвращаем. Новый раздел — целиком.
+    for (const p of PERMS_ADDED[v] || []) { const [m, a] = p.split("."), fresh = PERMS_NEW_MODS[v]?.includes(m);
+      if (def[m]?.includes(a) && (fresh || next[m]?.includes("view"))) next[m] = [...new Set([...(next[m] || []), "view", a])]; }
+    r.perms = cleanPerms(next); o._migrated = true;
+  }
+  o.permsV = PERMS_V;
   o.roles.sort((a, b) => (a.sys ? roleRank(a.id) : SYS_ORDER.length) - (b.sys ? roleRank(b.id) : SYS_ORDER.length) || (a.at || 0) - (b.at || 0));
   for (const s of o.staff) {
     if (OLD_ROLES[s.role]) { s.role = s.id === FOUNDER_ID && s.role === "admin" && s.active !== false ? "founder" : OLD_ROLES[s.role]; o._migrated = true; }
