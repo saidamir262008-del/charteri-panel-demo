@@ -12,27 +12,29 @@ Object.assign(IC, {
   list:   svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>'),
   badge:  svg('<rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M8 17c.8-1.8 2.2-2.7 4-2.7s3.2.9 4 2.7"/>'),
   tag:    svg('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>'),
-  person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>')
+  person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>'),
+  stamp:  svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.5 2.5 4.9-5.1"/>'),
+  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>')
 });
 
 /* Разделы: ключ маршрута, строка, значок, право на просмотр (null — всем). */
 const ADM_NAV = [
-  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["orders", "an_orders", "bag", "orders"],
-  ["agencies", "an_agencies", "users", "agencies"], ["customers", "an_customers", "person", "customers"], ["finance", "an_finance", "wallet", "finance"],
-  ["pricing", "an_pricing", "tag", null], ["directions", "an_directions", "globe", "catalog"], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
-  ["audit", "an_audit", "list", "audit"], ["settings", "an_settings", "gear", null]
+  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["orders", "an_orders", "bag", "orders.view"],
+  ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
+  ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
+  ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
 
 function renderNav(key){
   document.body.classList.toggle("is-auth", !me());
   if (!me()) { $("#nav").innerHTML = ""; $("#top").innerHTML = ""; $("#footer").innerHTML = ""; return; }
-  const sec = admSection(key), n = taskCount(), u = me();
+  const sec = admSection(key), n = taskCount(), u = me(), na = myDecisions().length;
   $("#nav").innerHTML = `<div class="side-in">
     <a class="side-logo" href="#/" aria-label="Charteri"><span class="wordmark">CHARTERI<b>.UZ</b></span><span class="side-tag">${esc(t("adm_tag"))}</span></a>
     <nav class="side-nav" aria-label="${esc(t("adm_menu"))}" data-ind="side"><span class="ind" aria-hidden="true"></span>
       ${ADM_NAV.filter(([, , , p]) => !p || can(p)).map(([k, label, ic]) => `<a class="side-link" href="#/${k}" ${sec === k ? 'aria-current="page"' : ""}>${IC[ic]}<span>${esc(t(label))}</span>${
-        k === "tasks" && n ? `<i class="side-badge">${n}</i>` : ""}</a>`).join("")}
+        k === "tasks" && n ? `<i class="side-badge">${n}</i>` : k === "approvals" && na ? `<i class="side-badge">${na}</i>` : ""}</a>`).join("")}
     </nav>
     <div class="side-me"><span class="avatar sm">${esc(monogram(u.name))}</span><span class="stack" style="gap:1px;min-width:0"><b>${esc(u.name)}</b>
       <span class="side-role">${esc(roleName(u.role))}</span></span></div>
@@ -55,7 +57,8 @@ function renderNav(key){
 let whoTimer = 0;
 function switchStaff(id){
   const s = activeStaff().find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
-  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); saveOps();
+  // Другой сотрудник — другая сессия: черновики и фильтры прежнего не переносим.
+  M.ui = {}; O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); saveOps();
   toast(tf("switched", { name:s.name, role:roleName(s.role) })); render(true);
   $("#whoSel")?.focus({ preventScroll:true });
 }

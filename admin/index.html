@@ -1314,7 +1314,7 @@ body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 .whosel .minisel{max-width:230px}
 
 /* ---- обзор ---- */
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
 .kpi{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border);
   transition:transform 160ms var(--ease-out)}
 a.kpi:hover{box-shadow:var(--lift-shadow)}
@@ -1418,7 +1418,7 @@ a.arow:hover + .arow{box-shadow:none}
 .pct-in i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-weight:600}
 
 /* ---- права ролей ---- */
-.matrix-wrap{overflow-x:auto}
+.matrix-wrap{overflow-x:auto;position:relative}
 .matrix{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 .matrix th,.matrix td{padding:9px 10px;border-top:1px solid var(--line);text-align:center}
 .matrix thead th{border-top:0;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
@@ -1427,12 +1427,58 @@ a.arow:hover + .arow{box-shadow:none}
 .matrix .yes svg{width:18px;height:18px}
 .matrix .no{color:var(--faint)}
 
+/* ---- роли: список слева, таблица прав справа ---- */
+.roles-grid{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:20px;align-items:start}
+.role-list{display:flex;flex-direction:column;gap:4px;padding:8px;min-width:0;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border)}
+.role-item{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:10px 12px;border-radius:12px;background:transparent;border:0;
+  color:var(--ink);font:inherit;cursor:pointer;transition:background-color 160ms ease}
+.role-item b{color:var(--navy);font-weight:600;font-size:14.5px}
+.role-item:hover{background:var(--sunken)}
+.role-item[aria-current="true"]{background:var(--sky);box-shadow:inset 3px 0 0 var(--blue)}
+.role-item .pill{flex:none}
+.matrix.pm{min-width:760px}
+.matrix.pm thead th{letter-spacing:.5px;font-size:10.5px;padding-inline:6px}
+/* На узком экране таблица листается вбок — название раздела остаётся слева. */
+.matrix.pm tbody th[scope="row"]{position:sticky;left:0;z-index:1;background:var(--surface)}
+.matrix.pm th[scope="col"]:first-child{text-align:left}
+.pm-cell{position:relative;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;cursor:pointer}
+.pm-cell:hover{background:var(--sunken)}
+.pm-cell input{width:18px;height:18px;margin:0;accent-color:var(--blue);cursor:pointer}
+.pm-cell input:disabled{cursor:not-allowed}
+.pm-legend summary{cursor:pointer;font-weight:600;color:var(--blue);font-size:14px}
+.pm-legend dl{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+.pm-legend dt{font-weight:600;color:var(--navy)}
+.pm-legend dd{margin:0;color:var(--muted)}
+
+/* ---- подтверждения ---- */
+.ap-diff{list-style:none;margin:4px 0 2px;padding:0;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.ap-diff s{color:var(--faint);text-decoration-thickness:1px}
+.ap-diff b{color:var(--navy);font-weight:600}
+.rules{display:flex;flex-direction:column}
+.rule-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.rules > .rule-row:first-child{border-top:0}
+.rule-min{display:flex;align-items:center;gap:8px}
+.rule-amt input{width:150px;min-height:36px;padding:6px 10px;font-family:"IBM Plex Mono",monospace;font-size:14px;text-align:right}
+
+/* ---- сотрудники и журнал ---- */
+.st-acts{gap:4px 12px;flex-wrap:wrap;justify-content:flex-end}
+.st-table .a-end{justify-self:stretch}
+.au-find{flex-wrap:wrap}
+.au-find .minisel{max-width:220px}
+.au-table .a-key{display:flex;flex-direction:column;gap:2px}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
 @container main (max-width:1020px){
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rev-grid{grid-template-columns:1fr}
+}
+/* Таблице прав нужна вся ширина: список ролей уходит наверх лентой. */
+@container main (max-width:1260px){
+  .roles-grid{grid-template-columns:minmax(0,1fr)}
+  .role-list{flex-direction:row;overflow-x:auto;scroll-snap-type:x proximity;min-width:0}
+  .role-item{flex:none;scroll-snap-align:start}
 }
 @container main (max-width:760px){
   .task,.task-wide{grid-template-columns:40px minmax(0,1fr)}
@@ -1446,6 +1492,8 @@ a.arow:hover + .arow{box-shadow:none}
   .arow > .or-ic,.arow > .a-cell:not(.a-key):not(.a-sub),.arow > .a-num:not(.a-keep){display:none}
   .arow > .a-sub{font-size:12px;color:var(--muted)}
   .arow.ahead{display:none}
+  /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
+  .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
 @container main (max-width:720px){
   .ofind{flex-wrap:wrap}
@@ -1456,6 +1504,9 @@ a.arow:hover + .arow{box-shadow:none}
   .kpi{flex-direction:row;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:12px;padding:12px 16px}
   .kpi-s{flex-basis:100%}
   .why input,.usd-in input{width:100%}
+  .au-find .minisel{max-width:none;flex:1 1 45%}
+  .pm-legend dl{grid-template-columns:1fr}
+  .rule-amt input{width:100%}
 }
 @media (max-width:600px){
   .live-pill{display:none}
@@ -1475,6 +1526,7 @@ a.arow:hover + .arow{box-shadow:none}
 <footer id="footer"></footer>
 </div>
 <div id="toast"></div>
+<div id="adm-live" class="sr-only" aria-live="polite"></div>
 <div id="overlay"></div>
 <script>
 "use strict";
@@ -2372,7 +2424,7 @@ document.addEventListener("click", e => {
   const a = document.activeElement;
   if (a && a !== document.body && a.isConnected) return;
   const same = twin && $(twin);
-  if (same) same.focus({ preventScroll:true });
+  if (same && !same.disabled) same.focus({ preventScroll:true });
   else { const h = $("#app h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll:true }); } }
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы
@@ -5166,7 +5218,7 @@ Object.assign(STR, {
   app_approved:["Одобрена","Ma’qullandi","Approved"],
   app_rejected:["Отклонена","Rad etildi","Rejected"],
   adjust_h:["Корректировка баланса","Balansni tuzatish","Balance adjustment"],
-  adjust_d:["Только главный администратор, только с причиной. Агентство увидит её в выписке.","Faqat bosh administrator, faqat sabab bilan. Agentlik uni ko‘chirmada ko‘radi.","Administrator only, always with a reason. The agency sees it in the statement."],
+  adjust_d:["Нужно право «Деньги: управление» и причина. Крупные суммы подтверждает второй сотрудник. Агентство увидит причину в выписке.","«Moliya: boshqarish» huquqi va sabab kerak. Katta summalarni ikkinchi xodim tasdiqlaydi. Agentlik sababni ko‘chirmada ko‘radi.","Needs the Finance: manage permission and a reason. A second staff member approves large amounts. The agency sees the reason in its statement."],
   adjust_ph:["Например: компенсация за перенос рейса","Masalan: reys ko‘chirilgani uchun kompensatsiya","E.g. compensation for a rescheduled flight"],
   adjust_plus:["Начислить","Qo‘shish","Credit"],
   adjust_minus:["Списать","Yechish","Debit"],
@@ -5228,7 +5280,7 @@ Object.assign(STR, {
   pr_save:["Сохранить цены","Narxlarni saqlash","Save pricing"],
   pr_saved:["Цены сохранены: сайт и кабинет уже считают по-новому","Narxlar saqlandi: sayt va kabinet endi yangicha hisoblaydi","Saved; the site and workspace now price with the new values"],
   pr_same:["Ничего не изменилось","Hech narsa o‘zgarmadi","Nothing changed"],
-  pr_admin_only:["Менять цены может только главный администратор.","Narxlarni faqat bosh administrator o‘zgartira oladi.","Only the administrator can change pricing."],
+  pr_admin_only:["Менять цены может роль с правом «Цены: изменение».","Narxlarni «Narxlar: o‘zgartirish» huquqi bor rol o‘zgartira oladi.","Only a role with the Pricing: edit permission can change prices."],
   pr_fixed:["Задаётся договорами","Shartnomalar bilan belgilanadi","Set by contracts"],
   pr_fixed_d:["Эти условия идут от поставщиков и туроператоров, в демо они постоянные.","Bu shartlar yetkazib beruvchilar va turoperatorlardan keladi, demoda ular doimiy.","These terms come from suppliers and tour operators; in the demo they are fixed."],
   pr_tour:["Пакетная скидка тура","Tur paket chegirmasi","Tour package discount"],
@@ -5267,39 +5319,15 @@ Object.assign(STR, {
   ist_sandbox:["Песочница","Sinov muhiti","Sandbox"],
   ist_none:["Не выбран","Tanlanmagan","Not chosen"],
   ist_live:["Работает","Ishlayapti","Live"],
-
-  staff_sub:["Сотрудники Charteri и права их ролей.","Charteri xodimlari va ularning rollari huquqlari.","Charteri staff and what each role may do."],
+  staff_sub:["Карточки сотрудников, их роли и доступ.","Xodimlar kartalari, rollari va kirishi.","Staff profiles, roles and access."],
   staff_people:["Сотрудники","Xodimlar","People"],
   staff_you:["Это вы","Bu siz","You"],
   staff_as:["Войти как","Sifatida kirish","Sign in as"],
   staff_all:["Все сотрудники","Barcha xodimlar","All staff"],
-  staff_matrix:["Права ролей","Rollar huquqlari","Role permissions"],
-  staff_matrix_d:["В боевой версии права проверяет сервер (RLS и функции базы). Интерфейс только прячет и выключает недоступное.","Jangovar versiyada huquqlarni server tekshiradi (RLS va baza funksiyalari). Interfeys faqat mavjud bo‘lmaganini yashiradi va o‘chiradi.","In production the server enforces permissions (RLS and database functions); the interface only hides and disables what’s unavailable."],
-  perm:["Право","Huquq","Permission"],
+  staff_matrix_d:["В боевой версии права проверяет сервер (RLS и функции базы). Интерфейс только прячет и выключает недоступное.","Jangovar versiyada huquqlarni server tekshiradi (RLS va baza funksiyalari). Interfeys faqat mavjud bo‘lmaganini yashiradi va o‘chiradi.","In production the server checks permissions (RLS and database functions). The interface only hides and disables what isn’t allowed."],
   yes:["Да","Ha","Yes"],
   no:["Нет","Yo‘q","No"],
-  p_tasks:["Очередь задач","Vazifalar navbati","Task queue"],
-  p_orders:["Смотреть заказы","Buyurtmalarni ko‘rish","View orders"],
-  p_orders_price:["Назначать цену чартера","Charter narxini belgilash","Price charters"],
-  p_orders_confirm:["Подтверждать у поставщика","Yetkazib beruvchida tasdiqlash","Confirm with supplier"],
-  p_orders_cancel:["Отменять заказы","Buyurtmalarni bekor qilish","Cancel orders"],
-  p_refunds_credit:["Зачислять возвраты","Qaytimlarni o‘tkazish","Credit refunds"],
-  p_agencies:["Смотреть агентства","Agentliklarni ko‘rish","View agencies"],
-  p_agencies_moderate:["Одобрять новые агентства","Yangi agentliklarni ma’qullash","Approve new agencies"],
-  p_agencies_block:["Блокировать агентства","Agentliklarni bloklash","Block agencies"],
-  p_balance_adjust:["Корректировать баланс","Balansni tuzatish","Adjust balances"],
-  p_customers:["Пассажиры сайта","Sayt yo‘lovchilari","Site customers"],
-  p_requests_resolve:["Отвечать на просьбы пассажиров","Yo‘lovchi so‘rovlariga javob","Answer passenger requests"],
-  p_finance:["Смотреть деньги","Moliyani ko‘rish","View finance"],
-  p_topups_confirm:["Подтверждать пополнения","To‘ldirishlarni tasdiqlash","Confirm top-ups"],
-  p_finance_export:["Выгружать CSV","CSV yuklab olish","Export CSV"],
-  p_pricing_edit:["Менять цены","Narxlarni o‘zgartirish","Change pricing"],
-  p_integrations:["Интеграции","Integratsiyalar","Integrations"],
-  p_staff:["Сотрудники","Xodimlar","Staff"],
-  p_audit:["Журнал действий","Amallar jurnali","Audit log"],
-  p_demo_reset:["Сброс демо","Demoni qayta boshlash","Reset demo"],
-
-  audit_sub:["Кто, когда и что изменил. Записи не удаляются.","Kim, qachon va nimani o‘zgartirdi. Yozuvlar o‘chirilmaydi.","Who changed what, and when. Entries are never deleted."],
+  audit_sub:["Кто, что, когда и откуда изменил, со старым и новым значением. Записи не удаляются.","Kim, nimani, qachon va qayerdan o‘zgartirdi — eski va yangi qiymat bilan. Yozuvlar o‘chirilmaydi.","Who changed what, when and from where, with old and new values. Entries are never deleted."],
   audit_search:["Поиск по действиям","Amallar bo‘yicha qidiruv","Search actions"],
   col_staff:["Сотрудник","Xodim","Staff member"],
   col_action:["Действие","Amal","Action"],
@@ -5331,7 +5359,7 @@ Object.assign(STR, {
   reset_all_q:["Вернуть админку, кабинет и сайт к исходным данным?","Boshqaruv, kabinet va sayt boshlang‘ich holatga qaytarilsinmi?","Reset the admin, workspace and site to their starting data?"],
 
   aauth_h:["Админка Charteri","Charteri boshqaruvi","Charteri admin"],
-  aauth_p:["Для операторов, кассы и бухгалтерии: заявки, пополнения, агентства, заказы и деньги в одном месте.","Operatorlar, kassa va buxgalteriya uchun: so‘rovlar, to‘ldirishlar, agentliklar, buyurtmalar va pul bir joyda.","For operators, cashiers and accountants: requests, top-ups, agencies, orders and money in one place."],
+  aauth_p:["Для сотрудников Charteri: у каждого свои разделы и права.","Charteri xodimlari uchun: har kimning o‘z bo‘limlari va huquqlari bor.","For Charteri staff. Each role sees its own sections and permissions."],
   aauth_title:["Вход для сотрудников","Xodimlar uchun kirish","Staff sign-in"],
   aauth_sub:["Пришлём SMS-код на рабочий номер.","Ish raqamiga SMS-kod yuboramiz.","We’ll text a code to your work number."],
   aauth_demo:["Демо-сотрудники","Demo xodimlar","Demo staff"],
@@ -5401,7 +5429,6 @@ Object.assign(STR, {
   err_staff_name:["Введите имя и фамилию","Ism va familiyani kiriting","Enter a full name"],
   err_staff_phone:["Сотрудник с таким номером уже есть","Bunday raqamli xodim bor","Someone already uses this number"],
   err_staff_self:["Себя отключить нельзя","O‘zingizni o‘chira olmaysiz","You can’t disable yourself"],
-  err_last_admin:["Должен остаться хотя бы один главный администратор","Kamida bitta bosh administrator qolishi kerak","At least one administrator must remain"],
   t_staff_add:["Сотрудник {name} добавлен","Xodim {name} qo‘shildi","Staff member {name} added"],
   t_staff_off:["{name}: доступ отключён","{name}: kirish o‘chirildi","{name}: access disabled"],
   t_staff_on:["{name}: доступ включён","{name}: kirish yoqildi","{name}: access enabled"],
@@ -5427,13 +5454,6 @@ Object.assign(STR, {
   msg_send:["Отправить","Yuborish","Send"],
   err_msg:["Напишите сообщение","Xabarni yozing","Write a message"],
   t_msg_sent:["Сообщение отправлено агентству","Xabar agentlikka yuborildi","Message sent to the agency"],
-
-  p_agencies_create:["Создавать агентства","Agentlik yaratish","Create agencies"],
-  p_agencies_edit:["Менять реквизиты агентств","Agentlik rekvizitlarini o‘zgartirish","Edit agency details"],
-  p_agencies_message:["Писать агентствам","Agentliklarga yozish","Message agencies"],
-  p_catalog:["Смотреть направления","Yo‘nalishlarni ko‘rish","View destinations"],
-  p_catalog_edit:["Управлять направлениями","Yo‘nalishlarni boshqarish","Manage destinations"],
-  p_staff_edit:["Управлять сотрудниками","Xodimlarni boshqarish","Manage staff"],
   dc_0:["синий","ko‘k","blue"],
   dc_1:["морской","dengiz","sea"],
   dc_2:["коралловый","marjon","coral"],
@@ -5453,7 +5473,239 @@ Object.assign(STR, {
   hello_toast:["Здравствуйте, {name}","Assalomu alaykum, {name}","Hello, {name}"],
   ago_m:["{n} мин назад","{n} daqiqa oldin","{n} min ago"],
   ago_h:["{n} ч назад","{n} soat oldin","{n} h ago"],
-  ago_d:["{n} дн. назад","{n} kun oldin","{n} d ago"]
+  ago_d:["{n} дн. назад","{n} kun oldin","{n} d ago"],
+
+  /* ---- роли из ТЗ ---- */
+  role_founder:["Основатель системы","Tizim asoschisi","System founder"],
+  role_owner:["Владелец системы","Tizim egasi","System owner"],
+  role_sysadmin:["Системный администратор","Tizim administratori","System administrator"],
+  role_finance:["Финансовый менеджер","Moliya menejeri","Finance manager"],
+  role_b2b:["Менеджер B2B","B2B menejeri","B2B manager"],
+  role_b2c:["Менеджер B2C","B2C menejeri","B2C manager"],
+  role_sales:["Менеджер по продажам","Savdo menejeri","Sales manager"],
+  role_ops:["Операционный менеджер","Operatsion menejer","Operations manager"],
+  role_content:["Контент-менеджер","Kontent menejeri","Content manager"],
+  role_support:["Менеджер поддержки","Qo‘llab-quvvatlash menejeri","Support manager"],
+  role_viewer:["Наблюдатель / аналитик","Kuzatuvchi / tahlilchi","Viewer / analyst"],
+  rd_founder:["Все права. Создаёт роли и раздаёт права; его действия не ждут подтверждения.","Barcha huquqlar. Rollar yaratadi va huquq beradi; amallari tasdiq kutmaydi.","Every permission. Creates roles and grants rights; the founder’s actions need no second approval."],
+  rd_owner:["Всё, кроме создания и изменения ролей. Подтверждает критичные операции.","Rollarni yaratish va o‘zgartirishdan tashqari hammasi. Muhim amallarni tasdiqlaydi.","Everything except creating and editing roles. Approves critical operations."],
+  rd_sysadmin:["Сотрудники, направления, интеграции и журнал. Денег не видит.","Xodimlar, yo‘nalishlar, integratsiyalar va jurnal. Pulni ko‘rmaydi.","Staff, destinations, integrations and the log. No access to money."],
+  rd_finance:["Пополнения, возвраты, балансы агентств и выгрузки.","To‘ldirishlar, qaytimlar, agentlik balanslari va yuklab olish.","Top-ups, refunds, agency balances and exports."],
+  rd_b2b:["Агентства: подключение, реквизиты, блокировка; их заказы.","Agentliklar: ulash, rekvizitlar, bloklash; ularning buyurtmalari.","Agencies: onboarding, details, blocking; their orders."],
+  rd_b2c:["Пассажиры сайта: их заказы и просьбы.","Sayt yo‘lovchilari: buyurtmalari va so‘rovlari.","Site customers: their orders and requests."],
+  rd_sales:["Заказы и цены чартеров; смотрит агентства и клиентов.","Buyurtmalar va charter narxlari; agentlik va mijozlarni ko‘radi.","Orders and charter prices; can view agencies and customers."],
+  rd_ops:["Подтверждения у поставщиков, отмены, новые агентства, направления.","Yetkazib beruvchida tasdiqlash, bekor qilish, yangi agentliklar, yo‘nalishlar.","Supplier confirmations, cancellations, new agencies, destinations."],
+  rd_content:["Направления и витрина сайта.","Yo‘nalishlar va sayt vitrinasi.","Destinations and the site’s showcase."],
+  rd_support:["Отвечает пассажирам; смотрит заказы и агентства.","Yo‘lovchilarga javob beradi; buyurtma va agentliklarni ko‘radi.","Answers passengers; can view orders and agencies."],
+  rd_viewer:["Только просмотр и выгрузки для отчётов.","Faqat ko‘rish va hisobot uchun yuklab olish.","View only, plus exports for reports."],
+
+  /* ---- разделы и действия ---- */
+  m_orders:["Заказы","Buyurtmalar","Orders"],
+  m_b2b:["Агентства (B2B)","Agentliklar (B2B)","Agencies (B2B)"],
+  m_b2c:["Пассажиры сайта (B2C)","Sayt yo‘lovchilari (B2C)","Site customers (B2C)"],
+  m_finance:["Деньги","Moliya","Finance"],
+  m_pricing:["Цены и комиссии","Narxlar va komissiyalar","Pricing and commissions"],
+  m_services:["Направления и услуги","Yo‘nalishlar va xizmatlar","Destinations and services"],
+  m_staff:["Сотрудники","Xodimlar","Staff"],
+  m_roles:["Роли и права","Rollar va huquqlar","Roles and permissions"],
+  m_audit:["Журнал","Jurnal","Audit log"],
+  m_settings:["Система","Tizim","System"],
+  m_session:["Входы","Kirishlar","Sign-ins"],
+  act_view:["Просмотр","Ko‘rish","View"],
+  act_create:["Создание","Yaratish","Create"],
+  act_edit:["Изменение","O‘zgartirish","Edit"],
+  act_delete:["Удаление","O‘chirish","Delete"],
+  act_approve:["Подтверждение","Tasdiqlash","Approve"],
+  act_cancel:["Отмена","Bekor qilish","Cancel"],
+  act_refund:["Возврат","Qaytarish","Refund"],
+  act_export:["Выгрузка","Yuklab olish","Export"],
+  act_manage:["Управление","Boshqarish","Manage"],
+  pm_orders_view:["видеть заказы","buyurtmalarni ko‘rish","see orders"],
+  pm_orders_edit:["назначать цену чартера","charter narxini belgilash","price charters"],
+  pm_orders_approve:["подтверждать у поставщика","yetkazib beruvchida tasdiqlash","confirm with the supplier"],
+  pm_orders_cancel:["отменять заказы","buyurtmalarni bekor qilish","cancel orders"],
+  pm_b2b_view:["видеть агентства","agentliklarni ko‘rish","see agencies"],
+  pm_b2b_create:["создавать агентства","agentlik yaratish","create agencies"],
+  pm_b2b_edit:["менять реквизиты и писать агентствам","rekvizitlarni o‘zgartirish va agentliklarga yozish","edit details and message agencies"],
+  pm_b2b_approve:["одобрять заявки на подключение","ulanish arizalarini ma’qullash","approve applications"],
+  pm_b2b_manage:["блокировать и разблокировать","bloklash va blokdan chiqarish","block and unblock"],
+  pm_b2c_view:["видеть пассажиров сайта","sayt yo‘lovchilarini ko‘rish","see site customers"],
+  pm_b2c_edit:["отвечать на их просьбы","ularning so‘rovlariga javob berish","answer their requests"],
+  pm_finance_view:["видеть деньги","moliyani ko‘rish","see finance"],
+  pm_finance_approve:["подтверждать пополнения и денежные запросы","to‘ldirish va pul so‘rovlarini tasdiqlash","approve top-ups and money requests"],
+  pm_finance_refund:["зачислять возвраты","qaytimlarni o‘tkazish","credit refunds"],
+  pm_finance_manage:["корректировать балансы","balanslarni tuzatish","adjust balances"],
+  pm_finance_export:["выгружать CSV","CSV yuklab olish","export CSV"],
+  pm_pricing_view:["видеть цены","narxlarni ko‘rish","see pricing"],
+  pm_pricing_edit:["менять сбор и наценку","yig‘im va ustamani o‘zgartirish","change the fee and markup"],
+  pm_pricing_approve:["подтверждать изменения цен","narx o‘zgarishlarini tasdiqlash","approve price changes"],
+  pm_services_view:["видеть направления","yo‘nalishlarni ko‘rish","see destinations"],
+  pm_services_create:["добавлять направления","yo‘nalish qo‘shish","add destinations"],
+  pm_services_edit:["скрывать и показывать","yashirish va ko‘rsatish","hide and show"],
+  pm_services_delete:["удалять направления","yo‘nalishlarni o‘chirish","delete destinations"],
+  pm_services_approve:["подтверждать удаление","o‘chirishni tasdiqlash","approve deletions"],
+  pm_staff_view:["видеть сотрудников","xodimlarni ko‘rish","see staff"],
+  pm_staff_create:["добавлять сотрудников","xodim qo‘shish","add staff"],
+  pm_staff_edit:["менять данные, роль и доступ","ma’lumot, rol va kirishni o‘zgartirish","change details, role and access"],
+  pm_roles_view:["видеть роли и права","rol va huquqlarni ko‘rish","see roles and permissions"],
+  pm_roles_create:["создавать роли","rol yaratish","create roles"],
+  pm_roles_edit:["менять права ролей","rollar huquqlarini o‘zgartirish","change role permissions"],
+  pm_roles_delete:["удалять роли","rollarni o‘chirish","delete roles"],
+  pm_roles_approve:["подтверждать изменения прав и новых сотрудников","huquq o‘zgarishlari va yangi xodimlarni tasdiqlash","approve permission changes and new staff"],
+  pm_audit_view:["видеть журнал","jurnalni ko‘rish","see the log"],
+  pm_audit_export:["выгружать журнал","jurnalni yuklab olish","export the log"],
+  pm_settings_view:["видеть интеграции","integratsiyalarni ko‘rish","see integrations"],
+  pm_settings_manage:["сбрасывать демо","demoni qayta boshlash","reset the demo"],
+
+  /* ---- роли: страница ---- */
+  an_roles:["Роли и права","Rollar va huquqlar","Roles"],
+  roles_sub:["Роль — набор прав по разделам. Сотрудник получает права своей роли.","Rol — bo‘limlar bo‘yicha huquqlar to‘plami. Xodim o‘z rolining huquqlarini oladi.","A role is a set of permissions per section. Staff get their role’s permissions."],
+  role_pick:["Роли","Rollar","Roles"],
+  role_sys:["Системная","Tizim","System"],
+  role_custom:["Своя","Maxsus","Custom"],
+  role_n:["сотрудников: {n}","xodimlar: {n}","staff: {n}"],
+  role_perms_h:["Права: {role}","Huquqlar: {role}","Permissions: {role}"],
+  role_by:["Своя роль. Автор: {name}","Maxsus rol. Muallif: {name}","Custom role, created by {name}"],
+  role_people:["Сейчас у роли","Hozir bu rolda","Staff with this role"],
+  col_section:["Раздел","Bo‘lim","Section"],
+  role_founder_note:["У основателя все права — их нельзя снять.","Asoschida barcha huquqlar bor — ularni olib bo‘lmaydi.","The founder has every permission, and they can’t be removed."],
+  role_ro_note:["Права этой роли может менять только основатель.","Bu rol huquqlarini faqat asoschi o‘zgartira oladi.","Only the founder can change this role’s permissions."],
+  role_own_note:["Это ваша роль: свои права менять нельзя.","Bu sizning rolingiz: o‘z huquqlaringizni o‘zgartira olmaysiz.","This is your role. You can’t change your own permissions."],
+  role_view_hint:["Отметьте, что роли можно. Без «Просмотра» остальные права раздела не работают, поэтому снимаются вместе с ним.","Rolga nima mumkinligini belgilang. «Ko‘rish»siz bo‘limning boshqa huquqlari ishlamaydi, shuning uchun u bilan birga olinadi.","Tick what the role may do. Without View a section’s other permissions don’t work, so they’re removed with it."],
+  role_pending:["Изменение прав этой роли ждёт подтверждения.","Bu rol huquqlaridagi o‘zgarish tasdiq kutmoqda.","A change to this role’s permissions is awaiting approval."],
+  role_changed:["Изменений: {n}","O‘zgarishlar: {n}","Changes: {n}"],
+  role_save:["Сохранить права","Huquqlarni saqlash","Save permissions"],
+  role_same:["Изменений нет","O‘zgarish yo‘q","Nothing changed"],
+  t_role_saved:["Права сохранены: {role}","Huquqlar saqlandi: {role}","Permissions saved: {role}"],
+  role_new:["Новая роль","Yangi rol","New role"],
+  role_name:["Название роли","Rol nomi","Role name"],
+  role_copy:["Права как у роли","Huquqlar nusxasi","Copy permissions from"],
+  role_create:["Создать роль","Rol yaratish","Create role"],
+  err_role_name:["Название — от 2 до 40 символов","Nom 2 dan 40 belgigacha","Use 2 to 40 characters"],
+  err_role_dup:["Роль с таким названием уже есть","Bunday nomli rol bor","A role with this name already exists"],
+  err_grant_beyond:["Нельзя дать права, которых нет у вас самих","O‘zingizda yo‘q huquqni bera olmaysiz","You can’t grant permissions you don’t have"],
+  t_role_new:["Роль создана: {role}","Rol yaratildi: {role}","Role created: {role}"],
+  role_delete:["Удалить роль","Rolni o‘chirish","Delete role"],
+  role_delete_q:["Удалить роль «{role}»?","«{role}» rolini o‘chirasizmi?","Delete the role “{role}”?"],
+  err_role_used:["Роль назначена сотрудникам — сначала смените им роль","Rol xodimlarga berilgan — avval ularning rolini almashtiring","Staff still have this role. Change their role first"],
+  t_role_del:["Роль удалена: {role}","Rol o‘chirildi: {role}","Role deleted: {role}"],
+  role_legend:["Что значит каждое право","Har bir huquq nimani anglatadi","What each permission means"],
+  a_role_new:["Создана роль «{role}»","«{role}» roli yaratildi","Created the role “{role}”"],
+  a_role_edit:["Изменены права роли «{role}»","«{role}» roli huquqlari o‘zgartirildi","Changed permissions of “{role}”"],
+  a_role_delete:["Удалена роль «{role}»","«{role}» roli o‘chirildi","Deleted the role “{role}”"],
+
+  /* ---- подтверждения ---- */
+  an_approvals:["Подтверждения","Tasdiqlar","Approvals"],
+  approvals_sub:["Критичные операции выполняются, только когда их подтвердит другой сотрудник.","Muhim amallar faqat boshqa xodim tasdiqlagandan so‘ng bajariladi.","Critical operations run only after another staff member approves them."],
+  ap_for_me:["Ждут вашего решения","Qaroringizni kutmoqda","Waiting for your decision"],
+  ap_mine:["Ваши запросы","Sizning so‘rovlaringiz","Your requests"],
+  ap_others:["Решает другой сотрудник","Boshqa xodim hal qiladi","Someone else decides"],
+  ap_pending_tab:["Ожидают","Kutilmoqda","Pending"],
+  ap_history:["История","Tarix","History"],
+  ap_none:["Запросов, которые ждут решения, нет.","Qaror kutayotgan so‘rovlar yo‘q.","Nothing is waiting for a decision."],
+  ap_none_hist:["Решённых запросов пока нет.","Hal qilingan so‘rovlar hali yo‘q.","No decided requests yet."],
+  ap_withdraw:["Отозвать","Qaytarib olish","Withdraw"],
+  ap_wait:["Ждёт подтверждения","Tasdiq kutmoqda","Awaiting approval"],
+  ap_becomes:["станет","bo‘ladi","becomes"],
+  ap_st_executed:["Выполнено","Bajarildi","Done"],
+  ap_st_rejected:["Отклонено","Rad etildi","Rejected"],
+  ap_st_failed:["Не выполнено","Bajarilmadi","Not done"],
+  ap_st_withdrawn:["Отозвано","Qaytarib olindi","Withdrawn"],
+  ap_decided:["Решение: {name}, {ago}","Qaror: {name}, {ago}","Decided by {name}, {ago}"],
+  ap_sent:["Отправлено на подтверждение другому сотруднику","Boshqa xodimga tasdiqlash uchun yuborildi","Sent to another staff member for approval"],
+  ap_dup:["Такой запрос уже ждёт подтверждения","Bunday so‘rov allaqachon tasdiq kutmoqda","The same request is already waiting"],
+  ap_err_self:["Свой запрос подтверждает другой сотрудник","O‘z so‘rovingizni boshqa xodim tasdiqlaydi","Someone else must approve your own request"],
+  ap_err_own:["Изменение ваших прав подтверждает другой сотрудник","Huquqlaringizdagi o‘zgarishni boshqa xodim tasdiqlaydi","Someone else must approve changes to your own permissions"],
+  ap_err_changed:["Данные изменились после запроса — нужен новый запрос","So‘rovdan keyin ma’lumotlar o‘zgardi — yangi so‘rov kerak","The data changed after the request. A new request is needed"],
+  ap_err_gone:["Того, что меняли, больше нет","O‘zgartirilgan narsa endi yo‘q","What this request changes no longer exists"],
+  ap_err_state:["Операция уже выполнена или отменена","Amal allaqachon bajarilgan yoki bekor qilingan","This was already done or cancelled"],
+  t_ap_executed:["Подтверждено и выполнено","Tasdiqlandi va bajarildi","Approved and done"],
+  t_ap_rejected:["Запрос отклонён","So‘rov rad etildi","Request rejected"],
+  t_ap_failed:["Подтверждено, но не выполнено: данные изменились","Tasdiqlandi, lekin bajarilmadi: ma’lumotlar o‘zgardi","Approved but not done: the data changed"],
+  t_ap_withdrawn:["Запрос отозван","So‘rov qaytarib olindi","Request withdrawn"],
+  apk_refund:["Возврат {amount} по заказу {no} ({src})","{no} buyurtmasi bo‘yicha {amount} qaytim ({src})","Refund {amount} on order {no} ({src})"],
+  apk_adjust:["Баланс {agency}: {amount} — {reason}","{agency} balansi: {amount} — {reason}","{agency} balance: {amount}, {reason}"],
+  apk_pricing:["Изменить сбор и наценку","Yig‘im va ustamani o‘zgartirish","Change the fee and markup"],
+  apk_role_new:["Новая роль «{role}»","Yangi rol «{role}»","New role “{role}”"],
+  apk_role_edit:["Права роли «{role}»","«{role}» roli huquqlari","Permissions of “{role}”"],
+  apk_role_del:["Удалить роль «{role}»","«{role}» rolini o‘chirish","Delete the role “{role}”"],
+  apk_staff_add:["Новый сотрудник {name} — {role}","Yangi xodim {name} — {role}","New staff member {name}, {role}"],
+  apk_staff_role:["Роль {name}: {from} → {to}","{name} roli: {from} → {to}","{name}’s role: {from} → {to}"],
+  apk_dir_del:["Удалить направление {city} ({iata})","{city} ({iata}) yo‘nalishini o‘chirish","Delete the destination {city} ({iata})"],
+  a_ap_request:["Запрос на подтверждение: {what}","Tasdiqlash so‘rovi: {what}","Approval requested: {what}"],
+  a_ap_ok:["Подтверждено: {what}. Автор запроса: {name}","Tasdiqlandi: {what}. So‘rov muallifi: {name}","Approved: {what}. Requested by {name}"],
+  a_ap_no:["Отклонено: {what} — {reason}. Автор запроса: {name}","Rad etildi: {what} — {reason}. So‘rov muallifi: {name}","Rejected: {what}, {reason}. Requested by {name}"],
+  a_ap_fail:["Подтверждено, но не выполнено: {what} — {error}","Tasdiqlandi, lekin bajarilmadi: {what} — {error}","Approved but not done: {what}, {error}"],
+  a_ap_withdraw:["Запрос отозван: {what}","So‘rov qaytarib olindi: {what}","Request withdrawn: {what}"],
+  ap_rules:["Правила подтверждения","Tasdiqlash qoidalari","Approval rules"],
+  ap_rules_d:["Какие операции ждут второго сотрудника. Меняет только основатель; его собственные действия выполняются сразу.","Qaysi amallar ikkinchi xodimni kutadi. Faqat asoschi o‘zgartiradi; uning o‘z amallari darhol bajariladi.","Which operations wait for a second person. Only the founder can change this, and the founder’s own actions run immediately."],
+  rule_refund:["Возвраты денег","Pul qaytarish","Refunds"],
+  rule_adjust:["Ручные изменения баланса","Balansni qo‘lda o‘zgartirish","Manual balance changes"],
+  rule_pricing:["Изменения сбора и наценки","Yig‘im va ustama o‘zgarishlari","Fee and markup changes"],
+  rule_access:["Роли, права и новые сотрудники","Rollar, huquqlar va yangi xodimlar","Roles, permissions and new staff"],
+  rule_delete:["Удаление направлений","Yo‘nalishlarni o‘chirish","Deleting destinations"],
+  rule_min:["От суммы, сум","Summadan, so‘m","From amount, UZS"],
+  rule_from:["от {amount}","{amount} dan","from {amount}"],
+  rule_all:["всегда","har doim","always"],
+  rule_off:["не нужно","kerak emas","not needed"],
+  rules_save:["Сохранить правила","Qoidalarni saqlash","Save rules"],
+  t_rules:["Правила сохранены","Qoidalar saqlandi","Rules saved"],
+  a_rules:["Изменены правила подтверждения","Tasdiqlash qoidalari o‘zgartirildi","Changed the approval rules"],
+  err_rule_min:["Сумма — целое число сумов от 0","Summa — 0 dan butun so‘m","Enter a whole number of UZS, 0 or more"],
+  k_ap:["Ждут подтверждения","Tasdiq kutmoqda","Awaiting approval"],
+  k_ap_d:["нужно ваше решение","qaroringiz kerak","need your decision"],
+  k_ap_none:["всё решено","hammasi hal qilingan","all decided"],
+  tk_ap:["Подтверждения","Tasdiqlar","Approvals"],
+  tk_ap_d:["Запросы коллег на критичные операции.","Hamkasblarning muhim amallar bo‘yicha so‘rovlari.","Colleagues’ requests for critical operations."],
+  pr_needs_ap:["Изменение подтвердит другой сотрудник","O‘zgarishni boshqa xodim tasdiqlaydi","Another staff member will approve the change"],
+  col_balance:["Баланс","Balans","Balance"],
+  dir_visible:["Показано на сайте","Saytda ko‘rsatilgan","Shown on the site"],
+
+  /* ---- сотрудники ---- */
+  staff_edit_of:["Сотрудник: {name}","Xodim: {name}","Staff member: {name}"],
+  staff_pos:["Должность","Lavozim","Position"],
+  staff_dept:["Отдел","Bo‘lim","Department"],
+  staff_log:["Журнал","Jurnal","Log"],
+  staff_log_of:["Журнал: {name}","Jurnal: {name}","Log: {name}"],
+  staff_role_ap:["Роли и права подтверждает второй сотрудник.","Rol va huquqlarni ikkinchi xodim tasdiqlaydi.","A second staff member approves roles and permissions."],
+  staff_role_pending:["→ {role}: ждёт подтверждения","→ {role}: tasdiq kutmoqda","→ {role}: awaiting approval"],
+  staff_status_on:["Доступ открыт","Kirish ochiq","Access on"],
+  staff_status_off:["Доступ закрыт","Kirish yopiq","Access off"],
+  st_save:["Сохранить","Saqlash","Save"],
+  col_contacts:["Контакты","Kontaktlar","Contacts"],
+  err_staff_pos:["Укажите должность","Lavozimni kiriting","Enter a position"],
+  err_last_founder:["Должен остаться хотя бы один основатель","Kamida bitta asoschi qolishi kerak","At least one founder must remain"],
+  t_staff_edit:["{name}: данные сохранены","{name}: ma’lumotlar saqlandi","{name}: details saved"],
+  a_staff_edit:["Изменены данные сотрудника {name}","{name} xodim ma’lumotlari o‘zgartirildi","Changed details of {name}"],
+  dept_lead:["Руководство","Rahbariyat","Management"],
+  dept_finance:["Финансы","Moliya","Finance"],
+  dept_b2b:["Работа с агентствами","Agentliklar bilan ishlash","Agency relations"],
+  dept_b2c:["Продажи на сайте","Saytdagi savdo","Online sales"],
+  dept_sales:["Продажи","Savdo","Sales"],
+  dept_ops:["Операции","Operatsiyalar","Operations"],
+  dept_content:["Контент","Kontent","Content"],
+  dept_support:["Поддержка","Qo‘llab-quvvatlash","Support"],
+  dept_it:["ИТ","IT","IT"],
+
+  /* ---- журнал ---- */
+  col_where:["IP и устройство","IP va qurilma","IP and device"],
+  col_was:["Было","Oldin","Before"],
+  col_now:["Стало","Keyin","After"],
+  au_device:["Устройство","Qurilma","Device"],
+  au_mod_all:["Все разделы","Barcha bo‘limlar","All sections"],
+  au_period:["Период","Davr","Period"],
+  au_per_all:["За всё время","Butun davr","All time"],
+  au_per_today:["Сегодня","Bugun","Today"],
+  au_per_7:["7 дней","7 kun","7 days"],
+  au_per_30:["30 дней","30 kun","30 days"],
+  au_count:["Записей: {n}","Yozuvlar: {n}","Entries: {n}"],
+  au_more:["Показаны последние 200. Ещё {n} — в выгрузке CSV или уточните фильтр.","Oxirgi 200 tasi ko‘rsatilgan. Yana {n} tasi — CSV yuklamada yoki filtrni aniqlang.","Showing the latest 200. {n} more are in the CSV export, or narrow the filter."],
+  au_ip_note:["IP в демо условный: браузер не знает свой адрес. В боевой версии IP и устройство записывает сервер.","Demoda IP shartli: brauzer o‘z manzilini bilmaydi. Jangovar versiyada IP va qurilmani server yozadi.","In the demo the IP is a placeholder, because a browser can’t see its own address. In production the server records the IP and device."],
+  ap_err_requester:["Автор запроса отключён или потерял нужное право","So‘rov muallifi o‘chirilgan yoki kerakli huquqni yo‘qotgan","The requester is disabled or no longer has the permission"],
+  ap_reason_ph:["Коротко, её увидит автор запроса","Qisqacha, so‘rov muallifi ko‘radi","Briefly; the requester will see it"],
+  ap_withdrawn_at:["Снят: {name}, {ago}","Olib tashlandi: {name}, {ago}","Withdrawn by {name}, {ago}"],
+  rules_unsaved:["Изменения не сохранены","O‘zgarishlar saqlanmagan","Unsaved changes"],
+  a_role_migrate:["{name}: роль основателя назначена при переходе на новые роли","{name}: yangi rollarga o‘tishda asoschi roli berildi","{name} was made founder during the move to the new roles"],
 });
 
 /* ---- 10-ops.js ---- */
@@ -5474,41 +5726,64 @@ const OPS_KEY = "charteri.ops.demo.v1";
 const HB_EVERY_MS = 5000;
 let O = null, SITE = null;
 
-/* ---- роли ----
-   Главный администратор может всё. Остальные — по списку прав. */
-const ROLES = ["admin", "operator", "cashier", "accountant"];
-const PERMS = {
-  operator:   ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "agencies", "agencies.moderate", "agencies.message", "customers", "requests.resolve", "catalog", "integrations", "audit"],
-  cashier:    ["tasks", "orders", "agencies", "finance", "topups.confirm", "refunds.credit"],
-  accountant: ["orders", "agencies", "finance", "finance.export", "audit"]
-};
-/* Права, которые есть в админке, — для таблицы на странице «Сотрудники». */
-const PERM_LIST = ["tasks", "orders", "orders.price", "orders.confirm", "orders.cancel", "refunds.credit", "agencies", "agencies.moderate",
-  "agencies.create", "agencies.edit", "agencies.message", "agencies.block", "balance.adjust", "customers", "requests.resolve", "finance", "topups.confirm",
-  "finance.export", "pricing.edit", "catalog", "catalog.edit", "integrations", "staff", "staff.edit", "audit", "demo.reset"];
-/* Вошедший сотрудник — только активный: отключённый теряет доступ сразу. */
+/* ---- кто вошёл ----
+   Роли и права — в 11-roles.js. Вошедший сотрудник — только активный:
+   отключённый теряет доступ сразу. */
 const me = () => O?.staff.find(s => s.id === O.session?.staffId && s.active !== false) || null;
-const activeStaff = () => O.staff.filter(s => s.active !== false);
-const can = p => { const r = me()?.role; return r === "admin" || !!PERMS[r]?.includes(p); };
+const activeStaff = () => O.staff.filter(s => s.active !== false).sort(byRank);
 /* Кнопка без права не прячется: она выключена и подписана «нет прав». */
 const guard = p => can(p) ? "" : `disabled aria-disabled="true" title="${esc(t("no_rights"))}" data-nr="${esc(t("no_rights_short"))}"`;
 const denied = p => { if (can(p)) return false; toast(t("no_rights")); return true; };
 
+/* Короткое объявление для экранного диктора без всплывающего сообщения:
+   живая область в каркасе страницы, её не пересоздаёт перерисовка. */
+function announce(msg){ const e = $("#adm-live"); if (!e) return; e.textContent = ""; setTimeout(() => { e.textContent = msg; }, 60); }
+
 /* ---- хранилища ---- */
-function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateStaff(r) : null; }
-function saveOps(){ O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
+function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateRoles(migrateStaff(r)) : null; }
+function saveOps(){ delete O._migrated; O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
 const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
 
-/* ---- журнал ---- */
-function audit(action, vars = {}){
-  O.audit.unshift({ id:uid("a"), at:Date.now(), staffId:O.session?.staffId || null, action, vars });
-  O.audit = O.audit.slice(0, 400);
+/* ---- журнал ----
+   Запись: кто (и в какой роли на тот момент), что, когда, откуда (IP,
+   устройство), в каком разделе и что было → что стало (diff). Значения
+   хранятся без языка — текст собирается при показе. f:2 — записи этой версии. */
+const AUDIT_MAX = 2000;
+function audit(action, vars = {}, extra = {}){
+  O.audit.unshift({ id:uid("a"), f:2, at:Date.now(), staffId:O.session?.staffId || null, role:me()?.role || null, action, vars, ip:DEMO_IP, dev:DEVICE,
+    ...(extra.module ? { module:extra.module } : {}), ...(extra.diff?.length ? { diff:extra.diff } : {}) });
+  O.audit = O.audit.slice(0, AUDIT_MAX);
 }
-/* Значения журнала: название на трёх языках — по языку экрана, роль — ключом
-   ("role:operator"). Старые записи со строками показываются как есть. */
-const auditVal = v => v && typeof v === "object" ? v[S.lang] || v.ru || "" : typeof v === "string" && v.startsWith("role:") ? roleName(v.slice(5)) : v;
-const auditText = e => tf("a_" + e.action, Object.fromEntries(Object.entries(e.vars || {}).map(([k, v]) => [k, auditVal(v)])));
+/* Значение без языка → текст на языке экрана. Служебные значения — объекты
+   с меткой: {role}, {t} (строка интерфейса), {acts} (действия), {uzs} (сумма,
+   sign — со знаком «+»), {pct} (проценты в сотых), {ruleFrom} (порог правила),
+   {ru,uz,en} — название на трёх языках. Строка — всегда то, что ввёл человек:
+   её никогда не разбираем, поэтому причина «t: ...» остаётся текстом. */
+const loc = v => v && typeof v === "object" ? v[S.lang] || v.ru || "" : v ?? "";
+function auditVal(v){
+  if (v == null) return "";
+  if (typeof v !== "object") return String(v);
+  if ("role" in v) return roleName(v.role);
+  if ("t" in v) return t(v.t);
+  if ("acts" in v) return v.acts.length ? v.acts.map(x => t("act_" + x)).join(", ") : "—";
+  if ("uzs" in v) return (v.sign && v.uzs > 0 ? "+" : "") + fmtUZS(v.uzs);
+  if ("pct" in v) return pctText(v.pct) + "%";
+  if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
+  return loc(v);
+}
+/* Записи прошлой версии хранили роль строкой "role:operator". */
+const legacyVal = v => typeof v === "string" && /^role:[a-z]+$/.test(v) ? roleName(v.slice(5)) : auditVal(v);
+const auditVars = (vars, dec = auditVal) => Object.fromEntries(Object.entries(vars || {}).map(([k, v]) => [k, dec(v)]));
+/* Запись о запросе на подтверждение хранит вид (apk) и его значения (w). */
+function auditText(e){
+  const dec = e.f === 2 ? auditVal : legacyVal;
+  return e.vars?.apk ? tf("a_" + e.action, { ...auditVars(e.vars, dec), what:tf("apk_" + e.vars.apk, auditVars(e.vars.w)) }) : tf("a_" + e.action, auditVars(e.vars, dec));
+}
+/* Строка «что было → что стало»: k — ключ строки с названием поля. */
+const diffText = d => `${t(d.k)}: ${auditVal(d.from) || "—"} → ${auditVal(d.to) || "—"}`;
+/* Служебные значения для журнала: роль, строка интерфейса, сумма. */
+const roleRef = id => ({ role:id }), strRef = key => ({ t:key }), uzsRef = (uzs, sign = false) => sign ? { uzs, sign:true } : { uzs };
 const staffName = id => O.staff.find(s => s.id === id)?.name || "—";
 
 /* ---- изменения ----
@@ -5573,28 +5848,51 @@ function tasks(){
     topups:  agencies().flatMap(a => a.st.topups.filter(p => p.status === "pending").map(p => ({ p, a }))),
     apps:    loadApps().filter(x => x.status === "pending"),
     reqs:    rows.filter(r => r.src === "site" && r.o.req && !r.o.req.status),
-    refunds: rows.filter(r => r.o.status === "CANCELLED" && r.o.refund && !r.o.refund.done)
+    refunds: rows.filter(r => r.o.status === "CANCELLED" && r.o.refund && !r.o.refund.done && !pendingAp(refundKey(r)))
   };
 }
-/* Сколько задач видит текущая роль. */
+/* Сколько задач видит текущая роль: очереди её разделов и запросы коллег,
+   которые она может подтвердить. Возврат, который уже ждёт подтверждения,
+   задачей кассира не считается. */
 function taskCount(){
   const k = tasks();
-  return (can("orders.price") ? k.price.length : 0) + (can("topups.confirm") ? k.topups.length : 0) + (can("agencies.moderate") ? k.apps.length : 0)
-    + (can("requests.resolve") ? k.reqs.length : 0) + (can("refunds.credit") ? k.refunds.length : 0);
+  return TASK_KINDS.reduce((n, [key, need]) => n + (can(need) ? k[key].length : 0), 0) + myDecisions().length;
 }
 
 /* ---- демо: сотрудники, ещё три агентства, заявки на подключение ---- */
 const STAFF = [
-  { id:"st1", name:"Dilnoza Rahimova", role:"admin",      phone:"+998 90 000 00 01" },
-  { id:"st2", name:"Jasur Aliyev",     role:"operator",   phone:"+998 90 000 00 02" },
-  { id:"st3", name:"Kamola Nazarova",  role:"cashier",    phone:"+998 90 000 00 03" },
-  { id:"st4", name:"Rustam Ergashev",  role:"accountant", phone:"+998 90 000 00 04" },
-  { id:"st5", name:"Ammar Temurov",    role:"admin",      phone:"+998 90 000 00 05" }
+  { id:"st5",  name:"Ammar Temurov",    role:"founder",  phone:"+998 90 000 00 05", email:"ammar@charteri.uz",   dept:"lead",
+    pos:{ ru:"Основатель", uz:"Asoschi", en:"Founder" } },
+  { id:"st1",  name:"Dilnoza Rahimova", role:"owner",    phone:"+998 90 000 00 01", email:"dilnoza@charteri.uz", dept:"lead",
+    pos:{ ru:"Управляющий директор", uz:"Boshqaruvchi direktor", en:"Managing director" } },
+  { id:"st11", name:"Timur Xolmatov",   role:"sysadmin", phone:"+998 90 000 00 11", email:"timur@charteri.uz",   dept:"it",
+    pos:{ ru:"Системный администратор", uz:"Tizim administratori", en:"Systems administrator" } },
+  { id:"st3",  name:"Kamola Nazarova",  role:"finance",  phone:"+998 90 000 00 03", email:"kamola@charteri.uz",  dept:"finance",
+    pos:{ ru:"Финансовый менеджер", uz:"Moliya menejeri", en:"Finance manager" } },
+  { id:"st6",  name:"Nodira Qosimova",  role:"b2b",      phone:"+998 90 000 00 06", email:"nodira@charteri.uz",  dept:"b2b",
+    pos:{ ru:"Менеджер по агентствам", uz:"Agentliklar menejeri", en:"Agency manager" } },
+  { id:"st7",  name:"Bekzod Tursunov",  role:"b2c",      phone:"+998 90 000 00 07", email:"bekzod@charteri.uz",  dept:"b2c",
+    pos:{ ru:"Менеджер продаж на сайте", uz:"Sayt savdo menejeri", en:"Online sales manager" } },
+  { id:"st8",  name:"Aziz Nematov",     role:"sales",    phone:"+998 90 000 00 08", email:"aziz@charteri.uz",    dept:"sales",
+    pos:{ ru:"Менеджер по продажам", uz:"Savdo menejeri", en:"Sales manager" } },
+  { id:"st2",  name:"Jasur Aliyev",     role:"ops",      phone:"+998 90 000 00 02", email:"jasur@charteri.uz",   dept:"ops",
+    pos:{ ru:"Операционный менеджер", uz:"Operatsion menejer", en:"Operations manager" } },
+  { id:"st9",  name:"Malika Yusupova",  role:"content",  phone:"+998 90 000 00 09", email:"malika@charteri.uz",  dept:"content",
+    pos:{ ru:"Контент-менеджер", uz:"Kontent menejeri", en:"Content manager" } },
+  { id:"st10", name:"Shahlo Mirzayeva", role:"support",  phone:"+998 90 000 00 10", email:"shahlo@charteri.uz",  dept:"support",
+    pos:{ ru:"Специалист поддержки", uz:"Qo‘llab-quvvatlash mutaxassisi", en:"Support specialist" } },
+  { id:"st4",  name:"Rustam Ergashev",  role:"viewer",   phone:"+998 90 000 00 04", email:"rustam@charteri.uz",  dept:"finance",
+    pos:{ ru:"Аналитик", uz:"Tahlilchi", en:"Analyst" } }
 ];
 /* Сотрудники из демо, которых ещё нет в сохранённой админке (добавлены после
-   её первого запуска), — дописываются; удалённые вручную остаются удалёнными. */
+   её первого запуска), — дописываются; удалённые вручную остаются удалёнными.
+   Сотрудникам демо из прошлой версии дописываются почта, должность и отдел. */
 function migrateStaff(o){
-  for (const s of STAFF) if (!o.staff.some(x => x.id === s.id) && !(o.removedStaff || []).includes(s.id)) o.staff.push({ ...s });
+  for (const s of STAFF) {
+    const x = o.staff.find(y => y.id === s.id);
+    if (!x) { if (!(o.removedStaff || []).includes(s.id)) o.staff.push({ ...s }); continue; }
+    for (const k of ["email", "pos", "dept"]) if (x[k] == null) x[k] = s[k];
+  }
   return o;
 }
 const PAX_NAMES = [["SAIDOV","OTABEK"],["RAHIMOVA","SHAHNOZA"],["KIM","VIKTORIYA"],["QODIROV","SARDOR"],["ORTIQOVA","LOBAR"],["NURMATOV","ILHOM"],["HAMIDOVA","FERUZA"],["ABDULLAEV","TIMUR"],["ZOKIROVA","DILFUZA"],["ISMOILOV","AKMAL"]];
@@ -5651,9 +5949,8 @@ function seedAgency(spec){
   return st;
 }
 function freshOps(prev){
-  const now = Date.now();
-  return {
-    v:1, lang:prev?.lang || S?.lang || "ru", theme:prev?.theme || "system", session:prev?.session || null, staff:STAFF.map(s => ({ ...s })), audit:[],
+  return migrateRoles({
+    v:1, lang:prev?.lang || S?.lang || "ru", theme:prev?.theme || "system", session:prev?.session || null, staff:STAFF.map(s => ({ ...s })), audit:[], approvals:[], rules:null, roles:null,
     agencies:[
       seedAgency({ id:"ag-smk", name:"Samarkand Voyage", legal:"OOO «SAMARKAND VOYAGE»", inn:"307 112 845", phone:"+998 66 233 10 20", email:"sales@samvoyage.uz",
         address:"Samarqand, Registon ko‘chasi, 12", color:"#7A1F3D", status:"verified", age:420, orders:14, opening:260_000_000,
@@ -5664,7 +5961,7 @@ function freshOps(prev){
       seedAgency({ id:"ag-fgn", name:"Fergana Tours", legal:"OOO «FARG‘ONA TOURS»", inn:"305 998 004", phone:"+998 73 244 12 12", email:"fergana.tours@mail.uz",
         address:"Farg‘ona, Mustaqillik ko‘chasi, 44", color:"#2F3A4A", status:"blocked", blockReasonKey:"seed_block_reason", age:90, orders:3, opening:30_000_000 })
     ]
-  };
+  });
 }
 /* Две заявки на подключение — пока их нет в общем хранилище. */
 function seedApps(){
@@ -5705,8 +6002,9 @@ window.addEventListener("storage", e => {
 });
 
 /* ---- вход и маршруты ---- */
-const ADMIN_ROUTES = { "":null, tasks:"tasks", orders:"orders", "orders/:src/:id":"orders", agencies:"agencies", "agencies/:id":"agencies",
-  customers:"customers", "customers/:phone":"customers", finance:"finance", pricing:null, directions:"catalog", integrations:"integrations", staff:"staff", audit:"audit", settings:null, denied:null };
+const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
+  customers:"b2c.view", "customers/:phone":"b2c.view", finance:"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
   if (key === "auth") return "";
@@ -5718,7 +6016,151 @@ function routeGuard(key){
 /* ---- мелочи ---- */
 const ago = ms => { const m = Math.max(1, Math.round((Date.now() - ms) / 60000));
   return m < 60 ? tf("ago_m", { n:m }) : m < 1440 ? tf("ago_h", { n:Math.round(m / 60) }) : tf("ago_d", { n:Math.round(m / 1440) }); };
-const roleName = r => t("role_" + r);
+
+/* ---- 11-roles.js ---- */
+/* ==========================================================================
+   Роли и права. Право — «раздел.действие»: orders.cancel, finance.refund.
+   Одиннадцать ролей из ТЗ заданы здесь, их права хранятся в O.roles: основатель
+   может их менять и заводить свои роли. У основателя все права всегда — их
+   нельзя ни снять, ни изменить.
+   ========================================================================== */
+"use strict";
+
+/* Действия и разделы. У раздела — только те действия, которые в нём есть:
+   пустая клетка в таблице прав честнее галочки, которая ничего не делает. */
+const PERM_ACTS = ["view", "create", "edit", "delete", "approve", "cancel", "refund", "export", "manage"];
+const PERM_MODS = {
+  orders:   ["view", "edit", "approve", "cancel"],
+  b2b:      ["view", "create", "edit", "approve", "manage"],
+  b2c:      ["view", "edit"],
+  finance:  ["view", "approve", "refund", "manage", "export"],
+  pricing:  ["view", "edit", "approve"],
+  services: ["view", "create", "edit", "delete", "approve"],
+  staff:    ["view", "create", "edit"],
+  roles:    ["view", "create", "edit", "delete", "approve"],
+  audit:    ["view", "export"],
+  settings: ["view", "manage"]
+};
+const ALL_PERMS = () => Object.fromEntries(Object.entries(PERM_MODS).map(([m, a]) => [m, [...a]]));
+
+/* Системные роли в порядке старшинства и их права по умолчанию. */
+const SYS_ORDER = ["founder", "owner", "sysadmin", "finance", "b2b", "b2c", "sales", "ops", "content", "support", "viewer"];
+const SYS_ROLES = {
+  owner:    { ...ALL_PERMS(), roles:["view", "approve"] },
+  sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
+  finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
+  b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"] },
+  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit"], pricing:["view"] },
+  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"] },
+  ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"] },
+  content:  { services:["view", "create", "edit"] },
+  support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"] },
+  viewer:   { orders:["view"], b2b:["view"], b2c:["view"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"] }
+};
+/* Основатель и владелец: их назначает и меняет только основатель. */
+const TOP_ROLES = ["founder", "owner"];
+/* Роли прошлой версии админки → роли из ТЗ. */
+const OLD_ROLES = { admin:"owner", operator:"ops", cashier:"finance", accountant:"viewer" };
+const FOUNDER_ID = "st5";
+
+/* Права из хранилища — только известные разделы и действия, без «дыр»:
+   действие без просмотра раздела не работает, поэтому без view его нет. */
+function cleanPerms(p){
+  const out = {};
+  for (const [m, acts] of Object.entries(PERM_MODS)) {
+    const a = Array.isArray(p?.[m]) ? acts.filter(x => p[m].includes(x)) : [];
+    if (a.includes("view")) out[m] = a;
+  }
+  return out;
+}
+const samePerms = (a, b) => Object.keys(PERM_MODS).every(m => (a[m] || []).join() === (b[m] || []).join());
+const permCount = p => Object.values(p).reduce((n, a) => n + a.length, 0);
+
+const roleById = id => O?.roles?.find(r => r.id === id) || null;
+const liveRoles = () => (O?.roles || []).filter(r => !r.deleted);
+const permsOf = id => id === "founder" ? ALL_PERMS() : roleById(id)?.perms || {};
+const hasPerm = (perms, p) => { const [m, a] = p.split("."); return !!perms[m]?.includes(a); };
+const isFounder = () => me()?.role === "founder";
+
+/* Право текущего сотрудника. Два права — сборные: «задачи» есть у того, кому
+   положена хоть одна очередь; «подтверждения» — у того, кто может решать
+   запросы или сам их отправлял. */
+function can(p){
+  const u = me(); if (!u) return false;
+  if (p === "tasks") return TASK_KINDS.some(([, need]) => can(need)) || canDecideAny();
+  if (p === "approvals") return canDecideAny() || O.approvals.some(a => a.by === u.id);
+  return u.role === "founder" || hasPerm(permsOf(u.role), p);
+}
+
+/* Название роли: системной — на языке экрана, своей — как её назвали. */
+function roleName(id, lang = S.lang){
+  const r = roleById(id);
+  if (r && !r.sys) return r.name;
+  const s = STR["role_" + id];
+  return s ? s[LIDX[lang]] ?? s[0] : String(id ?? "—");
+}
+const roleRank = id => { const i = SYS_ORDER.indexOf(id); return i < 0 ? SYS_ORDER.length : i; };
+const byRank = (a, b) => roleRank(a.role) - roleRank(b.role) || a.name.localeCompare(b.name);
+
+/* ---- защита от повышения самого себя ----
+   Свою роль и права своей роли менять нельзя; основателя и владельца
+   назначает и меняет только основатель; дать роли можно только те права,
+   которые есть у тебя самого. */
+const canManageStaff = s => { const u = me(); return !!u && !!s && s.id !== u.id && (isFounder() || !TOP_ROLES.includes(s.role)); };
+const assignableRoles = () => liveRoles().filter(r => isFounder() || !TOP_ROLES.includes(r.id));
+const canEditRole = r => !!r && !r.deleted && r.id !== "founder" && can("roles.edit") && (isFounder() || (r.id !== me().role && !TOP_ROLES.includes(r.id)));
+function grantsBeyond(who, from, to){
+  if (!who) return ["*"];
+  if (who.role === "founder") return [];
+  const mine = permsOf(who.role), out = [];
+  for (const [m, acts] of Object.entries(to)) for (const a of acts) if (!from[m]?.includes(a) && !mine[m]?.includes(a)) out.push(`${m}.${a}`);
+  return out;
+}
+const grantsBeyondMine = (from, to) => grantsBeyond(me(), from, to);
+const foundersLeft = exceptId => O.staff.filter(s => s.role === "founder" && s.active !== false && s.id !== exceptId).length;
+
+/* ---- перенос сохранённой админки на новые роли ----
+   Вызывается при каждом чтении O: должен быть дешёвым и не менять уже
+   перенесённое. */
+function migrateRoles(o){
+  o.roles = (Array.isArray(o.roles) ? o.roles : []).filter(r => r && typeof r.id === "string")
+    .map(r => ({ ...r, sys:SYS_ORDER.includes(r.id), perms:r.id === "founder" ? ALL_PERMS() : cleanPerms(r.perms) }));
+  for (const id of SYS_ORDER) if (!o.roles.some(r => r.id === id)) o.roles.push({ id, sys:true, perms:id === "founder" ? ALL_PERMS() : cleanPerms(SYS_ROLES[id]) });
+  o.roles.sort((a, b) => (a.sys ? roleRank(a.id) : SYS_ORDER.length) - (b.sys ? roleRank(b.id) : SYS_ORDER.length) || (a.at || 0) - (b.at || 0));
+  for (const s of o.staff) {
+    if (OLD_ROLES[s.role]) { s.role = s.id === FOUNDER_ID && s.role === "admin" && s.active !== false ? "founder" : OLD_ROLES[s.role]; o._migrated = true; }
+    if (!o.roles.some(r => r.id === s.role && !r.deleted)) s.role = "viewer";
+  }
+  // Без основателя права менять было бы некому. Основателем становится
+  // действующий владелец (бывший главный администратор), иначе — первый
+  // действующий сотрудник. Отключённых не включаем; запись — в журнал.
+  if (!o.staff.some(s => s.role === "founder" && s.active !== false)) {
+    const f = o.staff.find(s => s.role === "owner" && s.active !== false) || o.staff.find(s => s.active !== false);
+    if (f) {
+      const from = f.role; f.role = "founder"; o._migrated = true;
+      (o.audit ||= []).unshift({ id:uid("a"), f:2, at:Date.now(), staffId:null, role:null, action:"role_migrate", vars:{ name:f.name }, module:"staff",
+        diff:[{ k:"staff_role", from:{ role:from }, to:{ role:"founder" } }] });
+    }
+  }
+  o.approvals = Array.isArray(o.approvals) ? o.approvals.filter(a => a && AP_KINDS[a.kind]) : [];
+  o.rules = cleanRules(o.rules);
+  return o;
+}
+
+/* ---- журнал: откуда действие ----
+   В демо IP условный: браузер своего адреса не знает. В боевой версии IP и
+   устройство записывает сервер из запроса. */
+const DEVICE = (() => {
+  const ua = navigator.userAgent;
+  const b = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Firefox\//.test(ua) ? "Firefox" : /Safari\//.test(ua) ? "Safari" : "Browser";
+  const os = /iPhone|iPad/.test(ua) ? "iOS" : /Android/.test(ua) ? "Android" : /Mac OS X/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : /Linux/.test(ua) ? "Linux" : "";
+  return os ? `${b}, ${os}` : b;
+})();
+const DEMO_IP = (() => {
+  const k = "charteri.ops.ip";
+  try { let v = sessionStorage.getItem(k); if (!v) { const n = () => 2 + Math.floor(Math.random() * 250); v = `10.${20 + Math.floor(Math.random() * 20)}.${n()}.${n()}`; sessionStorage.setItem(k, v); } return v; }
+  catch(e) { return "10.20.0.1"; }
+})();
 
 /* ---- 15-actions.js ---- */
 /* ==========================================================================
@@ -5741,25 +6183,25 @@ const takeInp = key => { const v = (M.ui.inp?.[key] ?? $(`[data-inp="${CSS.escap
 
 /* ---- заказы ---- */
 function priceOrder(r, usd){
-  if (denied("orders.price")) return false;
+  if (denied("orders.edit")) return false;
   if (!(usd > 0 && usd < 5_000_000)) { toast(t("err_price")); return false; }
   let done = false;
   change(() => mutOrder(r, (o, st) => {
     if (o.status !== "NEW") return;
     o.total = amt(usd); o.status = "PENDING"; hist(o, "PENDING"); done = true;
     if (st) { o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); note("price_ready", { orderId:o.id }, st); }
-    audit("price", { no:o.no, amount:fmtUZS(o.total.uzs), src:srcName(r) });
+    audit("price", { no:o.no, amount:uzsRef(o.total.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_NEW"), to:strRef("st_PENDING") }] });
   }));
   if (done) toast(tf("t_priced", { no:r.o.no }));
   return done;
 }
 function confirmOrder(r){
-  if (denied("orders.confirm")) return;
+  if (denied("orders.approve")) return;
   change(() => mutOrder(r, (o, st) => {
     if (o.status !== "PAID") return;
     o.status = "CONFIRMED"; hist(o, "CONFIRMED");
     if (st) note("confirmed", { orderId:o.id }, st);
-    audit("confirm", { no:o.no, src:srcName(r) });
+    audit("confirm", { no:o.no, src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_PAID"), to:strRef("st_CONFIRMED") }] });
   }));
 }
 /* Оплаченный заказ: штраф поставщика по правилам услуги, сбор не возвращается,
@@ -5768,61 +6210,76 @@ function cancelOrder(r){
   if (denied("orders.cancel")) return;
   change(() => mutOrder(r, (o, st) => {
     if (!["NEW", "PENDING", "PAID", "CONFIRMED"].includes(o.status)) return;
+    const was = o.status;
     if (["PAID", "CONFIRMED"].includes(o.status) && o.total) {
       const p = penaltyOf(o); o.refund = { rate:p.rate, penalty:p.penalty, uzs:p.refund, at:Date.now(), done:false };
     }
     o.status = "CANCELLED"; hist(o, "CANCELLED");
     if (st) note("cancelled", { orderId:o.id }, st);
-    audit("cancel", { no:o.no, src:srcName(r), amount:o.refund ? fmtUZS(o.refund.uzs) : "—" });
+    audit("cancel", { no:o.no, src:srcVal(r), amount:o.refund ? uzsRef(o.refund.uzs) : "—" }, { diff:[{ k:"col_status", from:strRef("st_" + was), to:strRef("st_CANCELLED") }] });
   }));
   M.ui.cancelFor = null;
 }
+/* Возврат к зачислению. Крупный (по правилу подтверждения) ждёт второго
+   сотрудника; решение и само зачисление — в execRefund. */
 function creditRefund(r){
-  if (denied("refunds.credit")) return;
-  change(() => mutOrder(r, (o, st) => {
+  if (denied("finance.refund")) return;
+  const amount = r.o.refund?.uzs || 0;
+  if (needsApproval("refund", amount)) return requestApproval("refund", { key:refundKey(r), payload:{ src:r.src, id:r.o.id }, amount,
+    vars:{ no:r.o.no, amount:uzsRef(amount), src:srcVal(r) } });
+  let err = null;
+  change(() => { err = execRefund({ src:r.src, id:r.o.id }); });
+  if (err) toast(t(err));
+}
+function execRefund({ src, id }){
+  const r = findOrder(src, id); if (!r) return "ap_err_gone";
+  let err = "ap_err_state";
+  mutOrder(r, (o, st) => {
     if (o.status !== "CANCELLED" || !o.refund || o.refund.done) return;
-    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED");
+    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
     if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
-    audit("refund", { no:o.no, amount:fmtUZS(o.refund.uzs), src:srcName(r) });
-  }));
+    audit("refund", { no:o.no, amount:uzsRef(o.refund.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_CANCELLED"), to:strRef("st_REFUNDED") }] });
+  });
+  return err;
 }
 function resolveReq(r, status, reply){
-  if (denied("requests.resolve")) return false;
+  if (denied("b2c.edit")) return false;
   if (status === "declined" && !reply) { toast(t("err_reply")); return false; }
   const done = withSite(site => { const o = site.orders.find(x => x.id === r.o.id); if (!o?.req || o.req.status) return false;
     Object.assign(o.req, { status, reply, doneAt:Date.now(), by:me().name }); return true; });
   if (!done) { rerender(); return false; }
-  change(() => audit(status === "done" ? "req_done" : "req_declined", { no:r.o.no }));
+  change(() => audit(status === "done" ? "req_done" : "req_declined", { no:r.o.no }, { diff:reply ? [{ k:"reply", from:"", to:reply }] : [] }));
   return true;
 }
 
 /* ---- пополнения ---- */
 function confirmTopup(aid, pid){
-  if (denied("topups.confirm")) return;
+  if (denied("finance.approve")) return;
   let amount = 0;
   change(() => withAgency(aid, st => {
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"done", doneAt:Date.now(), by:me().name }); amount = p.amount;
+    const before = st.balance;
     post("topup", p.amount, { method:p.method }, st); note("topup_ok", { amount:p.amount }, st);
-    audit("topup_ok", { amount:fmtUZS(p.amount), agency:agencyById(aid)?.name || "" });
+    audit("topup_ok", { amount:uzsRef(p.amount), agency:st.agency.name }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
   }));
   if (amount) toast(tf("t_topup_ok", { amount:fmtUZS(amount) }));
 }
 function rejectTopup(aid, pid, reason){
-  if (denied("topups.confirm")) return false;
+  if (denied("finance.approve")) return false;
   if (!reason) { toast(t("err_reason")); return false; }
   change(() => withAgency(aid, st => {
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"rejected", doneAt:Date.now(), by:me().name, reason });
     note("topup_rejected", { amount:p.amount, reason }, st);
-    audit("topup_rejected", { amount:fmtUZS(p.amount), agency:agencyById(aid)?.name || "", reason });
+    audit("topup_rejected", { amount:uzsRef(p.amount), agency:st.agency.name, reason }, { diff:[{ k:"col_status", from:strRef("tu_pending"), to:strRef("tu_rejected") }] });
   }));
   return true;
 }
 
 /* ---- агентства ---- */
 function decideApp(id, ok, reason = ""){
-  if (denied("agencies.moderate")) return false;
+  if (denied("b2b.approve")) return false;
   if (!ok && !reason) { toast(t("err_reason")); return false; }
   const apps = loadApps(), a = apps.find(x => x.id === id); if (!a || a.status !== "pending") return false;
   // Агентство с тем же ИНН уже есть (создали вручную) — второе не открываем.
@@ -5838,30 +6295,46 @@ function decideApp(id, ok, reason = ""){
   return true;
 }
 function setBlocked(aid, blocked, reason = ""){
-  if (denied("agencies.block")) return false;
+  if (denied("b2b.manage")) return false;
   if (blocked && !reason) { toast(t("err_reason")); return false; }
   change(() => withAgency(aid, st => {
     st.agency.status = blocked ? "blocked" : "verified"; st.agency.blockReason = blocked ? reason : "";
     note(blocked ? "blocked" : "unblocked", { reason }, st);
-    audit(blocked ? "block" : "unblock", { agency:st.agency.name, reason });
+    audit(blocked ? "block" : "unblock", { agency:st.agency.name, reason }, { diff:[{ k:"col_status", from:strRef(blocked ? "ag_active" : "agency_blocked"), to:strRef(blocked ? "agency_blocked" : "ag_active") }] });
   }));
   return true;
 }
-/* Ручная корректировка: только с причиной и не ниже нуля — как любое движение денег. */
+/* Ручная корректировка: только с причиной и не ниже нуля — как любое движение
+   денег. По правилу подтверждения ждёт второго сотрудника. */
 const ADJUST_MAX = 10_000_000_000;
 function adjustBalance(aid, amount, reason){
-  if (denied("balance.adjust")) return false;
+  if (denied("finance.manage")) return false;
   if (!amount || !Number.isFinite(amount) || Math.abs(amount) > ADJUST_MAX) { toast(t("err_amount")); return false; }
   if (!reason) { toast(t("err_reason")); return false; }
-  let ok = false;
-  change(() => withAgency(aid, st => {
-    if (st.balance + amount < 0) return;
-    post("adjust", amount, { reason, by:me().name }, st); note("adjust", { amount, reason }, st); ok = true;
-    audit("adjust", { agency:st.agency.name, amount:(amount > 0 ? "+" : "") + fmtUZS(amount), reason });
-  }));
-  toast(ok ? t("t_adjusted") : t("err_negative"));
-  return ok;
+  const a = agencyById(aid); if (!a) return false;
+  if (a.st.balance + amount < 0) { toast(t("err_negative")); return false; }
+  if (needsApproval("adjust", amount)) return requestApproval("adjust", { key:uid("adj"), payload:{ aid, amount, reason }, amount,
+    vars:{ agency:a.name, amount:uzsRef(amount, true), reason } });
+  let err = null;
+  change(() => { err = execAdjust({ aid, amount, reason }); });
+  toast(err ? t(err) : t("t_adjusted"));
+  return !err;
 }
+/* ap — запрос на подтверждение, если операция выполняется по нему: тогда в
+   выписке автор — тот, кто просил. */
+function execAdjust({ aid, amount, reason }, ap){
+  let err = "ap_err_gone";
+  withAgency(aid, st => {
+    if (st.balance + amount < 0) { err = "err_negative"; return; }
+    const before = st.balance;
+    post("adjust", amount, { reason, by:ap ? staffName(ap.by) : me().name }, st); note("adjust", { amount, reason }, st); err = null;
+    audit("adjust", { agency:st.agency.name, amount:uzsRef(amount, true), reason }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
+  });
+  return err;
+}
+
+/* Источник заказа в журнале: агентство — названием, сайт — строкой интерфейса. */
+const srcVal = r => r.a ? r.a.name : strRef("src_site");
 
 /* ---- кнопки ---- */
 const rowOf = el => findOrder(el.dataset.src, el.dataset.v);
@@ -5893,9 +6366,9 @@ Object.assign(ACT, {
 
 /* ---- общие куски разметки для очереди, заказов и агентств ---- */
 /* Кнопка «Отклонить» с полем причины: key — уникальный ключ строки. */
-function rejectBox(key, act, data, perm){
+function rejectBox(key, act, data, perm, ph = "reason_ph"){
   if (!M.ui.ask?.[key]) return `<button type="button" class="link danger" data-act="aask" data-k="${esc(key)}" ${guard(perm)}>${esc(t("reject"))}</button>`;
-  return `<span class="why">${inpField("why:" + key, { label:t("reason"), ph:t("reason_ph"), extra:'maxlength="120"' })}
+  return `<span class="why">${inpField("why:" + key, { label:t("reason"), ph:t(ph), extra:'maxlength="120"' })}
     <button type="button" class="solid sm danger-solid" data-act="${act}" ${data} ${guard(perm)}>${esc(t("reject"))}</button>
     <button type="button" class="link" data-act="aask" data-k="${esc(key)}">${esc(t("cancel"))}</button></span>`;
 }
@@ -5904,14 +6377,14 @@ function topupRow(p, a){
   return `<div class="task"><span class="task-ic">${IC.wallet}</span>
     <span class="task-main"><b>${esc(a.name)}</b><span class="muted small">${esc(methodLabel(p.method))} · ${esc(ago(p.at))}</span></span>
     <b class="task-amt mono">+${esc(fmtUZS(p.amount))}</b>
-    <span class="task-act"><button type="button" class="solid sm" data-act="atopup" data-ag="${a.id}" data-v="${p.id}" ${guard("topups.confirm")}>${esc(t("confirm"))}</button>
-      ${rejectBox("t" + p.id, "atopupno", `data-ag="${a.id}" data-v="${p.id}"`, "topups.confirm")}</span></div>`;
+    <span class="task-act"><button type="button" class="solid sm" data-act="atopup" data-ag="${a.id}" data-v="${p.id}" ${guard("finance.approve")}>${esc(t("confirm"))}</button>
+      ${rejectBox("t" + p.id, "atopupno", `data-ag="${a.id}" data-v="${p.id}"`, "finance.approve")}</span></div>`;
 }
 function appRow(x){
   return `<div class="task"><span class="task-ic">${IC.users}</span>
     <span class="task-main"><b>${esc(x.company)}</b><span class="muted small">${esc(t("req_inn"))} <span class="mono">${esc(x.inn)}</span> · ${esc(x.person)} · <span class="mono">${esc(x.phone)}</span> · ${esc(ago(x.at))}</span></span>
-    <span class="task-act"><button type="button" class="solid sm" data-act="aappok" data-v="${x.id}" ${guard("agencies.moderate")}>${esc(t("approve"))}</button>
-      ${rejectBox("a" + x.id, "aappno", `data-v="${x.id}"`, "agencies.moderate")}</span></div>`;
+    <span class="task-act"><button type="button" class="solid sm" data-act="aappok" data-v="${x.id}" ${guard("b2b.approve")}>${esc(t("approve"))}</button>
+      ${rejectBox("a" + x.id, "aappno", `data-v="${x.id}"`, "b2b.approve")}</span></div>`;
 }
 function priceRow(r){
   const o = r.o, d = o.details, key = "p:" + o.id;
@@ -5920,7 +6393,7 @@ function priceRow(r){
       <span class="muted small">${esc(srcName(r))} · ${esc(fdateY(d.date))}, ${esc(d.time)} · ${esc(pl(d.pax, "pax"))} · ${esc(d.model)} · ${esc(ago(o.createdAt))}</span>
       <span class="muted small">${esc(t("estimate"))}: <span class="mono">$${grp(d.low.usd)} – $${grp(d.high.usd)}</span></span></span>
     <span class="task-act price-in"><span class="usd-in"><i>$</i>${inpField(key, { value:String(d.quote.usd), label:t("price_usd"), extra:'inputmode="numeric" maxlength="7"' })}</span>
-      <button type="button" class="solid sm" data-act="aprice" data-src="${r.src}" data-v="${o.id}" ${guard("orders.price")}>${esc(t("set_price"))}</button></span></div>`;
+      <button type="button" class="solid sm" data-act="aprice" data-src="${r.src}" data-v="${o.id}" ${guard("orders.edit")}>${esc(t("set_price"))}</button></span></div>`;
 }
 function reqRow(r){
   const o = r.o, key = "r:" + o.id;
@@ -5929,8 +6402,8 @@ function reqRow(r){
       <span class="muted small"><span class="mono">${o.no}</span> · ${esc(t("req_kind_" + o.req.kind))} · ${esc(o.contact.phone)} · ${esc(ago(o.req.at))}</span>
       ${o.req.note ? `<span class="small">«${esc(o.req.note)}»</span>` : ""}</span>
     <span class="task-act reply">${inpField(key, { label:t("reply"), ph:t("reply_ph"), extra:'maxlength="200"' })}
-      <button type="button" class="solid sm" data-act="areq" data-s="done" data-src="site" data-v="${o.id}" ${guard("requests.resolve")}>${esc(t("req_done_cta"))}</button>
-      <button type="button" class="link danger" data-act="areq" data-s="declined" data-src="site" data-v="${o.id}" ${guard("requests.resolve")}>${esc(t("req_decline_cta"))}</button></span></div>`;
+      <button type="button" class="solid sm" data-act="areq" data-s="done" data-src="site" data-v="${o.id}" ${guard("b2c.edit")}>${esc(t("req_done_cta"))}</button>
+      <button type="button" class="link danger" data-act="areq" data-s="declined" data-src="site" data-v="${o.id}" ${guard("b2c.edit")}>${esc(t("req_decline_cta"))}</button></span></div>`;
 }
 function refundRow(r){
   const o = r.o;
@@ -5938,7 +6411,193 @@ function refundRow(r){
     <span class="task-main"><a href="#/orders/${r.src}/${o.id}"><b>${esc(orderTitle(o))}</b></a>
       <span class="muted small"><span class="mono">${o.no}</span> · ${esc(srcName(r))} · ${esc(tf("penalty_short", { p:Math.round(o.refund.rate * 100) }))} · ${esc(ago(o.refund.at))}</span></span>
     <b class="task-amt mono">${esc(fmtUZS(o.refund.uzs))}</b>
-    <span class="task-act"><button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${o.id}" ${guard("refunds.credit")}>${esc(t(r.a ? "credit_refund" : "card_refund"))}</button></span></div>`;
+    <span class="task-act">${refundAction(r)}</span></div>`;
+}
+/* Кнопка зачисления или отметка, что возврат ждёт второго сотрудника. */
+function refundAction(r){
+  const ap = pendingAp(refundKey(r));
+  if (ap) return `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>${can("approvals") ? `<a class="link" href="#/approvals">${esc(t("an_approvals"))}</a>` : ""}`;
+  return `<button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${r.o.id}" ${guard("finance.refund")}>${esc(t(r.a ? "credit_refund" : "card_refund"))}</button>`;
+}
+
+/* ---- 17-approvals.js ---- */
+/* ==========================================================================
+   Подтверждения («четыре глаза»). Критичную операцию система выполняет,
+   только когда её подтвердит другой сотрудник с правом «подтверждать» в этом
+   разделе. Запрос хранит всё, чтобы выполнить операцию позже; перед
+   выполнением данные проверяются заново — за время ожидания они могли
+   измениться. Основатель — последняя инстанция: его действия выполняются сразу.
+
+   Статусы запроса: pending → executed | rejected | failed | withdrawn.
+   ========================================================================== */
+"use strict";
+
+/* Вид запроса: правило, которое его включает, право, нужное для решения,
+   раздел журнала и значок. */
+const AP_KINDS = {
+  refund:     { rule:"refund",  perm:"finance.approve",  module:"finance",  icon:"back" },
+  adjust:     { rule:"adjust",  perm:"finance.approve",  module:"finance",  icon:"wallet" },
+  pricing:    { rule:"pricing", perm:"pricing.approve",  module:"pricing",  icon:"tag" },
+  role_new:   { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
+  role_edit:  { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
+  role_del:   { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
+  staff_add:  { rule:"access",  perm:"roles.approve",    module:"staff",    icon:"badge" },
+  staff_role: { rule:"access",  perm:"roles.approve",    module:"staff",    icon:"badge" },
+  dir_del:    { rule:"delete",  perm:"services.approve", module:"services", icon:"globe" }
+};
+/* Правила: какие операции ждут второго сотрудника. У денежных — порог в сумах. */
+const AP_RULES = ["refund", "adjust", "pricing", "access", "delete"];
+const DEFAULT_RULES = { refund:{ on:true, min:5_000_000 }, adjust:{ on:true, min:0 }, pricing:{ on:true }, access:{ on:true }, delete:{ on:true } };
+const RULE_MIN_MAX = 10_000_000_000;
+function cleanRules(r){
+  const out = {};
+  for (const k of AP_RULES) {
+    const d = DEFAULT_RULES[k], x = r?.[k];
+    out[k] = { on:typeof x?.on === "boolean" ? x.on : d.on };
+    if ("min" in d) out[k].min = Number.isInteger(x?.min) && x.min >= 0 && x.min <= RULE_MIN_MAX ? x.min : d.min;
+  }
+  return out;
+}
+/* Решённые запросы храним ограниченно, ждущие — все. */
+const AP_KEEP = 300;
+
+function needsApproval(kind, amount = 0){
+  if (isFounder()) return false;
+  const r = O.rules[AP_KINDS[kind].rule];
+  return !!r?.on && (r.min == null || Math.abs(amount) >= r.min);
+}
+const pendingAp = key => O?.approvals?.find(a => a.status === "pending" && a.key === key) || null;
+const refundKey = r => `refund:${r.src}:${r.o.id}`;
+const apText = a => tf("apk_" + a.kind, auditVars(a.vars));
+
+/* Запрос. key — что именно меняется: второй такой же, пока первый ждёт, не
+   создаётся. vars — значения для текста, diff — что было → что станет.
+   Возвращает, создан ли запрос. */
+function requestApproval(kind, { key, payload, vars = {}, diff = [], amount = null }){
+  let dup = false;
+  change(() => {
+    if (pendingAp(key)) { dup = true; return; }
+    O.approvals.unshift({ id:uid("ap"), kind, key, payload, vars, diff, amount, status:"pending", by:me().id, at:Date.now() });
+    const done = O.approvals.filter(a => a.status !== "pending");
+    if (done.length > AP_KEEP) { const drop = new Set(done.slice(AP_KEEP).map(a => a.id)); O.approvals = O.approvals.filter(a => !drop.has(a.id)); }
+    audit("ap_request", { apk:kind, w:vars }, { module:AP_KINDS[kind].module, diff });
+  });
+  toast(t(dup ? "ap_dup" : "ap_sent"));
+  return !dup;
+}
+
+/* Почему текущий сотрудник не может решить запрос (ключ строки) или null.
+   Свой запрос подтверждает другой; изменение своих прав — тоже другой. */
+function apBlock(a){
+  const u = me(); if (!u) return "no_rights";
+  if (a.by === u.id) return "ap_err_self";
+  if (!can(AP_KINDS[a.kind].perm)) return "no_rights";
+  const p = a.payload || {};
+  if ((a.kind === "staff_role" && p.staffId === u.id) || (["role_edit", "role_del"].includes(a.kind) && p.roleId === u.role)) return "ap_err_own";
+  return null;
+}
+const myDecisions = () => (O?.approvals || []).filter(a => a.status === "pending" && !apBlock(a));
+const canDecideAny = () => Object.values(AP_KINDS).some(k => can(k.perm));
+/* Запрос видят его автор и те, у кого есть право его решать. */
+const canSeeAp = a => a.by === me()?.id || can(AP_KINDS[a.kind].perm);
+
+/* Исполнители: работают внутри change() — O уже свежий, change() не вызывают.
+   Возвращают ключ ошибки или null. Сами операции — рядом с их разделами. */
+const AP_EXEC = {
+  refund:     (p, a) => execRefund(p, a),
+  adjust:     (p, a) => execAdjust(p, a),
+  pricing:    (p, a) => execPricing(p, a),
+  role_new:   (p, a) => execRoleNew(p, a),
+  role_edit:  (p, a) => execRoleEdit(p, a),
+  role_del:   (p, a) => execRoleDel(p, a),
+  staff_add:  (p, a) => execStaffAdd(p, a),
+  staff_role: (p, a) => execStaffRole(p, a),
+  dir_del:    (p, a) => execDirDel(p, a)
+};
+/* Право, с которым запрос создавали. К моменту решения автор должен быть
+   действующим сотрудником и сохранить это право — иначе запрос не выполняется:
+   отключённый или понижённый сотрудник не проводит операцию чужими руками. */
+const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
+  role_del:"roles.delete", staff_add:"staff.create", staff_role:"staff.edit", dir_del:"services.delete" };
+function requesterBlock(a){
+  const u = O.staff.find(s => s.id === a.by), p = a.payload || {};
+  if (!u || u.active === false) return "ap_err_requester";
+  const founder = u.role === "founder";
+  if (!founder && !hasPerm(permsOf(u.role), AP_REQ_PERM[a.kind])) return "ap_err_requester";
+  if (a.kind === "role_edit" && (p.roleId === u.role || (!founder && TOP_ROLES.includes(p.roleId)) || grantsBeyond(u, p.from, p.to).length)) return "ap_err_requester";
+  if (a.kind === "role_new" && grantsBeyond(u, {}, p.role.perms).length) return "ap_err_requester";
+  if (a.kind === "staff_role") { const x = O.staff.find(s => s.id === p.staffId);
+    if (p.staffId === u.id || (!founder && (TOP_ROLES.includes(p.to) || TOP_ROLES.includes(x?.role)))) return "ap_err_requester"; }
+  if (a.kind === "staff_add" && !founder && TOP_ROLES.includes(p.rec.role)) return "ap_err_requester";
+  return null;
+}
+/* Сотрудника отключили или сменили ему роль — его ждущие запросы снимаются. */
+function withdrawAllBy(staffId){
+  for (const a of O.approvals) if (a.status === "pending" && a.by === staffId) {
+    Object.assign(a, { status:"withdrawn", decidedBy:me()?.id || null, decidedAt:Date.now(), reason:"", error:"ap_err_requester" });
+    audit("ap_withdraw", { apk:a.kind, w:a.vars }, { module:AP_KINDS[a.kind].module });
+  }
+}
+function decideApproval(id, ok, reason = ""){
+  const a0 = O.approvals.find(x => x.id === id);
+  if (!a0 || a0.status !== "pending") { rerender(); return false; }
+  const why = apBlock(a0); if (why) { toast(t(why)); return false; }
+  if (!ok && !reason) { toast(t("err_reason")); return false; }
+  // Операция проверит данные заново — берём свежие кабинет и сайт.
+  S = loadState() || S; adminPrefs(); SITE = loadSite();
+  let status = null;
+  change(() => {
+    const a = O.approvals.find(x => x.id === id); if (!a || a.status !== "pending") return;
+    const err = ok ? requesterBlock(a) || AP_EXEC[a.kind](a.payload, a) : null;
+    status = !ok ? "rejected" : err ? "failed" : "executed";
+    Object.assign(a, { status, decidedBy:me().id, decidedAt:Date.now(), reason:ok ? "" : reason, error:err || "" });
+    audit(!ok ? "ap_no" : err ? "ap_fail" : "ap_ok", { apk:a.kind, w:a.vars, name:staffName(a.by), reason, error:err ? strRef(err) : "" }, { module:AP_KINDS[a.kind].module });
+  });
+  if (status) toast(t("t_ap_" + status));
+  return !!status;
+}
+function withdrawApproval(id){
+  let done = false;
+  change(() => {
+    const a = O.approvals.find(x => x.id === id); if (!a || a.status !== "pending" || a.by !== me().id) return;
+    Object.assign(a, { status:"withdrawn", decidedBy:me().id, decidedAt:Date.now() }); done = true;
+    audit("ap_withdraw", { apk:a.kind, w:a.vars }, { module:AP_KINDS[a.kind].module });
+  });
+  if (done) toast(t("t_ap_withdrawn"));
+}
+
+/* ---- строка запроса ----
+   mode: decide — можно решить; mine — свой, ждёт; wait — чужой, решить нельзя
+   (показываем почему); done — решённый. */
+function apDiff(a){
+  return a.diff?.length ? `<ul class="ap-diff">${a.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s> <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : "";
+}
+function apRow(a, mode){
+  const k = AP_KINDS[a.kind], by = O.staff.find(s => s.id === a.by);
+  const meta = [by ? `${by.name} · ${roleName(by.role)}` : "—", ago(a.at)].join(" · ");
+  let act = "";
+  if (mode === "decide") act = `<button type="button" class="solid sm" data-act="apok" data-v="${a.id}">${esc(t("approve"))}</button>${rejectBox("ap" + a.id, "apno", `data-v="${a.id}"`, k.perm, "ap_reason_ph")}`;
+  else if (mode === "mine") act = `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span><button type="button" class="link" data-act="apwithdraw" data-v="${a.id}">${esc(t("ap_withdraw"))}</button>`;
+  else if (mode === "wait") act = `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>`;
+  else act = `<span class="pill ${a.status === "executed" ? "st-CONFIRMED" : a.status === "withdrawn" ? "st-NEW" : "st-CANCELLED"}">${esc(t("ap_st_" + a.status))}</span>`;
+  const note = mode === "wait" ? `<span class="small muted">${esc(t(apBlock(a) || "ap_wait"))}</span>`
+    : mode === "done" ? `<span class="small muted">${esc(tf(a.status === "withdrawn" ? "ap_withdrawn_at" : "ap_decided", { name:staffName(a.decidedBy), ago:ago(a.decidedAt) }))}${a.reason ? ` · «${esc(a.reason)}»` : ""}${a.error ? ` · ${esc(t(a.error))}` : ""}</span>` : "";
+  return `<div class="task ap-row" id="ap-${a.id}"><span class="task-ic ${mode === "decide" ? "warn" : ""}">${IC[k.icon]}</span>
+    <span class="task-main"><b>${esc(apText(a))}</b><span class="muted small">${esc(meta)}</span>${apDiff(a)}${note}</span>
+    ${a.amount ? `<b class="task-amt mono">${esc(auditVal(uzsRef(a.amount, a.kind === "adjust")))}</b>` : "<span></span>"}
+    <span class="task-act">${act}</span></div>`;
+}
+Object.assign(ACT, {
+  apok:       el => { const f = nextApFocus(el); if (decideApproval(el.dataset.v, true)) f(); },
+  apno:       el => { const f = nextApFocus(el); if (decideApproval(el.dataset.v, false, takeInp("why:ap" + el.dataset.v))) { M.ui.ask["ap" + el.dataset.v] = false; rerender(); f(); } },
+  apwithdraw: el => withdrawApproval(el.dataset.v)
+});
+/* После решения строка уходит из списка — фокус на следующую «Подтвердить»
+   или на заголовок, чтобы клавиатура не терялась в начале страницы. */
+function nextApFocus(el){
+  const rows = $$(".ap-row"), i = rows.indexOf(el.closest(".ap-row"));
+  const nextId = (rows[i + 1] || rows[i - 1])?.id;
+  return () => { const b = nextId && $(`#${nextId} [data-act="apok"]`); (b || $("h1"))?.focus({ preventScroll:!b }); };
 }
 
 /* ---- 20-shell.js ---- */
@@ -5956,27 +6615,29 @@ Object.assign(IC, {
   list:   svg('<path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/>'),
   badge:  svg('<rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M8 17c.8-1.8 2.2-2.7 4-2.7s3.2.9 4 2.7"/>'),
   tag:    svg('<path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/>'),
-  person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>')
+  person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>'),
+  stamp:  svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.5 2.5 4.9-5.1"/>'),
+  key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>')
 });
 
 /* Разделы: ключ маршрута, строка, значок, право на просмотр (null — всем). */
 const ADM_NAV = [
-  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["orders", "an_orders", "bag", "orders"],
-  ["agencies", "an_agencies", "users", "agencies"], ["customers", "an_customers", "person", "customers"], ["finance", "an_finance", "wallet", "finance"],
-  ["pricing", "an_pricing", "tag", null], ["directions", "an_directions", "globe", "catalog"], ["integrations", "an_integrations", "plug", "integrations"], ["staff", "an_staff", "badge", "staff"],
-  ["audit", "an_audit", "list", "audit"], ["settings", "an_settings", "gear", null]
+  ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["orders", "an_orders", "bag", "orders.view"],
+  ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
+  ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
+  ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
 
 function renderNav(key){
   document.body.classList.toggle("is-auth", !me());
   if (!me()) { $("#nav").innerHTML = ""; $("#top").innerHTML = ""; $("#footer").innerHTML = ""; return; }
-  const sec = admSection(key), n = taskCount(), u = me();
+  const sec = admSection(key), n = taskCount(), u = me(), na = myDecisions().length;
   $("#nav").innerHTML = `<div class="side-in">
     <a class="side-logo" href="#/" aria-label="Charteri"><span class="wordmark">CHARTERI<b>.UZ</b></span><span class="side-tag">${esc(t("adm_tag"))}</span></a>
     <nav class="side-nav" aria-label="${esc(t("adm_menu"))}" data-ind="side"><span class="ind" aria-hidden="true"></span>
       ${ADM_NAV.filter(([, , , p]) => !p || can(p)).map(([k, label, ic]) => `<a class="side-link" href="#/${k}" ${sec === k ? 'aria-current="page"' : ""}>${IC[ic]}<span>${esc(t(label))}</span>${
-        k === "tasks" && n ? `<i class="side-badge">${n}</i>` : ""}</a>`).join("")}
+        k === "tasks" && n ? `<i class="side-badge">${n}</i>` : k === "approvals" && na ? `<i class="side-badge">${na}</i>` : ""}</a>`).join("")}
     </nav>
     <div class="side-me"><span class="avatar sm">${esc(monogram(u.name))}</span><span class="stack" style="gap:1px;min-width:0"><b>${esc(u.name)}</b>
       <span class="side-role">${esc(roleName(u.role))}</span></span></div>
@@ -5999,7 +6660,8 @@ function renderNav(key){
 let whoTimer = 0;
 function switchStaff(id){
   const s = activeStaff().find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
-  O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); saveOps();
+  // Другой сотрудник — другая сессия: черновики и фильтры прежнего не переносим.
+  M.ui = {}; O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); saveOps();
   toast(tf("switched", { name:s.name, role:roleName(s.role) })); render(true);
   $("#whoSel")?.focus({ preventScroll:true });
 }
@@ -6093,8 +6755,12 @@ document.addEventListener("keydown", e => {
   e.preventDefault(); bars.forEach((b, k) => b.setAttribute("tabindex", k === j ? "0" : "-1")); bars[j].focus();
 });
 
+/* Сумма в плитке: от 100 млн — коротко («320,2 млн сум»), полная — в подсказке
+   и для экранного диктора, чтобы плитка не обрезала цифры. */
+const kpiMoney = n => n >= 1e8 ? { short:compactUZS(n) + NB + t("cur_uzs"), full:fmtUZS(n) } : fmtUZS(n);
 function kpi(label, value, sub, href){
-  const inner = `<span class="kpi-l">${esc(label)}</span><b class="kpi-v">${esc(value)}</b>${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ""}`;
+  const v = typeof value === "object" ? `<b class="kpi-v" title="${esc(value.full)}"><span aria-hidden="true">${esc(value.short)}</span><span class="sr-only">${esc(value.full)}</span></b>` : `<b class="kpi-v">${esc(value)}</b>`;
+  const inner = `<span class="kpi-l">${esc(label)}</span>${v}${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ""}`;
   return href ? `<a class="kpi" href="${href}">${inner}</a>` : `<div class="kpi">${inner}</div>`;
 }
 
@@ -6108,16 +6774,17 @@ PAGES[""] = {
         <p class="muted">${esc(fdateLong(TODAY))} · ${esc(roleName(u.role))}</p></div></div>
       <div class="kpis">
         ${can("tasks") ? kpi(t("k_tasks"), String(n), n ? t("k_tasks_d") : t("k_tasks_none"), "#/tasks") : ""}
-        ${can("finance") ? kpi(t("k_fee30"), fmtUZS(m30.fee), pl(m30.n, "order"), "#/finance") : ""}
-        ${can("orders") ? kpi(t("k_today"), fmtUZS(today.sales), pl(today.n, "order"), "#/orders") : ""}
-        ${can("agencies") ? kpi(t("k_balances"), fmtUZS(onBalances), tf("k_agencies", { n:agencies().length }), "#/agencies") : ""}
+        ${canDecideAny() ? kpi(t("k_ap"), String(myDecisions().length), t(myDecisions().length ? "k_ap_d" : "k_ap_none"), "#/approvals") : ""}
+        ${can("finance.view") ? kpi(t("k_fee30"), kpiMoney(m30.fee), pl(m30.n, "order"), "#/finance") : ""}
+        ${can("orders.view") ? kpi(t("k_today"), kpiMoney(today.sales), pl(today.n, "order"), "#/orders") : ""}
+        ${can("b2b.view") ? kpi(t("k_balances"), kpiMoney(onBalances), tf("k_agencies", { n:agencies().length }), "#/agencies") : ""}
       </div>
-      ${can("finance") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("chart_fee"))}</h2><span class="muted small">${esc(tf("chart_total", { amount:fmtUZS(data.reduce((s, x) => s + x.v, 0)) }))}</span></div>
+      ${can("finance.view") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("chart_fee"))}</h2><span class="muted small">${esc(tf("chart_total", { amount:fmtUZS(data.reduce((s, x) => s + x.v, 0)) }))}</span></div>
         ${feeChart(data)}</section>` : ""}
       <div class="dash-grid">
         <section class="card stack"><div class="card-h"><h2>${esc(t("an_tasks"))}</h2>${can("tasks") ? `<a class="link" href="#/tasks">${esc(t("open_all"))}</a>` : ""}</div>
           ${taskSummary()}</section>
-        ${can("audit") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("recent_actions"))}</h2><a class="link" href="#/audit">${esc(t("an_audit"))}</a></div>
+        ${can("audit.view") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("recent_actions"))}</h2><a class="link" href="#/audit">${esc(t("an_audit"))}</a></div>
           ${recent.length ? `<ol class="feed">${recent.map(e => `<li><span class="feed-dot"></span><span class="stack" style="gap:2px"><span>${esc(auditText(e))}</span>
             <span class="muted small">${esc(staffName(e.staffId))} · ${esc(ago(e.at))}</span></span></li>`).join("")}</ol>` : `<p class="muted">${esc(t("audit_empty"))}</p>`}</section>` : ""}
       </div></div>`;
@@ -6131,11 +6798,12 @@ PAGES[""] = {
 /* Сводка задач по видам — ссылкой в очередь. Что роли не положено, не показываем. */
 function taskSummary(){
   const k = tasks(), rows = [
-    ["orders.price", "tk_price", k.price.length, IC.jet], ["topups.confirm", "tk_topups", k.topups.length, IC.wallet],
-    ["agencies.moderate", "tk_apps", k.apps.length, IC.users], ["requests.resolve", "tk_reqs", k.reqs.length, IC.person], ["refunds.credit", "tk_refunds", k.refunds.length, IC.back]
-  ].filter(([p]) => can(p));
+    ["approvals", "tk_ap", myDecisions().length, IC.stamp, "#/approvals"],
+    ["orders.edit", "tk_price", k.price.length, IC.jet], ["finance.approve", "tk_topups", k.topups.length, IC.wallet],
+    ["b2b.approve", "tk_apps", k.apps.length, IC.users], ["b2c.edit", "tk_reqs", k.reqs.length, IC.person], ["finance.refund", "tk_refunds", k.refunds.length, IC.back]
+  ].filter(([p]) => p === "approvals" ? canDecideAny() : can(p));
   if (!rows.length) return `<p class="muted">${esc(t("tasks_not_role"))}</p>`;
-  return `<div class="att">${rows.map(([, key, n, ic]) => `<a class="att-row" href="#/tasks"><span class="att-ic ${n ? "warn" : ""}">${ic}</span>
+  return `<div class="att">${rows.map(([, key, n, ic, href = "#/tasks"]) => `<a class="att-row" href="${href}"><span class="att-ic ${n ? "warn" : ""}">${ic}</span>
     <span class="att-main"><b>${esc(t(key))}</b><span class="muted small">${esc(n ? tf("tk_waiting", { n }) : t("tk_clear"))}</span></span>
     <span class="att-go"><b class="mono">${n}</b></span></a>`).join("")}</div>`;
 }
@@ -6149,25 +6817,113 @@ function taskSummary(){
 "use strict";
 
 const TASK_KINDS = [
-  ["price", "orders.price", "tk_price", "tk_price_d", priceRow],
-  ["topups", "topups.confirm", "tk_topups", "tk_topups_d", x => topupRow(x.p, x.a)],
-  ["apps", "agencies.moderate", "tk_apps", "tk_apps_d", appRow],
-  ["reqs", "requests.resolve", "tk_reqs", "tk_reqs_d", reqRow],
-  ["refunds", "refunds.credit", "tk_refunds", "tk_refunds_d", refundRow]
+  ["price", "orders.edit", "tk_price", "tk_price_d", priceRow],
+  ["topups", "finance.approve", "tk_topups", "tk_topups_d", x => topupRow(x.p, x.a)],
+  ["apps", "b2b.approve", "tk_apps", "tk_apps_d", appRow],
+  ["reqs", "b2c.edit", "tk_reqs", "tk_reqs_d", reqRow],
+  ["refunds", "finance.refund", "tk_refunds", "tk_refunds_d", refundRow]
 ];
+/* Сверху — запросы коллег, которые ждут вашего подтверждения. */
+function apTaskSection(){
+  if (!canDecideAny()) return "";
+  const list = myDecisions();
+  return `<section class="card stack" id="tk-ap"><div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t("tk_ap"))}</h2><span class="muted small">${esc(t("tk_ap_d"))}</span></div>
+    ${list.length ? `<span class="count">${list.length}</span>` : ""}</div>
+    ${list.length ? `<div class="tasks">${list.map(a => apRow(a, "decide")).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}</section>`;
+}
 PAGES.tasks = {
   render(){
     const k = tasks(), mine = TASK_KINDS.filter(([, p]) => can(p));
     return `<div class="page">
       <div class="pagehead"><h1>${esc(t("an_tasks"))}</h1><p class="muted">${esc(t("tasks_sub"))}</p></div>
       ${opsLive() ? "" : `<p class="note-live">${IC.clock}<span>${esc(t("live_wait"))}</span></p>`}
-      <div class="stack">${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
+      <div class="stack">${apTaskSection()}${mine.map(([key, , title, sub, row]) => `<section class="card stack" id="tk-${key}">
         <div class="card-h"><div class="stack" style="gap:2px"><h2>${esc(t(title))}</h2><span class="muted small">${esc(t(sub))}</span></div>
           ${k[key].length ? `<span class="count">${k[key].length}</span>` : ""}</div>
         ${k[key].length ? `<div class="tasks">${k[key].map(row).join("")}</div>` : `<p class="calm">${IC.ok}<span>${esc(t("tk_clear"))}</span></p>`}
       </section>`).join("")}</div></div>`;
   }
 };
+
+/* ---- 38-approvals.js ---- */
+/* ==========================================================================
+   Страница подтверждений: запросы, которые ждут вашего решения, ваши
+   запросы, история решений и правила — какие операции ждут второго
+   сотрудника. Правила меняет только основатель.
+   ========================================================================== */
+"use strict";
+
+function apSections(){
+  const u = me(), pending = O.approvals.filter(a => a.status === "pending" && canSeeAp(a));
+  return {
+    decide: pending.filter(a => !apBlock(a)),
+    mine:   pending.filter(a => a.by === u.id),
+    wait:   pending.filter(a => a.by !== u.id && apBlock(a)),
+    done:   O.approvals.filter(a => a.status !== "pending" && canSeeAp(a))
+  };
+}
+const apBlockList = (list, mode) => `<div class="tasks">${list.map(a => apRow(a, mode)).join("")}</div>`;
+function rulesCard(){
+  const edit = isFounder(), r = M.ui.rulesDraft?.rules || O.rules, dirty = !!M.ui.rulesDraft && JSON.stringify(M.ui.rulesDraft.rules) !== JSON.stringify(O.rules);
+  return `<section class="card stack" id="aprules"><div class="stack" style="gap:4px"><h2>${esc(t("ap_rules"))}</h2><p class="muted small">${esc(t("ap_rules_d"))}</p></div>
+    <div class="rules">${AP_RULES.map(k => `<div class="rule-row"><label class="chk"><input type="checkbox" data-rule="${k}" ${r[k].on ? "checked" : ""} ${edit ? "" : "disabled"}>
+        <span>${esc(t("rule_" + k))}</span></label>
+      ${"min" in r[k] ? (edit ? `<label class="rule-min"><span class="small muted">${esc(t("rule_min"))}</span><span class="rule-amt"><input data-rule-min="${k}" inputmode="numeric" value="${esc(M.ui.ruleRaw?.[k] ?? grp(r[k].min))}" ${r[k].on ? "" : "disabled"} aria-label="${esc(t("rule_" + k))}: ${esc(t("rule_min"))}"></span></label>`
+        : `<span class="small muted">${esc(r[k].on ? (r[k].min ? tf("rule_from", { amount:fmtUZS(r[k].min) }) : t("rule_all")) : t("rule_off"))}</span>`)
+        : `<span class="small muted">${esc(t(r[k].on ? "rule_all" : "rule_off"))}</span>`}</div>`).join("")}</div>
+    ${edit ? `<div class="err" id="rlerr" hidden></div><div class="row"><button type="button" class="solid sm" data-act="rulesave" ${dirty ? "" : "disabled"}>${esc(t("rules_save"))}</button>
+      ${dirty ? `<button type="button" class="link" data-act="rulereset">${esc(t("cancel"))}</button><span class="muted small">${esc(t("rules_unsaved"))}</span>` : ""}</div>` : ""}</section>`;
+}
+PAGES.approvals = {
+  render(){
+    const tab = M.ui.apTab === "done" ? "done" : "pending", s = apSections();
+    const block = (title, list, mode) => list.length ? `<section class="card stack"><div class="card-h"><h2>${esc(t(title))}</h2><span class="count">${list.length}</span></div>${apBlockList(list, mode)}</section>` : "";
+    const pend = block("ap_for_me", s.decide, "decide") + block("ap_mine", s.mine, "mine") + block("ap_others", s.wait, "wait");
+    return `<div class="page">
+      <div class="pagehead"><h1>${esc(t("an_approvals"))}</h1><p class="muted">${esc(t("approvals_sub"))}</p></div>
+      <div class="stack">
+        ${seg("aptab", [["pending", t("ap_pending_tab")], ["done", t("ap_history")]], tab)}
+        ${tab === "pending" ? pend || `<div class="card"><p class="calm">${IC.ok}<span>${esc(t("ap_none"))}</span></p></div>`
+          : s.done.length ? `<section class="card stack">${apBlockList(s.done.slice(0, 100), "done")}</section>` : `<div class="card"><p class="muted">${esc(t("ap_none_hist"))}</p></div>`}
+        ${rulesCard()}
+      </div></div>`;
+  }
+};
+/* Правила: черновик живёт до «Сохранить». Порог — целые сумы от 0. */
+function saveRules(){
+  if (!isFounder()) return toast(t("no_rights"));
+  const draft = M.ui.rulesDraft; if (!draft) return;
+  // Правила могли поменять в другой вкладке, пока черновик был открыт.
+  if (JSON.stringify(O.rules) !== draft.base) { M.ui.rulesDraft = null; rerender(); return toast(t("ap_err_changed")); }
+  const d = draft.rules, next = cleanRules(d);
+  for (const k of AP_RULES) if ("min" in d[k] && !(Number.isInteger(d[k].min) && d[k].min >= 0 && d[k].min <= RULE_MIN_MAX)) { $(`[data-rule-min="${k}"]`)?.focus(); return showErr("#rlerr", t("err_rule_min")); }
+  const diff = AP_RULES.filter(k => JSON.stringify(O.rules[k]) !== JSON.stringify(next[k])).map(k => ({ k:"rule_" + k, from:ruleVal(O.rules[k]), to:ruleVal(next[k]) }));
+  M.ui.rulesDraft = null; M.ui.ruleRaw = null;
+  if (!diff.length) { rerender(); return toast(t("role_same")); }
+  change(() => { O.rules = next; audit("rules", {}, { module:"settings", diff }); });
+  toast(t("t_rules"));
+}
+/* Правило в журнале: «не нужно», «всегда» или «от 5 000 000 сум». */
+const ruleVal = r => !r.on ? strRef("rule_off") : r.min ? { ruleFrom:r.min } : strRef("rule_all");
+const rulesDraft = () => (M.ui.rulesDraft ||= { base:JSON.stringify(O.rules), rules:JSON.parse(JSON.stringify(O.rules)) }).rules;
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.rule; if (!k || !isFounder()) return;
+  rulesDraft()[k].on = e.target.checked;
+  rerender(); $(`[data-rule="${k}"]`)?.focus();
+});
+/* Порог: число в черновике сразу, перерисовка — после ввода (change), чтобы
+   не сбивать курсор. */
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.ruleMin; if (!k || !isFounder()) return;
+  const v = e.target.value.replace(/\s/g, "");
+  rulesDraft()[k].min = /^\d+$/.test(v) ? Number(v) : NaN; (M.ui.ruleRaw ||= {})[k] = e.target.value;
+});
+document.addEventListener("change", e => { const k = e.target.dataset?.ruleMin; if (k && isFounder()) { rerender(); $(`[data-rule-min="${k}"]`)?.focus(); } });
+Object.assign(ACT, {
+  aptab:     el => { M.ui.apTab = el.dataset.v; rerender(); },
+  rulesave:  () => saveRules(),
+  rulereset: () => { M.ui.rulesDraft = null; M.ui.ruleRaw = null; rerender(); $("#aprules [data-rule]")?.focus(); }
+});
 
 /* ---- 40-orders.js ---- */
 /* ==========================================================================
@@ -6242,7 +6998,7 @@ document.addEventListener("change", e => {
 function admActions(r){
   const o = r.o, st = effStatus(o), live = o.start >= TODAY, rows = [];
   if (isCharter(o) && st === "NEW") rows.push(`<div class="stack" style="gap:8px"><h3>${esc(t("set_price"))}</h3><p class="muted small">${esc(t("set_price_d"))}</p>${priceRow(r)}</div>`);
-  if (st === "PAID") rows.push(`<div class="row"><button type="button" class="solid" data-act="aconfirm" data-src="${r.src}" data-v="${o.id}" ${guard("orders.confirm")}>${esc(t("confirm_supplier"))}</button>
+  if (st === "PAID") rows.push(`<div class="row"><button type="button" class="solid" data-act="aconfirm" data-src="${r.src}" data-v="${o.id}" ${guard("orders.approve")}>${esc(t("confirm_supplier"))}</button>
     <span class="muted small">${esc(t("confirm_supplier_d"))}</span></div>`);
   if (o.status === "CANCELLED" && o.refund && !o.refund.done) rows.push(refundRow(r));
   if (["NEW", "PENDING", "PAID", "CONFIRMED"].includes(st) && live) {
@@ -6292,9 +7048,9 @@ PAGES["orders/:src/:id"] = {
           <div class="card stack">${admPayment(r)}</div>${admRefund(r)}
           <div class="card stack"><span class="lbl">${esc(r.a ? t("col_source") : t("customer"))}</span>
             ${r.a ? `<div class="client-mini"><span class="bmark-wrap" style="${brandStyle(r.a.brand)}">${brandMark("", r.a.brand)}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(r.a.name)}</b>
-              <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("agencies") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
+              <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
-              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("customers") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("b2c.view") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
             <ol class="timeline">${o.history.map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(t("st_" + h.s))}</b><span class="muted small">${esc(fdt(h.at))}</span></li>`).join("")}</ol></div>
         </aside></div></div>`;
@@ -6321,7 +7077,7 @@ PAGES.agencies = {
     const list = agencies();
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_agencies"))}</h1><p class="muted">${esc(t("agencies_sub"))}</p></div>
-        <button type="button" class="solid" data-act="agnew" ${guard("agencies.create")}>${IC.plus}<span>${esc(t("ag_new"))}</span></button></div>
+        <button type="button" class="solid" data-act="agnew" ${guard("b2b.create")}>${IC.plus}<span>${esc(t("ag_new"))}</span></button></div>
       ${agForm(null)}
       ${seg("agtab", [["list", t("ag_tab_list")], ["apps", t("ag_tab_apps") + (pending.length ? ` · ${pending.length}` : "")]], tab)}
       <div class="card stack" style="margin-top:16px">${tab === "list" ? `<div class="atable" style="--cols:${AG_COLS}">
@@ -6366,18 +7122,21 @@ function agError(d){
 }
 const fmtInn = v => digits(v).replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3");
 Object.assign(ACT, {
-  agnew:   () => { if (denied("agencies.create")) return; M.ui.agDraft = { id:null, name:"", legal:"", inn:"", phone:"", email:"" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
-  agedit:  el => { if (denied("agencies.edit")) return; const a = agencyById(el.dataset.v); if (!a) return;
+  agnew:   () => { if (denied("b2b.create")) return; M.ui.agDraft = { id:null, name:"", legal:"", inn:"", phone:"", email:"" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
+  agedit:  el => { if (denied("b2b.edit")) return; const a = agencyById(el.dataset.v); if (!a) return;
     M.ui.agDraft = { id:a.id, name:a.name, legal:a.legal || "", inn:a.inn || "", phone:a.phone || "", email:a.email || "" }; rerender(); $("#agedit [data-ag=name]")?.focus(); },
   agclose: () => { M.ui.agDraft = null; rerender(); },
   agsave:  () => {
     const d = M.ui.agDraft, e = agError(d); if (e) return showErr("#agerr", t(e));
     const rec = { name:d.name.trim(), legal:d.legal.trim() || d.name.trim(), inn:fmtInn(d.inn), phone:prettyPhone(d.phone), email:d.email.trim() };
     if (d.id) {
-      if (denied("agencies.edit")) return;
-      change(() => withAgency(d.id, st => { Object.assign(st.agency, rec); audit("ag_edit", { agency:rec.name }); }));
+      if (denied("b2b.edit")) return;
+      // Журнал помнит прежние реквизиты: было → стало по каждому полю.
+      change(() => withAgency(d.id, st => {
+        const diff = AG_FIELDS.filter(([k]) => (st.agency[k] || "") !== rec[k]).map(([k, label]) => ({ k:label, from:st.agency[k] || "", to:rec[k] }));
+        Object.assign(st.agency, rec); audit("ag_edit", { agency:rec.name }, { diff }); }));
     } else {
-      if (denied("agencies.create")) return;
+      if (denied("b2b.create")) return;
       change(() => { O.agencies.push({ id:uid("ag"), agency:{ ...rec, status:"verified", blockReason:"", since:TODAY },
         brand:{ name:rec.name, phone:rec.phone, email:rec.email, address:"", telegram:"", color:"#16275C", logo:null }, balance:0, ledger:[], topups:[], orders:[], notes:[], travellers:[] });
         audit("ag_create", { agency:rec.name }); });
@@ -6386,10 +7145,10 @@ Object.assign(ACT, {
   },
   /* Сообщение агентству — приходит в колокольчик кабинета. */
   agmsg: el => {
-    if (denied("agencies.message")) return;
+    if (denied("b2b.edit")) return;
     const id = el.dataset.v, text = inp("msg:" + id).trim();
     if (text.length < 3) return toast(t("err_msg"));
-    change(() => withAgency(id, st => { note("message", { reason:text, by:me().name }, st); audit("ag_message", { agency:st.agency.name }); }));
+    change(() => withAgency(id, st => { note("message", { reason:text, by:me().name }, st); audit("ag_message", { agency:st.agency.name }, { diff:[{ k:"msg_text", from:"", to:text }] }); }));
     if (M.ui.inp) delete M.ui.inp["msg:" + id];
     rerender(); toast(t("t_msg_sent"));
   }
@@ -6409,16 +7168,16 @@ PAGES["agencies/:id"] = {
       ${agencyActiveOf(a) ? "" : `<div class="blockbar inline">${IC.lock}<span>${esc(tf("ag_blocked_why", { reason:blockReasonOf(a) || "—" }))}</span></div>`}
       <div class="twocol"><div class="stack">
         ${M.ui.agDraft?.id === a.id ? agForm(a) : `<section class="card stack"><div class="card-h"><h2>${esc(t("ag_details"))}</h2>
-            <button type="button" class="link" data-act="agedit" data-v="${a.id}" ${guard("agencies.edit")}>${esc(t("edit"))}</button></div><div class="rows">
+            <button type="button" class="link" data-act="agedit" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("edit"))}</button></div><div class="rows">
           ${row("agency_legal", a.legal)}${row("agency_inn", a.inn, true)}${row("phone_label", a.phone, true)}${row("agency_email", a.email)}${row("agency_since", a.since ? fdateY(a.since) : "")}
           ${row("col_orders30", String(tv.n))}${row("col_sales30", fmtUZS(tv.sum))}</div>
           ${a.live ? `<a class="ghost sm" href="../" target="_blank" rel="noopener">${esc(t("open_cabinet"))}</a>` : ""}</section>`}
         <section class="card stack"><h2>${esc(t("msg_h"))}</h2><p class="muted small">${esc(t("msg_d"))}</p>
-          <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("agencies.message") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
-          <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("agencies.message")}>${esc(t("msg_send"))}</button></div></section>
+          <label class="field"><span>${esc(t("msg_text"))}</span><textarea data-inp="${esc("msg:" + a.id)}" maxlength="300" placeholder="${esc(t("msg_ph"))}" ${can("b2b.edit") ? "" : "disabled"}>${esc(inp("msg:" + a.id))}</textarea></label>
+          <div class="row"><button type="button" class="solid sm" data-act="agmsg" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("msg_send"))}</button></div></section>
         <section class="card stack"><h2>${esc(t("ag_orders"))}</h2>
           ${orders.length ? `<div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a, src:a.id }, i, "", true)).join("")}</div>
-            ${can("orders") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
+            ${can("orders.view") ? `<a class="link" href="#/orders" data-act="agorders" data-v="${a.id}">${esc(t("all_orders"))}</a>` : ""}` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
         <section class="card stack"><h2>${esc(t("statement"))}</h2>
           ${st.ledger.length ? `<div class="atable" style="--cols:118px minmax(0,1fr) 120px 110px">${st.ledger.slice(0, 10).map(l => `<div class="arow">
             <span class="a-cell a-sub muted small">${esc(fdt(l.at))}</span><span class="a-cell a-key">${esc(ledgerLabel(l, st))}</span>
@@ -6428,20 +7187,20 @@ PAGES["agencies/:id"] = {
         <div class="card stack"><span class="lbl">${esc(t("balance_now"))}</span><b class="bal-big mono">${grp(st.balance)}<small>${esc(t("cur_uzs"))}</small></b>
           ${pend.length ? `<div class="tasks compact">${pend.map(p => topupRow(p, a)).join("")}</div>` : ""}</div>
         <div class="card stack"><h3>${esc(t("adjust_h"))}</h3><p class="muted small">${esc(t("adjust_d"))}</p>
-          <label class="field"><span>${esc(t("topup_amount"))}</span><span class="amt-in">${inpField("adj:" + a.id, { label:t("topup_amount"), ph:t("adjust_amount_ph"), extra:`inputmode="numeric" ${can("balance.adjust") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
-          <label class="field"><span>${esc(t("reason"))}</span>${inpField("adjwhy:" + a.id, { label:t("reason"), ph:t("adjust_ph"), extra:`maxlength="120" ${can("balance.adjust") ? "" : "disabled"}` })}</label>
-          <div class="row"><button type="button" class="solid sm" data-act="aadjust" data-s="+" data-v="${a.id}" ${guard("balance.adjust")}>${IC.plus}<span>${esc(t("adjust_plus"))}</span></button>
-            <button type="button" class="ghost sm" data-act="aadjust" data-s="-" data-v="${a.id}" ${guard("balance.adjust")}>${esc(t("adjust_minus"))}</button></div></div>
+          <label class="field"><span>${esc(t("topup_amount"))}</span><span class="amt-in">${inpField("adj:" + a.id, { label:t("topup_amount"), ph:t("adjust_amount_ph"), extra:`inputmode="numeric" ${can("finance.manage") ? "" : "disabled"}` })}<i>${esc(t("cur_uzs"))}</i></span></label>
+          <label class="field"><span>${esc(t("reason"))}</span>${inpField("adjwhy:" + a.id, { label:t("reason"), ph:t("adjust_ph"), extra:`maxlength="120" ${can("finance.manage") ? "" : "disabled"}` })}</label>
+          <div class="row"><button type="button" class="solid sm" data-act="aadjust" data-s="+" data-v="${a.id}" ${guard("finance.manage")}>${IC.plus}<span>${esc(t("adjust_plus"))}</span></button>
+            <button type="button" class="ghost sm" data-act="aadjust" data-s="-" data-v="${a.id}" ${guard("finance.manage")}>${esc(t("adjust_minus"))}</button></div></div>
         <div class="card stack"><h3>${esc(t(agencyActiveOf(a) ? "block_h" : "unblock_h"))}</h3><p class="muted small">${esc(t(agencyActiveOf(a) ? "block_d" : "unblock_d"))}</p>
-          ${agencyActiveOf(a) ? rejectBoxBlock(blockKey, a.id) : `<button type="button" class="solid sm" data-act="aunblock" data-v="${a.id}" ${guard("agencies.block")}>${esc(t("unblock_cta"))}</button>`}</div>
+          ${agencyActiveOf(a) ? rejectBoxBlock(blockKey, a.id) : `<button type="button" class="solid sm" data-act="aunblock" data-v="${a.id}" ${guard("b2b.manage")}>${esc(t("unblock_cta"))}</button>`}</div>
       </aside></div></div>`;
   }
 };
 /* Блокировка — тот же двухшаговый выбор, что и отказ: сначала причина. */
 function rejectBoxBlock(key, id){
-  if (!M.ui.ask?.[key]) return `<button type="button" class="ghost sm danger-ghost" data-act="aask" data-k="${esc(key)}" ${guard("agencies.block")}>${esc(t("block_cta"))}</button>`;
+  if (!M.ui.ask?.[key]) return `<button type="button" class="ghost sm danger-ghost" data-act="aask" data-k="${esc(key)}" ${guard("b2b.manage")}>${esc(t("block_cta"))}</button>`;
   return `<span class="why">${inpField("why:" + key, { label:t("reason"), ph:t("block_ph"), extra:'maxlength="120"' })}
-    <button type="button" class="solid sm danger-solid" data-act="ablock" data-v="${id}" ${guard("agencies.block")}>${esc(t("block_cta"))}</button>
+    <button type="button" class="solid sm danger-solid" data-act="ablock" data-v="${id}" ${guard("b2b.manage")}>${esc(t("block_cta"))}</button>
     <button type="button" class="link" data-act="aask" data-k="${esc(key)}">${esc(t("cancel"))}</button></span>`;
 }
 /* Проводка словами: как в выписке кабинета, но для любого агентства. */
@@ -6616,7 +7375,7 @@ Object.assign(ACT, {
     const blob = new Blob([csvText(rows)], { type:"text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-${tab}-${TODAY}.csv` });
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    change(() => audit("export", { what:t("fin_" + tab) }));
+    change(() => audit("export", { what:strRef("fin_" + tab) }));
   }
 });
 
@@ -6641,7 +7400,7 @@ PAGES.pricing = {
         <section class="card stack"><h2>${esc(t("pr_markup"))}</h2><p class="muted small">${esc(t("pr_markup_d"))}</p>
           <div class="pr-row"><span class="pct-in">${pctInput("pr_markup_in", p.flightMarkupBps)}<i>%</i></span></div></section>
         <div class="row"><button type="button" class="solid" data-act="prsave" ${guard("pricing.edit")}>${esc(t("pr_save"))}</button>
-          ${can("pricing.edit") ? "" : `<span class="muted small">${esc(t("pr_admin_only"))}</span>`}</div>
+          ${pricingNote() ? `<span class="muted small">${esc(pricingNote())}</span>` : ""}${pendingAp("pricing") ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : ""}</div>
         <section class="card stack"><h2>${esc(t("pr_fixed"))}</h2><div class="rows">
           ${[["pr_tour", "−7%"], ["pr_transfer", "$20"], ["pr_infant", "10%"], ["pr_charter", "+10%"]].map(([k, v]) => `<div><span class="k">${esc(t(k))}</span><span class="v mono">${v}</span></div>`).join("")}</div>
           <p class="muted small">${esc(t("pr_fixed_d"))}</p></section>
@@ -6659,16 +7418,26 @@ ACT.prsave = () => {
   if (denied("pricing.edit")) return;
   const p = prices(), fee = readPct("pr_fee_in", 10), mk = readPct("pr_markup_in", 30);
   if (Number.isNaN(fee) || Number.isNaN(mk)) return toast(t("err_pct"));
-  const next = { feeBps:fee ?? p.feeBps, flightMarkupBps:mk ?? p.flightMarkupBps };
-  if (next.feeBps === p.feeBps && next.flightMarkupBps === p.flightMarkupBps) return toast(t("pr_same"));
-  writeJSON(PRICES_KEY, next); PRICES = null;
-  change(() => {
-    if (next.feeBps !== p.feeBps) audit("fee", { from:pctText(p.feeBps) + "%", to:pctText(next.feeBps) + "%" });
-    if (next.flightMarkupBps !== p.flightMarkupBps) audit("markup", { from:pctText(p.flightMarkupBps) + "%", to:pctText(next.flightMarkupBps) + "%" });
-  });
-  delete M.ui.inp?.pr_fee_in; delete M.ui.inp?.pr_markup_in;
-  toast(t("pr_saved"));
+  const from = { feeBps:p.feeBps, flightMarkupBps:p.flightMarkupBps }, to = { feeBps:fee ?? p.feeBps, flightMarkupBps:mk ?? p.flightMarkupBps };
+  if (to.feeBps === from.feeBps && to.flightMarkupBps === from.flightMarkupBps) return toast(t("pr_same"));
+  const clear = () => { delete M.ui.inp?.pr_fee_in; delete M.ui.inp?.pr_markup_in; rerender(); };
+  if (needsApproval("pricing")) { if (requestApproval("pricing", { key:"pricing", payload:{ from, to }, diff:pricingDiff(from, to) })) clear(); return; }
+  let err = null;
+  change(() => { err = execPricing({ from, to }); });
+  clear(); toast(err ? t(err) : t("pr_saved"));
 };
+const pricingDiff = (from, to) => [["pr_fee", "feeBps"], ["pr_markup", "flightMarkupBps"]].filter(([, k]) => from[k] !== to[k])
+  .map(([label, k]) => ({ k:label, from:{ pct:from[k] }, to:{ pct:to[k] } }));
+/* Цены могли поменяться, пока запрос ждал: тогда он не выполняется. */
+function execPricing({ from, to }){
+  const p = prices();
+  if (p.feeBps !== from.feeBps || p.flightMarkupBps !== from.flightMarkupBps) return "ap_err_changed";
+  writeJSON(PRICES_KEY, to); PRICES = null;
+  for (const d of pricingDiff(from, to)) audit(d.k === "pr_fee" ? "fee" : "markup", { from:d.from, to:d.to }, { diff:[d] });
+  return null;
+}
+/* Строка под кнопкой: сохранить нельзя или изменение пойдёт на подтверждение. */
+const pricingNote = () => !can("pricing.edit") ? t("pr_admin_only") : needsApproval("pricing") ? t("pr_needs_ap") : "";
 
 /* ---- интеграции ----
    Карта работает без ключа; остальное в демо — на тестовых данных. Ключи —
@@ -6751,7 +7520,7 @@ function dirForm(){
           <label class="chk"><input type="checkbox" data-dh="${i}.pool" ${h.pool ? "checked" : ""}><span>${esc(t("dir_pool"))}</span></label></div></fieldset>`).join("")}
       ${d.hotels.length < 6 ? `<button type="button" class="ghost sm" data-act="dirhoteladd">${IC.plus}<span>${esc(t("dir_hotel_add"))}</span></button>` : ""}</div>` : ""}
     <div class="err" id="direrr" hidden></div>
-    <div class="row"><button type="button" class="solid" data-act="dirsave" ${guard("catalog.edit")}>${esc(t("dir_save"))}</button>
+    <div class="row"><button type="button" class="solid" data-act="dirsave" ${guard("services.create")}>${esc(t("dir_save"))}</button>
       <button type="button" class="link" data-act="dirclose">${esc(t("cancel"))}</button></div></section>`;
 }
 function dirRows(){
@@ -6774,14 +7543,15 @@ function dirList(){
         <span class="a-cell a-sub">${esc(d.country[S.lang] || d.country.ru)}</span>
         <span class="a-cell wrap small">${esc([t("type_FLIGHT"), t("type_JET"), ...(d.resort ? [t("type_TOUR"), t("type_HOTEL")] : [])].join(", "))}${d.popular ? ` · <b>${esc(t("dir_popular_short"))}</b>` : ""}</span>
         <span class="a-cell muted small">${custom ? esc(tf("dir_added_by", { name:d.by || "—", date:d.at ? fdate(ymd(new Date(d.at))) : "" })) : esc(t("dir_builtin"))}</span>
-        <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${custom ? `<button type="button" class="link" data-act="${d.hidden ? "dirshow" : "dirhide"}" data-v="${esc(d.iata)}" aria-label="${esc(t(d.hidden ? "dir_show" : "dir_hide"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t(d.hidden ? "dir_show" : "dir_hide"))}</button>
-          ${n ? `<span class="muted small">${esc(tf("dir_in_orders", { n:pl(n, "order") }))}</span>` : `<button type="button" class="link danger" data-act="dirdel" data-v="${esc(d.iata)}" aria-label="${esc(t("dir_delete"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t("dir_delete"))}</button>`}` : ""}</span></div>`; }).join("")}</div>`;
+        <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${custom ? `<button type="button" class="link" data-act="${d.hidden ? "dirshow" : "dirhide"}" data-v="${esc(d.iata)}" aria-label="${esc(t(d.hidden ? "dir_show" : "dir_hide"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("services.edit")}>${esc(t(d.hidden ? "dir_show" : "dir_hide"))}</button>
+          ${n ? `<span class="muted small">${esc(tf("dir_in_orders", { n:pl(n, "order") }))}</span>` : pendingAp("dir_del:" + d.iata) ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>`
+            : `<button type="button" class="link danger" data-act="dirdel" data-v="${esc(d.iata)}" aria-label="${esc(t("dir_delete"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("services.delete")}>${esc(t("dir_delete"))}</button>`}` : ""}</span></div>`; }).join("")}</div>`;
 }
 PAGES.directions = {
   render(){
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_directions"))}</h1><p class="muted">${esc(t("directions_sub"))}</p></div>
-        <button type="button" class="solid" data-act="dirnew" ${guard("catalog.edit")}>${IC.plus}<span>${esc(t("dir_new"))}</span></button></div>
+        <button type="button" class="solid" data-act="dirnew" ${guard("services.create")}>${IC.plus}<span>${esc(t("dir_new"))}</span></button></div>
       ${dirForm()}
       <div class="card stack">
         <label class="search wide">${IC.search}<input id="dirq" type="search" value="${esc(M.ui.dirq || "")}" placeholder="${esc(t("dir_search"))}" aria-label="${esc(t("dir_search"))}"></label>
@@ -6813,18 +7583,19 @@ function dirError(x){
     if (i >= 0) return { key:"err_dir_hotels", hotel:`${i}.${x.hotels[i].name.length < 3 ? "name" : "base"}` }; }
   return null;
 }
-function saveDirs(list, action, vars){
+function saveDirs(list, action, vars, diff){
   writeJSON(DIRS_KEY, list); applyDirections();
-  change(() => audit(action, vars));
+  change(() => audit(action, vars, { diff }));
 }
+const DIR_SHOWN = () => [{ k:"col_status", from:strRef("dir_hidden"), to:strRef("dir_visible") }], DIR_HID = () => [{ k:"col_status", from:strRef("dir_visible"), to:strRef("dir_hidden") }];
 Object.assign(ACT, {
-  dirnew:   () => { if (denied("catalog.edit")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
+  dirnew:   () => { if (denied("services.create")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
   dirclose: () => { M.ui.dirDraft = null; rerender(); },
   dircolor: el => { M.ui.dirDraft.color = Number(el.dataset.v); rerender(); },
   dirhoteladd: () => { const h = M.ui.dirDraft.hotels; h.push(blankHotel()); rerender(); $(`[data-dh="${h.length - 1}.name"]`)?.focus(); },
   dirhoteldel: el => { M.ui.dirDraft.hotels.splice(Number(el.dataset.v), 1); rerender(); ($('[data-act="dirhoteladd"]') || $('[data-dh="0.name"]'))?.focus(); },
   dirsave: () => {
-    if (denied("catalog.edit")) return;
+    if (denied("services.create")) return;
     const x = readDir(M.ui.dirDraft), e = dirError(x);
     if (e) {
       $$("#diredit [aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
@@ -6835,21 +7606,33 @@ Object.assign(ACT, {
     saveDirs([...dirsSaved(), { ...x, hidden:false, by:me().name, at:Date.now() }], "dir_add", { city:x.city, iata:x.iata });
     M.ui.dirDraft = null; rerender(); toast(tf("t_dir_add", { city:x.city[S.lang] || x.city.ru }));
   },
-  dirhide: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
-    d.hidden = true; saveDirs(list, "dir_hide", { city:d.city, iata:d.iata }); $(`[data-act="dirshow"][data-v="${d.iata}"]`)?.focus(); },
-  dirshow: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
-    d.hidden = false; saveDirs(list, "dir_show", { city:d.city, iata:d.iata }); $(`[data-act="dirhide"][data-v="${d.iata}"]`)?.focus(); },
+  dirhide: el => { if (denied("services.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = true; saveDirs(list, "dir_hide", { city:d.city, iata:d.iata }, DIR_HID()); $(`[data-act="dirshow"][data-v="${d.iata}"]`)?.focus(); },
+  dirshow: el => { if (denied("services.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = false; saveDirs(list, "dir_show", { city:d.city, iata:d.iata }, DIR_SHOWN()); $(`[data-act="dirhide"][data-v="${d.iata}"]`)?.focus(); },
   dirdel: el => {
-    if (denied("catalog.edit")) return;
+    if (denied("services.delete")) return;
     const code = el.dataset.v, d0 = dirsSaved().find(x => x.iata === code); if (!d0) return;
     if (!confirm(tf("dir_delete_q", { city:d0.city[S.lang] || d0.city.ru }))) return;
     // Пока было открыто окно подтверждения, другая вкладка могла изменить данные.
     S = loadState() || S; adminPrefs(); SITE = loadSite(); O = loadOps() || O;
-    const list = dirsSaved(), d = list.find(x => x.iata === code); if (!d) return rerender();
+    const d = dirsSaved().find(x => x.iata === code); if (!d) return rerender();
     if (ordersTo(code)) { rerender(); return toast(t("dir_has_orders")); }
-    saveDirs(list.filter(x => x.iata !== code), "dir_delete", { city:d.city, iata:d.iata }); $("#dirq")?.focus();
+    if (needsApproval("dir_del")) { requestApproval("dir_del", { key:"dir_del:" + code, payload:{ iata:code }, vars:{ city:d.city, iata:code } }); $("#dirq")?.focus(); return; }
+    let err = null;
+    change(() => { err = execDirDel({ iata:code }); });
+    if (err) toast(t(err));
+    $("#dirq")?.focus();
   }
 });
+/* Удаление: направления нет в заказах — иначе они потеряли бы город и отель. */
+function execDirDel({ iata }){
+  const list = dirsSaved(), d = list.find(x => x.iata === iata); if (!d) return "ap_err_gone";
+  if (ordersTo(iata)) return "dir_has_orders";
+  writeJSON(DIRS_KEY, list.filter(x => x.iata !== iata)); applyDirections();
+  audit("dir_delete", { city:d.city, iata:d.iata }, { diff:[{ k:"dir_city", from:d.city, to:"—" }] });
+  return null;
+}
 /* Поля формы → черновик. Флажки перерисовывают форму (курорт открывает отели). */
 document.addEventListener("input", e => {
   const d = M.ui.dirDraft, k = e.target.dataset?.dir, h = e.target.dataset?.dh;
@@ -6866,127 +7649,173 @@ document.addEventListener("change", e => {
 
 /* ---- 80-staff.js ---- */
 /* ==========================================================================
-   Сотрудники и права ролей, журнал действий, настройки админки, вход.
+   Сотрудники: карточка (контакты, должность, отдел, роль), доступ и журнал
+   каждого. Роль и новый сотрудник — это права, поэтому по правилу «Роли,
+   права и новые сотрудники» их подтверждает второй сотрудник. Удалять нельзя:
+   журнал должен помнить, кто что делал; отключённый просто не входит.
+   Ниже — настройки админки и вход.
    ========================================================================== */
 "use strict";
 
-/* Сотрудники: добавить, сменить роль, отключить. Удалять нельзя — журнал
-   должен помнить, кто что делал; отключённый просто не входит. */
-const staffRoleSel = (s, disabled) => `<select class="minisel" data-staff-role="${s.id}" aria-label="${esc(tf("staff_role_of", { name:s.name }))}" ${disabled ? "disabled" : ""}>
-  ${ROLES.map(r => `<option value="${r}" ${s.role === r ? "selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select>`;
+const DEPTS = ["lead", "finance", "b2b", "b2c", "sales", "ops", "content", "support", "it"];
+const DEPT_FALLBACK = "ops";
+const deptName = d => t("dept_" + (DEPTS.includes(d) ? d : DEPT_FALLBACK));
+const staffById = id => O.staff.find(s => s.id === id) || null;
+const blankStaff = () => ({ id:null, name:"", phone:"", email:"", pos:"", dept:"ops", role:"support" });
+
 function staffForm(){
   const d = M.ui.stDraft; if (!d) return "";
-  return `<section class="card stack cl-edit" id="stedit"><div class="card-h"><h2>${esc(t("staff_new"))}</h2>
+  const s0 = d.id ? staffById(d.id) : null, roles = assignableRoles();
+  const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-st="${k}" value="${esc(d[k])}" ${attrs}></label>`;
+  return `<section class="card stack cl-edit" id="stedit" aria-labelledby="stedit-h"><div class="card-h"><h2 id="stedit-h">${esc(s0 ? tf("staff_edit_of", { name:s0.name }) : t("staff_new"))}</h2>
       <button type="button" class="iconbtn" data-act="stclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
     <div class="sgrid sgrid-3">
-      <label class="field"><span>${esc(t("staff_name"))}</span><input data-st="name" value="${esc(d.name)}" maxlength="60" autocomplete="off"></label>
-      <label class="field"><span>${esc(t("phone_label"))}</span><input data-st="phone" type="tel" value="${esc(d.phone)}" placeholder="+998" autocomplete="off"></label>
-      <label class="field"><span>${esc(t("staff_role"))}</span><select data-st="role">${ROLES.map(r => `<option value="${r}" ${d.role === r ? "selected" : ""}>${esc(roleName(r))}</option>`).join("")}</select></label>
-    </div><div class="err" id="sterr" hidden></div>
-    <div class="row"><button type="button" class="solid" data-act="stsave">${esc(t("staff_add"))}</button><button type="button" class="link" data-act="stclose">${esc(t("cancel"))}</button></div></section>`;
+      ${f("name", "staff_name", 'maxlength="60" autocomplete="off"')}
+      ${f("phone", "phone_label", 'type="tel" placeholder="+998" autocomplete="off"')}
+      ${f("email", "agency_email", 'type="email" maxlength="80" autocomplete="off"')}
+      ${f("pos", "staff_pos", 'maxlength="60" autocomplete="off"')}
+      <label class="field"><span>${esc(t("staff_dept"))}</span><select data-st="dept">${DEPTS.map(x => `<option value="${x}" ${d.dept === x ? "selected" : ""}>${esc(t("dept_" + x))}</option>`).join("")}</select></label>
+      <label class="field"><span>${esc(t("staff_role"))}</span><select data-st="role">${roles.map(r => `<option value="${esc(r.id)}" ${d.role === r.id ? "selected" : ""}>${esc(roleName(r.id))}</option>`).join("")}</select></label>
+    </div>
+    ${needsApproval("staff_role") ? `<p class="muted small">${esc(t("staff_role_ap"))}</p>` : ""}
+    <div class="err" id="sterr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="stsave">${esc(t(s0 ? "st_save" : "staff_add"))}</button><button type="button" class="link" data-act="stclose">${esc(t("cancel"))}</button></div></section>`;
+}
+/* Строка сотрудника. Кнопки — только тем, кому можно менять этого человека. */
+function staffRow(s, cur){
+  const off = s.active === false, self = s.id === cur.id, mng = canManageStaff(s), rq = pendingAp("staff_role:" + s.id);
+  const acts = [
+    mng ? `<button type="button" class="link" data-act="stedit" data-v="${s.id}" aria-label="${esc(t("edit"))}: ${esc(s.name)}" ${guard("staff.edit")}>${esc(t("edit"))}</button>` : "",
+    can("audit.view") ? `<button type="button" class="link" data-act="stlog" data-v="${s.id}" aria-label="${esc(tf("staff_log_of", { name:s.name }))}">${esc(t("staff_log"))}</button>` : "",
+    !self && !off ? `<button type="button" class="link" data-act="aswitch" data-v="${s.id}">${esc(t("staff_as"))}</button>` : "",
+    mng ? `<button type="button" class="link ${off ? "" : "danger"}" data-act="${off ? "ston" : "stoff"}" data-v="${s.id}" ${guard("staff.edit")}>${esc(t(off ? "staff_enable" : "staff_disable"))}</button>` : ""
+  ].filter(Boolean).join("");
+  return `<div class="arow ${off ? "past" : ""}" role="row"><span class="a-main a-with-mark" role="cell"><span class="avatar sm" aria-hidden="true">${esc(monogram(s.name))}</span>
+      <span class="stack" style="gap:1px;min-width:0"><b>${esc(s.name)}</b><span class="small muted">${esc(loc(s.pos) || "—")}</span>${off ? `<span class="small muted">${esc(t("staff_off"))}</span>` : ""}</span></span>
+    <span class="a-cell a-sub wrap" role="cell">${esc(roleName(s.role))}${rq ? `<br><span class="pill st-PENDING">${esc(tf("staff_role_pending", { role:roleName(rq.payload.to) }))}</span>` : ""}</span>
+    <span class="a-cell small wrap" role="cell">${esc(deptName(s.dept))}</span>
+    <span class="a-cell small" role="cell"><span class="mono">${esc(s.phone)}</span><br><span class="muted">${esc(s.email || "—")}</span></span>
+    <span class="a-end row st-acts" role="cell">${self ? `<span class="pill st-CONFIRMED">${esc(t("staff_you"))}</span>` : ""}${acts}</span></div>`;
 }
 PAGES.staff = {
   render(){
-    const cur = me(), edit = can("staff.edit");
+    const cur = me(), waiting = O.approvals.filter(a => a.status === "pending" && a.kind === "staff_add");
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_staff"))}</h1><p class="muted">${esc(t("staff_sub"))}</p></div>
-        <button type="button" class="solid" data-act="stnew" ${guard("staff.edit")}>${IC.plus}<span>${esc(t("staff_new"))}</span></button></div>
+        <button type="button" class="solid" data-act="stnew" ${guard("staff.create")}>${IC.plus}<span>${esc(t("staff_new"))}</span></button></div>
       ${staffForm()}
-      <section class="card stack"><h2>${esc(t("staff_people"))}</h2>
-        <div class="atable" style="--cols:minmax(0,2fr) minmax(0,1.5fr) minmax(0,1.2fr) auto">
-          ${O.staff.map(s => { const off = s.active === false, self = s.id === cur.id;
-            return `<div class="arow ${off ? "past" : ""}"><span class="a-main a-with-mark"><span class="avatar sm">${esc(monogram(s.name))}</span>
-              <span class="stack" style="gap:1px;min-width:0"><b>${esc(s.name)}</b>${off ? `<span class="small muted">${esc(t("staff_off"))}</span>` : ""}</span></span>
-              <span class="a-cell a-sub">${edit && !self && !off ? staffRoleSel(s, false) : esc(roleName(s.role))}</span><span class="a-cell mono small">${esc(s.phone)}</span>
-              <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${self ? `<span class="pill st-CONFIRMED">${esc(t("staff_you"))}</span>`
-                : `${off ? "" : `<button type="button" class="link" data-act="aswitch" data-v="${s.id}">${esc(t("staff_as"))}</button>`}
-                   <button type="button" class="link ${off ? "" : "danger"}" data-act="${off ? "ston" : "stoff"}" data-v="${s.id}" ${guard("staff.edit")}>${esc(t(off ? "staff_enable" : "staff_disable"))}</button>`}</span></div>`; }).join("")}
-        </div></section>
-      <section class="card stack" style="margin-top:20px"><h2>${esc(t("staff_matrix"))}</h2><p class="muted small">${esc(t("staff_matrix_d"))}</p>
-        <div class="matrix-wrap"><table class="matrix"><thead><tr><th scope="col">${esc(t("perm"))}</th>${ROLES.map(r => `<th scope="col">${esc(roleName(r))}</th>`).join("")}</tr></thead>
-          <tbody>${PERM_LIST.map(p => `<tr><th scope="row">${esc(t("p_" + p.replace(".", "_")))}</th>${ROLES.map(r => {
-            const ok = r === "admin" || PERMS[r].includes(p);
-            return `<td>${ok ? `<span class="yes">${IC.ok}<span class="sr-only">${esc(t("yes"))}</span></span>` : `<span class="no" aria-hidden="true">—</span><span class="sr-only">${esc(t("no"))}</span>`}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></section></div>`;
+      <section class="card stack"><div class="card-h"><h2>${esc(t("staff_people"))}</h2>${can("roles.view") ? `<a class="link" href="#/roles">${esc(t("an_roles"))}</a>` : ""}</div>
+        <div class="atable st-table" style="--cols:minmax(0,1.7fr) minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.4fr) 240px" role="table" aria-label="${esc(t("staff_people"))}">
+          <div class="arow ahead" role="row"><span role="columnheader">${esc(t("col_staff"))}</span><span role="columnheader">${esc(t("staff_role"))}</span>
+            <span role="columnheader">${esc(t("staff_dept"))}</span><span role="columnheader">${esc(t("col_contacts"))}</span><span role="columnheader"><span class="sr-only">${esc(t("actions"))}</span></span></div>
+          ${[...O.staff].sort(byRank).map(s => staffRow(s, cur)).join("")}
+          ${waiting.map(a => `<div class="arow past" role="row"><span class="a-main a-with-mark" role="cell"><span class="avatar sm" aria-hidden="true">${esc(monogram(a.payload.rec.name))}</span>
+              <span class="stack" style="gap:1px;min-width:0"><b>${esc(a.payload.rec.name)}</b><span class="small muted">${esc(loc(a.payload.rec.pos))}</span></span></span>
+            <span class="a-cell a-sub" role="cell">${esc(roleName(a.payload.rec.role))}</span><span class="a-cell small" role="cell">${esc(deptName(a.payload.rec.dept))}</span>
+            <span class="a-cell small mono" role="cell">${esc(a.payload.rec.phone)}</span><span class="a-end" role="cell"><span class="pill st-PENDING">${esc(t("ap_wait"))}</span></span></div>`).join("")}
+        </div></section></div>`;
   },
   after(){ if (M.ui.stDraft && M.ui.stFocus) { $("#stedit [data-st=name]")?.focus(); M.ui.stFocus = false; } }
 };
-/* Главный администратор должен остаться хотя бы один — иначе права менять некому. */
-const adminsLeft = exceptId => O.staff.filter(s => s.role === "admin" && s.active !== false && s.id !== exceptId).length;
-function setStaff(id, fn, action){
+
+/* ---- сохранение ---- */
+/* Ошибка и поле, к которому она относится. */
+function staffError(d, s0){
+  const name = d.name.trim().replace(/\s+/g, " ");
+  if (name.length < 3) return ["err_staff_name", "name"];
+  if (!validPhone(d.phone)) return ["err_phone", "phone"];
+  if (O.staff.some(s => s.id !== d.id && digits(s.phone) === digits(d.phone))) return ["err_staff_phone", "phone"];
+  if (!validEmail(d.email.trim())) return ["err_email", "email"];
+  if (d.pos.trim().length < 2) return ["err_staff_pos", "pos"];
+  if (!DEPTS.includes(d.dept)) return ["err_staff_pos", "dept"];
+  if (d.role !== s0?.role && !assignableRoles().some(r => r.id === d.role)) return ["no_rights", "role"];
+  return null;
+}
+function staffInvalid(err){
+  $$("#stedit [aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
+  const f = $(`#stedit [data-st="${err[1]}"]`);
+  if (f) { f.setAttribute("aria-invalid", "true"); f.setAttribute("aria-describedby", "sterr"); }
+  showErr("#sterr", t(err[0])); f?.focus({ preventScroll:true });
+}
+const STAFF_FIELDS = [["name", "staff_name"], ["phone", "phone_label"], ["email", "agency_email"], ["pos", "staff_pos"], ["dept", "staff_dept"]];
+const deptOf = s => DEPTS.includes(s?.dept) ? s.dept : DEPT_FALLBACK, deptVal = v => strRef("dept_" + (DEPTS.includes(v) ? v : DEPT_FALLBACK));
+function saveStaff(){
+  const d = M.ui.stDraft; if (!d) return;
+  const s0 = d.id ? staffById(d.id) : null;
+  if (denied(s0 ? "staff.edit" : "staff.create")) return;
+  if (s0 && !canManageStaff(s0)) return toast(t("no_rights"));
+  const err = staffError(d, s0); if (err) return staffInvalid(err);
+  const pos = d.pos.trim().replace(/\s+/g, " ");
+  const rec = { name:d.name.trim().replace(/\s+/g, " "), phone:prettyPhone(d.phone), email:d.email.trim(), pos:s0 && pos === loc(s0.pos) ? s0.pos : pos, dept:d.dept };
+  if (!s0) {
+    const full = { id:uid("st"), ...rec, role:d.role, active:true, addedBy:me().id, addedAt:Date.now() };
+    const payload = { rec:full }, vars = { name:full.name, role:roleRef(full.role) };
+    if (needsApproval("staff_add")) { if (requestApproval("staff_add", { key:"staff_add:" + digits(full.phone), payload, vars })) { M.ui.stDraft = null; rerender(); } return; }
+    let e = null; change(() => { e = execStaffAdd(payload); });
+    M.ui.stDraft = null; rerender(); toast(e ? t(e) : tf("t_staff_add", { name:full.name }));
+    return;
+  }
+  // Контакты, должность, отдел — сразу; роль — отдельно, через подтверждение.
+  const old = { ...s0, dept:deptOf(s0) };
+  const diff = STAFF_FIELDS.filter(([k]) => loc(rec[k]) !== loc(old[k]))
+    .map(([k, label]) => ({ k:label, from:k === "dept" ? deptVal(old.dept) : old[k] ?? "", to:k === "dept" ? deptVal(rec.dept) : rec[k] }));
+  if (diff.length) change(() => { const s = staffById(s0.id); if (!s) return; Object.assign(s, rec); audit("staff_edit", { name:rec.name }, { diff }); });
+  M.ui.stDraft = null; rerender();
+  if (d.role !== s0.role) changeStaffRole(staffById(s0.id), d.role);
+  else toast(diff.length ? tf("t_staff_edit", { name:rec.name }) : t("role_same"));
+}
+function changeStaffRole(s, role){
+  if (!s || !canManageStaff(s) || !assignableRoles().some(r => r.id === role)) return toast(t("no_rights"));
+  const payload = { staffId:s.id, from:s.role, to:role }, vars = { name:s.name, from:roleRef(s.role), to:roleRef(role) };
+  if (needsApproval("staff_role")) return requestApproval("staff_role", { key:"staff_role:" + s.id, payload, vars, diff:[{ k:"staff_role", from:vars.from, to:vars.to }] });
+  let e = null; change(() => { e = execStaffRole(payload); });
+  toast(e ? t(e) : tf("t_staff_role", { name:s.name, from:roleName(payload.from), to:roleName(role) }));
+}
+/* Исполнители (см. 17-approvals.js): работают внутри change(). */
+function execStaffAdd({ rec }){
+  if (O.staff.some(s => digits(s.phone) === digits(rec.phone))) return "err_staff_phone";
+  if (!roleById(rec.role) || roleById(rec.role).deleted) return "ap_err_gone";
+  O.staff.push({ ...rec });
+  audit("staff_add", { name:rec.name, role:roleRef(rec.role) });
+  return null;
+}
+function execStaffRole({ staffId, from, to }){
+  const s = staffById(staffId); if (!s) return "ap_err_gone";
+  if (s.role !== from) return "ap_err_changed";
+  if (!roleById(to) || roleById(to).deleted) return "ap_err_gone";
+  if (from === "founder" && to !== "founder" && !foundersLeft(s.id)) return "err_last_founder";
+  s.role = to; withdrawAllBy(s.id);
+  audit("staff_role", { name:s.name, from:roleRef(from), to:roleRef(to) }, { diff:[{ k:"staff_role", from:roleRef(from), to:roleRef(to) }] });
+  return null;
+}
+function setStaffActive(id, on){
   if (denied("staff.edit")) return;
-  let res = null;
-  change(() => { const s = O.staff.find(x => x.id === id); if (s) res = fn(s); if (res) audit(action, res); });
-  if (res) toast(tf("t_" + action, Object.fromEntries(Object.entries(res).map(([k, v]) => [k, auditVal(v)]))));
+  const s = staffById(id); if (!s || !canManageStaff(s)) return toast(t(s?.id === me().id ? "err_staff_self" : "no_rights"));
+  if (!on && s.role === "founder" && !foundersLeft(s.id)) return toast(t("err_last_founder"));
+  change(() => { const x = staffById(id); if (!x) return; x.active = on; if (!on) withdrawAllBy(x.id);
+    audit(on ? "staff_on" : "staff_off", { name:x.name }, { diff:[{ k:"col_status", from:strRef(on ? "staff_status_off" : "staff_status_on"), to:strRef(on ? "staff_status_on" : "staff_status_off") }] }); });
+  toast(tf(on ? "t_staff_on" : "t_staff_off", { name:s.name }));
+  $(`[data-act="${on ? "stoff" : "ston"}"][data-v="${id}"]`)?.focus();
 }
 Object.assign(ACT, {
   aswitch: el => {
     const s = O.staff.find(x => x.id === el.dataset.v && x.active !== false); if (!s) return;
-    change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:"role:" + s.role }); });
+    M.ui = {};
+    change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); });
     toast(tf("switched", { name:s.name, role:roleName(s.role) }));
   },
-  stnew:   () => { if (denied("staff.edit")) return; M.ui.stDraft = { name:"", phone:"", role:"operator" }; M.ui.stFocus = true; rerender(); },
-  stclose: () => { M.ui.stDraft = null; rerender(); },
-  stsave:  () => {
-    if (denied("staff.edit")) return;
-    const d = M.ui.stDraft, name = d.name.trim().replace(/\s+/g, " ");
-    if (name.length < 3) return showErr("#sterr", t("err_staff_name"));
-    if (!validPhone(d.phone)) return showErr("#sterr", t("err_phone"));
-    if (O.staff.some(s => digits(s.phone) === digits(d.phone))) return showErr("#sterr", t("err_staff_phone"));
-    if (!ROLES.includes(d.role)) return;
-    const rec = { id:uid("st"), name, phone:prettyPhone(d.phone), role:d.role, active:true, addedBy:me().name, addedAt:Date.now() };
-    change(() => { O.staff.push(rec); audit("staff_add", { name:rec.name, role:"role:" + rec.role }); });
-    M.ui.stDraft = null; rerender(); toast(tf("t_staff_add", { name:rec.name }));
-  },
-  stoff: el => {
-    if (el.dataset.v === me().id) return toast(t("err_staff_self"));
-    const s = O.staff.find(x => x.id === el.dataset.v);
-    if (s?.role === "admin" && !adminsLeft(s.id)) return toast(t("err_last_admin"));
-    setStaff(el.dataset.v, x => { x.active = false; return { name:x.name }; }, "staff_off");
-    $(`[data-act="ston"][data-v="${el.dataset.v}"]`)?.focus();
-  },
-  ston: el => { setStaff(el.dataset.v, x => { x.active = true; return { name:x.name }; }, "staff_on"); $(`[data-act="stoff"][data-v="${el.dataset.v}"]`)?.focus(); }
+  stnew:   () => { if (denied("staff.create")) return; M.ui.stDraft = blankStaff(); M.ui.stFocus = true; rerender(); },
+  stedit:  el => { const s = staffById(el.dataset.v); if (denied("staff.edit") || !s) return; if (!canManageStaff(s)) return toast(t("no_rights"));
+    M.ui.stDraft = { id:s.id, name:s.name, phone:s.phone, email:s.email || "", pos:loc(s.pos), dept:DEPTS.includes(s.dept) ? s.dept : DEPT_FALLBACK, role:s.role }; M.ui.stFocus = true; rerender(); },
+  stclose: () => { M.ui.stDraft = null; rerender(); $('[data-act="stnew"]')?.focus(); },
+  stsave:  () => saveStaff(),
+  stoff:   el => setStaffActive(el.dataset.v, false),
+  ston:    el => setStaffActive(el.dataset.v, true),
+  /* Журнал одного сотрудника. */
+  stlog:   el => { M.ui.auWho = el.dataset.v; M.ui.auMod = "all"; M.ui.auPer = "all"; M.ui.auq = ""; go("audit"); }
 });
 document.addEventListener("input", e => { const k = e.target.dataset?.st; if (k && M.ui.stDraft) M.ui.stDraft[k] = e.target.value; });
-document.addEventListener("change", e => {
-  const k = e.target.dataset?.st; if (k && M.ui.stDraft) M.ui.stDraft[k] = e.target.value;
-  const id = e.target.dataset?.staffRole; if (!id) return;
-  const role = e.target.value;
-  clearTimeout(roleTimer); roleTimer = setTimeout(() => {
-    const s = O.staff.find(x => x.id === id);
-    if (!s || !ROLES.includes(role) || s.role === role) return;
-    if (s.role === "admin" && role !== "admin" && !adminsLeft(s.id)) { toast(t("err_last_admin")); rerender(); return; }
-    setStaff(id, x => { const from = "role:" + x.role; x.role = role; return { name:x.name, from, to:"role:" + role }; }, "staff_role");
-    $(`[data-staff-role="${id}"]`)?.focus();
-  }, 450);
-});
-let roleTimer = 0;
-
-/* ---- журнал ---- */
-function auditRows(){
-  const who = M.ui.auWho || "all", q = (M.ui.auq || "").trim().toLowerCase();
-  return O.audit.filter(e => (who === "all" || e.staffId === who) && (!q || auditText(e).toLowerCase().includes(q)));
-}
-function auditList(){
-  const rows = auditRows();
-  if (!rows.length) return `<p class="muted">${esc(t(O.audit.length ? "audit_none_match" : "audit_empty"))}</p>`;
-  return `<div class="atable" style="--cols:150px minmax(0,1.2fr) minmax(0,3fr)" role="table" aria-label="${esc(t("an_audit"))}">
-    <div class="arow ahead" role="row"><span role="columnheader">${esc(t("col_date"))}</span><span role="columnheader">${esc(t("col_staff"))}</span><span role="columnheader">${esc(t("col_action"))}</span></div>
-    ${rows.map(e => `<div class="arow" role="row"><span class="a-cell a-sub muted small" role="cell">${esc(fdt(e.at))}</span>
-      <span class="a-cell a-sub" role="cell">${esc(staffName(e.staffId))}</span><span class="a-cell a-key" role="cell">${esc(auditText(e))}</span></div>`).join("")}</div>`;
-}
-PAGES.audit = {
-  render(){
-    const who = M.ui.auWho || "all";
-    return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_audit"))}</h1><p class="muted">${esc(t("audit_sub"))}</p></div>
-      <div class="card stack"><div class="ofind">
-          <select id="auWho" class="minisel" aria-label="${esc(t("col_staff"))}"><option value="all">${esc(t("staff_all"))}</option>${O.staff.map(s => `<option value="${s.id}" ${who === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>
-          <label class="search">${IC.search}<input id="auq" type="search" value="${esc(M.ui.auq || "")}" placeholder="${esc(t("audit_search"))}" aria-label="${esc(t("audit_search"))}"></label></div>
-        <div id="aulist">${auditList()}</div></div></div>`;
-  }
-};
-document.addEventListener("input", e => { if (e.target.id === "auq") { M.ui.auq = e.target.value; const l = $("#aulist"); if (l) l.innerHTML = auditList(); } });
-document.addEventListener("change", e => { if (e.target.id === "auWho") { M.ui.auWho = e.target.value; const l = $("#aulist"); if (l) l.innerHTML = auditList(); } });
+document.addEventListener("change", e => { const k = e.target.dataset?.st; if (k && M.ui.stDraft) M.ui.stDraft[k] = e.target.value; });
 
 /* ---- настройки ---- */
 PAGES.settings = {
@@ -7003,7 +7832,7 @@ PAGES.settings = {
         <section class="card stack"><h2>${esc(t("session"))}</h2>
           <div class="rows"><div><span class="k">${esc(t("signed_staff"))}</span><span class="v">${esc(me().name)} · ${esc(roleName(me().role))}</span></div></div>
           <div class="row"><button type="button" class="ghost sm" data-act="asignout">${IC.out}<span>${esc(t("sign_out"))}</span></button>
-            <button type="button" class="link danger" data-act="areset" ${guard("demo.reset")}>${esc(t("reset_all"))}</button></div></section>
+            <button type="button" class="link danger" data-act="areset" ${guard("settings.manage")}>${esc(t("reset_all"))}</button></div></section>
       </div></div>`;
   }
 };
@@ -7013,13 +7842,13 @@ Object.assign(ACT, {
   asignout:   () => { change(() => { audit("signout", {}); O.session = null; }); stopHeartbeat(); toast(t("signed_out")); go(""); },
   /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки. Сотрудник остаётся в админке. */
   areset:     () => {
-    if (denied("demo.reset") || !confirm(t("reset_all_q"))) return;
+    if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
     for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
     PRICES = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
-    // Сотрудника, добавленного вручную, в исходных данных нет — входим главным администратором.
-    O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:"st1", at:Date.now() } }); saveOps(); SITE = null; seedApps();
+    // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.
+    O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:FOUNDER_ID, at:Date.now() } }); saveOps(); SITE = null; seedApps();
     change(() => audit("reset", {})); go("");
   }
 });
@@ -7051,8 +7880,8 @@ function aVerify(){
   if (!/^\d{4}$/.test(v)) return showErr("#aerr", t("err_code"));
   if (v !== ADM_CODE) return showErr("#aerr", t("err_code_wrong"));
   const s = activeStaff().find(x => digits(x.phone) === digits(M.ui.aPhone)); if (!s) return showErr("#aerr", t("err_staff"));
-  change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("signin", { role:"role:" + s.role }); });
-  M.ui.aStep = "phone"; heartbeat(); toast(tf("hello_toast", { name:s.name.split(" ")[0] }));
+  change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("signin", { role:roleRef(s.role) }); });
+  M.ui = { aStep:"phone" }; heartbeat(); toast(tf("hello_toast", { name:s.name.split(" ")[0] }));
   if (currentParts()[0] === "auth") go(""); else render(true);
 }
 Object.assign(ACT, {
@@ -7068,6 +7897,266 @@ Object.assign(ACT, {
 document.addEventListener("input", e => { if (e.target.id === "aotp") { e.target.value = e.target.value.replace(/\D/g, "").slice(0, 4); if (e.target.value.length === 4) aVerify(); } });
 document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.id === "aph") ACT.asend(); });
 
+/* ---- 82-roles.js ---- */
+/* ==========================================================================
+   Роли и права: список ролей и таблица прав выбранной — разделы × действия.
+   Основатель меняет права любой роли, кроме своей, и заводит новые роли.
+   Изменение прав — это права, поэтому по правилу «Роли, права и новые
+   сотрудники» его подтверждает второй сотрудник (кроме действий основателя).
+   ========================================================================== */
+"use strict";
+
+const ROLE_NAME_MAX = 40;
+const holders = id => O.staff.filter(s => s.role === id);
+const selRole = () => { const r = roleById(M.ui.roleSel); return r && !r.deleted ? r : roleById("owner"); };
+/* Черновик прав выбранной роли: base — права на момент первой галочки,
+   perms — отмеченные. Пока черновика нет — показываем сохранённые. */
+const draftPerms = r => M.ui.roleDraft?.id === r.id ? M.ui.roleDraft.perms : permsOf(r.id);
+const permDiff = (from, to) => Object.keys(PERM_MODS).filter(m => (from[m] || []).join() !== (to[m] || []).join())
+  .map(m => ({ k:"m_" + m, from:{ acts:[...(from[m] || [])] }, to:{ acts:[...(to[m] || [])] } }));
+
+function roleList(sel){
+  return `<nav class="role-list" aria-label="${esc(t("role_pick"))}">${liveRoles().map(r => {
+    const n = holders(r.id).filter(s => s.active !== false).length;
+    return `<button type="button" class="role-item" data-act="rolesel" data-v="${esc(r.id)}" aria-current="${r.id === sel.id}">
+      <span class="stack" style="gap:1px;min-width:0"><b>${esc(roleName(r.id))}</b><span class="small muted">${esc(r.sys ? t("role_sys") : t("role_custom"))} · ${esc(tf("role_n", { n }))}</span></span>
+      ${pendingAp("role_edit:" + r.id) ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : ""}</button>`; }).join("")}</nav>`;
+}
+/* Почему права этой роли нельзя менять — или "" если можно. */
+function roleLock(r){
+  if (r.id === "founder") return t("role_founder_note");
+  if (r.id === me().role && !isFounder()) return t("role_own_note");
+  return canEditRole(r) ? "" : t("role_ro_note");
+}
+function roleMatrix(r){
+  const p = draftPerms(r), lock = roleLock(r), name = roleName(r.id);
+  return `<div class="matrix-wrap"><table class="matrix pm"><caption class="sr-only">${esc(tf("role_perms_h", { role:name }))}</caption>
+    <thead><tr><th scope="col">${esc(t("col_section"))}</th>${PERM_ACTS.map(a => `<th scope="col">${esc(t("act_" + a))}</th>`).join("")}</tr></thead>
+    <tbody>${Object.entries(PERM_MODS).map(([m, acts]) => `<tr><th scope="row">${esc(t("m_" + m))}</th>${PERM_ACTS.map(a => {
+      if (!acts.includes(a)) return `<td><span class="no" aria-hidden="true">·</span></td>`;
+      const on = !!p[m]?.includes(a), what = t(`pm_${m}_${a}`);
+      return `<td><label class="pm-cell" title="${esc(what)}"><input type="checkbox" data-pm="${m}.${a}" ${on ? "checked" : ""} ${lock ? "disabled" : ""}>
+        <span class="sr-only">${esc(t("m_" + m))}: ${esc(what)}</span></label></td>`; }).join("")}</tr>`).join("")}</tbody></table></div>`;
+}
+function roleEditor(r){
+  const lock = roleLock(r), n = M.ui.roleDraft?.id === r.id ? permDiff(M.ui.roleDraft.base, M.ui.roleDraft.perms).length : 0;
+  const people = holders(r.id), pend = pendingAp("role_edit:" + r.id);
+  return `<section class="card stack role-ed" aria-labelledby="role-h">
+    <div class="card-h"><div class="stack" style="gap:4px"><h2 id="role-h" tabindex="-1">${esc(tf("role_perms_h", { role:roleName(r.id) }))}</h2>
+      <span class="muted small">${esc(r.sys ? t("rd_" + r.id) : tf("role_by", { name:staffName(r.by) }))}</span></div>
+      ${!r.sys && can("roles.delete") && !people.length ? `<button type="button" class="link danger" data-act="roledel" data-v="${esc(r.id)}" ${pendingAp("role_del:" + r.id) ? "disabled" : ""}>${esc(t("role_delete"))}</button>` : ""}</div>
+    ${lock ? `<p class="note-live">${IC.lock}<span>${esc(lock)}</span></p>` : `<p class="muted small">${esc(t("role_view_hint"))}</p>`}
+    ${pend ? `<p class="note-live">${IC.clock}<span>${esc(t("role_pending"))}</span></p>${apDiff(pend)}` : ""}
+    ${roleMatrix(r)}
+    ${lock ? "" : `<div class="row"><button type="button" class="solid" data-act="rolesave" ${n ? "" : "disabled"}>${esc(t("role_save"))}</button>
+      ${n ? `<button type="button" class="link" data-act="rolereset">${esc(t("cancel"))}</button><span class="muted small">${esc(tf("role_changed", { n }))}</span>` : ""}
+      ${needsApproval("role_edit") ? `<span class="muted small">${esc(t("staff_role_ap"))}</span>` : ""}</div>`}
+    ${people.length ? `<p class="small muted">${esc(t("role_people"))}: ${esc(people.map(s => s.name).join(", "))}</p>` : ""}
+    <details class="pm-legend"><summary>${esc(t("role_legend"))}</summary><dl>${Object.entries(PERM_MODS).map(([m, acts]) =>
+      `<dt>${esc(t("m_" + m))}</dt><dd>${acts.map(a => `<b>${esc(t("act_" + a))}</b> — ${esc(t(`pm_${m}_${a}`))}`).join("; ")}</dd>`).join("")}</dl></details>
+  </section>`;
+}
+function roleNewForm(){
+  const d = M.ui.roleNew; if (!d) return "";
+  return `<section class="card stack cl-edit" id="rolenew" aria-labelledby="rolenew-h"><div class="card-h"><h2 id="rolenew-h">${esc(t("role_new"))}</h2>
+      <button type="button" class="iconbtn" data-act="rolenewclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    <div class="sgrid sgrid-3">
+      <label class="field"><span>${esc(t("role_name"))}</span><input data-rn="name" value="${esc(d.name)}" maxlength="${ROLE_NAME_MAX}" autocomplete="off"></label>
+      <label class="field"><span>${esc(t("role_copy"))}</span><select data-rn="copy">${liveRoles().filter(r => r.id !== "founder").map(r => `<option value="${esc(r.id)}" ${d.copy === r.id ? "selected" : ""}>${esc(roleName(r.id))}</option>`).join("")}</select></label>
+    </div><div class="err" id="rnerr" hidden></div>
+    <div class="row"><button type="button" class="solid" data-act="rolecreate">${esc(t("role_create"))}</button><button type="button" class="link" data-act="rolenewclose">${esc(t("cancel"))}</button></div></section>`;
+}
+PAGES.roles = {
+  render(){
+    const r = selRole();
+    return `<div class="page">
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_roles"))}</h1><p class="muted">${esc(t("roles_sub"))}</p></div>
+        <button type="button" class="solid" data-act="rolenew" ${guard("roles.create")}>${IC.plus}<span>${esc(t("role_new"))}</span></button></div>
+      ${roleNewForm()}
+      <div class="roles-grid">${roleList(r)}${roleEditor(r)}</div>
+      <p class="muted small" style="margin-top:12px">${esc(t("staff_matrix_d"))}</p></div>`;
+  },
+  after(){ if (M.ui.roleNew && M.ui.rnFocus) { $("#rolenew [data-rn=name]")?.focus(); M.ui.rnFocus = false; } }
+};
+
+/* ---- галочки ----
+   Действие без просмотра раздела бессмысленно: включили действие — включился
+   просмотр; сняли просмотр — снялись все действия раздела. */
+document.addEventListener("change", e => {
+  const k = e.target.dataset?.pm; if (!k) return;
+  const r = selRole(); if (!canEditRole(r)) return;
+  const [m, a] = k.split("."), perms = clonePermsOf(draftPerms(r));
+  const base = M.ui.roleDraft?.id === r.id ? M.ui.roleDraft.base : clonePermsOf(permsOf(r.id));
+  const set = new Set(perms[m] || []);
+  if (e.target.checked) { set.add(a); set.add("view"); } else if (a === "view") set.clear(); else set.delete(a);
+  perms[m] = PERM_MODS[m].filter(x => set.has(x)); if (!perms[m].length) delete perms[m];
+  M.ui.roleDraft = samePerms(perms, base) ? null : { id:r.id, base, perms };
+  rerender(); $(`[data-pm="${k}"]`)?.focus();
+  announce(tf("role_changed", { n:M.ui.roleDraft ? permDiff(base, perms).length : 0 }));
+});
+const clonePermsOf = p => Object.fromEntries(Object.entries(p).map(([m, a]) => [m, [...a]]));
+document.addEventListener("input", e => { const k = e.target.dataset?.rn; if (k && M.ui.roleNew) M.ui.roleNew[k] = e.target.value; });
+document.addEventListener("change", e => { const k = e.target.dataset?.rn; if (k && M.ui.roleNew) M.ui.roleNew[k] = e.target.value; });
+
+/* ---- сохранение ---- */
+function saveRolePerms(){
+  const r = selRole(), d = M.ui.roleDraft; if (!d || d.id !== r.id) return;
+  if (!canEditRole(r)) return toast(t("no_rights"));
+  // Пока отмечали галочки, права роли могли поменять в другой вкладке.
+  if (!samePerms(permsOf(r.id), d.base)) { M.ui.roleDraft = null; rerender(); $("#role-h")?.focus(); return toast(t("ap_err_changed")); }
+  const from = clonePermsOf(d.base), to = cleanPerms(d.perms);
+  if (samePerms(from, to)) { M.ui.roleDraft = null; rerender(); return toast(t("role_same")); }
+  if (grantsBeyondMine(from, to).length) return toast(t("err_grant_beyond"));
+  const payload = { roleId:r.id, from, to }, vars = { role:roleRef(r.id) }, diff = permDiff(from, to);
+  if (needsApproval("role_edit")) { if (requestApproval("role_edit", { key:"role_edit:" + r.id, payload, vars, diff })) { M.ui.roleDraft = null; rerender(); $("#role-h")?.focus(); } return; }
+  let e = null; change(() => { e = execRoleEdit(payload); });
+  M.ui.roleDraft = null; rerender(); $("#role-h")?.focus(); toast(e ? t(e) : tf("t_role_saved", { role:roleName(r.id) }));
+}
+/* Название уникально среди действующих ролей — на всех трёх языках системных. */
+function roleNameTaken(name){
+  const n = name.toLowerCase();
+  return liveRoles().some(r => (r.sys ? ["ru", "uz", "en"].map(l => roleName(r.id, l)) : [r.name]).some(x => x.toLowerCase() === n));
+}
+function createRole(){
+  if (denied("roles.create")) return;
+  const d = M.ui.roleNew, name = d.name.trim().replace(/\s+/g, " "), base = roleById(d.copy);
+  if (name.length < 2 || name.length > ROLE_NAME_MAX) return showErr("#rnerr", t("err_role_name"));
+  if (roleNameTaken(name)) return showErr("#rnerr", t("err_role_dup"));
+  if (!base || base.deleted || base.id === "founder") return;
+  const perms = clonePermsOf(permsOf(base.id));
+  if (grantsBeyondMine({}, perms).length) return showErr("#rnerr", t("err_grant_beyond"));
+  const role = { id:uid("r"), name, perms }, payload = { role }, vars = { role:name };
+  const diff = permDiff({}, perms);
+  if (needsApproval("role_new")) { if (requestApproval("role_new", { key:"role_new:" + name.toLowerCase(), payload, vars, diff })) { M.ui.roleNew = null; rerender(); } return; }
+  let e = null; change(() => { e = execRoleNew(payload); });
+  if (e) return showErr("#rnerr", t(e));
+  M.ui.roleNew = null; M.ui.roleSel = role.id; M.ui.roleDraft = null; rerender(); toast(tf("t_role_new", { role:name }));
+  $(`[data-act="rolesel"][data-v="${CSS.escape(role.id)}"]`)?.scrollIntoView({ block:"nearest", inline:"nearest" }); $("#role-h")?.focus();
+}
+function deleteRole(id){
+  const r = roleById(id); if (!r || r.sys || r.deleted || denied("roles.delete")) return;
+  if (holders(id).length) return toast(t("err_role_used"));
+  if (!confirm(tf("role_delete_q", { role:r.name }))) return;
+  const payload = { roleId:id }, vars = { role:r.name };
+  if (needsApproval("role_del")) { requestApproval("role_del", { key:"role_del:" + id, payload, vars }); return; }
+  let e = null; change(() => { e = execRoleDel(payload); });
+  if (e) return toast(t(e));
+  M.ui.roleSel = null; M.ui.roleDraft = null; rerender(); toast(tf("t_role_del", { role:r.name })); $("h1")?.focus();
+}
+/* Исполнители (см. 17-approvals.js): работают внутри change(). */
+function execRoleEdit({ roleId, from, to }){
+  const r = roleById(roleId); if (!r || r.deleted || r.id === "founder") return "ap_err_gone";
+  if (!samePerms(r.perms, from)) return "ap_err_changed";
+  r.perms = cleanPerms(to);
+  audit("role_edit", { role:roleRef(r.id) }, { diff:permDiff(from, r.perms) });
+  return null;
+}
+/* ap — запрос, если роль создаётся по нему: автор роли — тот, кто просил. */
+function execRoleNew({ role }, ap){
+  if (roleNameTaken(role.name)) return "err_role_dup";
+  const perms = cleanPerms(role.perms);
+  O.roles.push({ id:role.id, sys:false, name:role.name, perms, by:ap ? ap.by : me().id, ...(ap ? { approvedBy:me().id } : {}), at:Date.now() });
+  audit("role_new", { role:role.name }, { diff:permDiff({}, perms) });
+  return null;
+}
+/* Роль не удаляется из данных: журнал помнит её название. */
+function execRoleDel({ roleId }){
+  const r = roleById(roleId); if (!r || r.sys || r.deleted) return "ap_err_gone";
+  if (holders(roleId).length) return "err_role_used";
+  r.deleted = true; r.deletedAt = Date.now();
+  audit("role_delete", { role:r.name });
+  return null;
+}
+Object.assign(ACT, {
+  rolesel:      el => { if (M.ui.roleSel !== el.dataset.v) M.ui.roleDraft = null; M.ui.roleSel = el.dataset.v; rerender(); $(`[data-act="rolesel"][data-v="${CSS.escape(el.dataset.v)}"]`)?.focus(); },
+  rolesave:     () => saveRolePerms(),
+  rolereset:    () => { M.ui.roleDraft = null; rerender(); $('[data-pm]:not(:disabled)')?.focus(); },
+  rolenew:      () => { if (denied("roles.create")) return; M.ui.roleNew = { name:"", copy:"viewer" }; M.ui.rnFocus = true; rerender(); },
+  rolenewclose: () => { M.ui.roleNew = null; rerender(); $('[data-act="rolenew"]')?.focus(); },
+  rolecreate:   () => createRole(),
+  roledel:      el => deleteRole(el.dataset.v)
+});
+
+/* ---- 84-audit.js ---- */
+/* ==========================================================================
+   Журнал действий: кто (и в какой роли), что, когда, откуда (IP, устройство),
+   было → стало. Фильтры по сотруднику, разделу, периоду и тексту; выгрузка
+   CSV — по праву audit.export. Записи не удаляются и не правятся.
+   ========================================================================== */
+"use strict";
+
+/* Раздел старых записей (без поля module) — по действию. */
+const AUDIT_MODULE = {
+  price:"orders", confirm:"orders", cancel:"orders", refund:"finance", req_done:"b2c", req_declined:"b2c", topup_ok:"finance", topup_rejected:"finance",
+  app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
+  fee:"pricing", markup:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
+  staff_add:"staff", staff_off:"staff", staff_on:"staff", staff_role:"staff", staff_edit:"staff", role_new:"roles", role_edit:"roles", role_delete:"roles",
+  rules:"settings", reset:"settings", export:"finance", switch:"session", signin:"session", signout:"session"
+};
+const AU_MODS = [...Object.keys(PERM_MODS), "session"];
+const AU_PERIODS = ["all", "today", "7", "30"];
+const auditModule = e => e.module || AUDIT_MODULE[e.action] || "session";
+/* Роль на момент действия; у старых записей её нет — текущая. */
+const auditRole = e => roleName(e.role || O.staff.find(s => s.id === e.staffId)?.role);
+
+function auditRows(){
+  const who = M.ui.auWho || "all", mod = M.ui.auMod || "all", per = M.ui.auPer || "all", q = (M.ui.auq || "").trim().toLowerCase();
+  // Начало сегодняшнего дня — по часам сейчас: админка может быть открыта с вечера.
+  const since = per === "today" ? new Date().setHours(0, 0, 0, 0) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
+  return O.audit.filter(e => (who === "all" || e.staffId === who) && (mod === "all" || auditModule(e) === mod) && e.at >= since
+    && (!q || [auditText(e), staffName(e.staffId), e.ip || "", ...(e.diff || []).map(diffText)].join(" ").toLowerCase().includes(q)));
+}
+function auditList(){
+  const rows = auditRows();
+  if (!rows.length) return `<p class="muted">${esc(t(O.audit.length ? "audit_none_match" : "audit_empty"))}</p>`;
+  return `<div class="atable au-table" style="--cols:140px minmax(0,1.2fr) minmax(0,3fr) minmax(0,1.1fr)" role="table" aria-label="${esc(t("an_audit"))}">
+    <div class="arow ahead" role="row"><span role="columnheader">${esc(t("col_date"))}</span><span role="columnheader">${esc(t("col_staff"))}</span>
+      <span role="columnheader">${esc(t("col_action"))}</span><span role="columnheader">${esc(t("col_where"))}</span></div>
+    ${rows.slice(0, AU_SHOW).map(e => `<div class="arow" role="row"><span class="a-cell a-sub muted small" role="cell">${esc(fdt(e.at))}</span>
+      <span class="a-cell a-sub wrap" role="cell">${esc(staffName(e.staffId))}<br><span class="muted small">${esc(auditRole(e))}</span></span>
+      <span class="a-key" role="cell"><span>${esc(auditText(e))}</span>${e.diff?.length ? `<ul class="ap-diff">${e.diff.map(d => `<li><span class="muted">${esc(t(d.k))}:</span> <s>${esc(auditVal(d.from) || "—")}</s>
+        <span aria-hidden="true">→</span><span class="sr-only">${esc(t("ap_becomes"))}</span> <b>${esc(auditVal(d.to) || "—")}</b></li>`).join("")}</ul>` : ""}
+        <span class="muted small">${esc(t("m_" + auditModule(e)))}</span></span>
+      <span class="a-cell small muted" role="cell"><span class="mono">${esc(e.ip || "—")}</span><br>${esc(e.dev || "")}</span></div>`).join("")}</div>
+    ${rows.length > AU_SHOW ? `<p class="muted small">${esc(tf("au_more", { n:rows.length - AU_SHOW }))}</p>` : ""}`;
+}
+/* На экране — последние записи; выгрузка — все подходящие. */
+const AU_SHOW = 200;
+PAGES.audit = {
+  render(){
+    const who = M.ui.auWho || "all", mod = M.ui.auMod || "all", per = M.ui.auPer || "all";
+    return `<div class="page">
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_audit"))}</h1><p class="muted">${esc(t("audit_sub"))}</p></div>
+        <button type="button" class="ghost sm" data-act="aucsv" ${guard("audit.export")}>${IC.doc}<span>${esc(t("download_csv"))}</span></button></div>
+      <div class="card stack"><div class="ofind au-find">
+          <select id="auWho" class="minisel" aria-label="${esc(t("col_staff"))}"><option value="all">${esc(t("staff_all"))}</option>${[...O.staff].sort(byRank).map(s => `<option value="${s.id}" ${who === s.id ? "selected" : ""}>${esc(s.name)}</option>`).join("")}</select>
+          <select id="auMod" class="minisel" aria-label="${esc(t("col_section"))}"><option value="all">${esc(t("au_mod_all"))}</option>${AU_MODS.map(m => `<option value="${m}" ${mod === m ? "selected" : ""}>${esc(t("m_" + m))}</option>`).join("")}</select>
+          <select id="auPer" class="minisel" aria-label="${esc(t("au_period"))}">${AU_PERIODS.map(x => `<option value="${x}" ${per === x ? "selected" : ""}>${esc(t("au_per_" + x))}</option>`).join("")}</select>
+          <label class="search">${IC.search}<input id="auq" type="search" value="${esc(M.ui.auq || "")}" placeholder="${esc(t("audit_search"))}" aria-label="${esc(t("audit_search"))}"></label></div>
+        <p class="muted small" id="aucount" aria-live="polite">${esc(auCount())}</p>
+        <div id="aulist">${auditList()}</div></div>
+      <p class="muted small" style="margin-top:12px">${esc(t("au_ip_note"))}</p></div>`;
+  }
+};
+const auCount = () => { const n = auditRows().length; return n ? tf("au_count", { n }) : t("audit_none_match"); };
+const auRefresh = () => { const l = $("#aulist"); if (l) l.innerHTML = auditList(); const c = $("#aucount"); if (c) c.textContent = auCount(); };
+document.addEventListener("input", e => { if (e.target.id === "auq") { M.ui.auq = e.target.value; auRefresh(); } });
+document.addEventListener("change", e => {
+  const k = { auWho:"auWho", auMod:"auMod", auPer:"auPer" }[e.target.id]; if (!k) return;
+  M.ui[k] = e.target.value; auRefresh();
+});
+ACT.aucsv = () => {
+  if (denied("audit.export")) return;
+  const when = ms => new Date(ms).toLocaleString(LOC[S.lang]), rows = auditRows();
+  const out = [[t("col_date"), t("col_staff"), t("staff_role"), t("col_section"), t("col_action"), t("col_was"), t("col_now"), "IP", t("au_device")],
+    ...rows.map(e => [when(e.at), staffName(e.staffId), auditRole(e), t("m_" + auditModule(e)), auditText(e),
+      (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${t(d.k)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];
+  const blob = new Blob([csvText(out)], { type:"text/csv;charset=utf-8" });
+  const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-audit-${TODAY}.csv` });
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  change(() => audit("export", { what:strRef("an_audit") }, { module:"audit" }));
+};
+
 /* ---- 99-boot.js ---- */
 /* ==========================================================================
    Запуск админки. Если кабинет в этом браузере ещё не открывали — создаём
@@ -7079,7 +8168,7 @@ applyDirections();                // направления из админки 
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S); }
 O = loadOps() || freshOps(null);
-if (!O.rev) saveOps();
+if (!O.rev || O._migrated) saveOps();          // перенос на новые роли сохраняем сразу
 SITE = loadSite();
 seedApps();
 adminPrefs();

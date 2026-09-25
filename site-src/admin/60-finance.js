@@ -104,6 +104,6 @@ Object.assign(ACT, {
     const blob = new Blob([csvText(rows)], { type:"text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-${tab}-${TODAY}.csv` });
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    change(() => audit("export", { what:t("fin_" + tab) }));
+    change(() => audit("export", { what:strRef("fin_" + tab) }));
   }
 });

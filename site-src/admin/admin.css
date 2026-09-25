@@ -25,7 +25,7 @@ body.adm .card h2{font-size:18px;letter-spacing:-.2px}
 .whosel .minisel{max-width:230px}
 
 /* ---- обзор ---- */
-.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:20px}
 .kpi{display:flex;flex-direction:column;gap:4px;padding:16px 18px;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border);
   transition:transform 160ms var(--ease-out)}
 a.kpi:hover{box-shadow:var(--lift-shadow)}
@@ -129,7 +129,7 @@ a.arow:hover + .arow{box-shadow:none}
 .pct-in i{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-weight:600}
 
 /* ---- права ролей ---- */
-.matrix-wrap{overflow-x:auto}
+.matrix-wrap{overflow-x:auto;position:relative}
 .matrix{border-collapse:collapse;width:100%;min-width:560px;font-size:14px}
 .matrix th,.matrix td{padding:9px 10px;border-top:1px solid var(--line);text-align:center}
 .matrix thead th{border-top:0;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
@@ -138,12 +138,58 @@ a.arow:hover + .arow{box-shadow:none}
 .matrix .yes svg{width:18px;height:18px}
 .matrix .no{color:var(--faint)}
 
+/* ---- роли: список слева, таблица прав справа ---- */
+.roles-grid{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:20px;align-items:start}
+.role-list{display:flex;flex-direction:column;gap:4px;padding:8px;min-width:0;border-radius:18px;background:var(--surface);box-shadow:var(--shadow);border:1px solid var(--card-border)}
+.role-item{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;padding:10px 12px;border-radius:12px;background:transparent;border:0;
+  color:var(--ink);font:inherit;cursor:pointer;transition:background-color 160ms ease}
+.role-item b{color:var(--navy);font-weight:600;font-size:14.5px}
+.role-item:hover{background:var(--sunken)}
+.role-item[aria-current="true"]{background:var(--sky);box-shadow:inset 3px 0 0 var(--blue)}
+.role-item .pill{flex:none}
+.matrix.pm{min-width:760px}
+.matrix.pm thead th{letter-spacing:.5px;font-size:10.5px;padding-inline:6px}
+/* На узком экране таблица листается вбок — название раздела остаётся слева. */
+.matrix.pm tbody th[scope="row"]{position:sticky;left:0;z-index:1;background:var(--surface)}
+.matrix.pm th[scope="col"]:first-child{text-align:left}
+.pm-cell{position:relative;display:inline-grid;place-items:center;width:34px;height:34px;border-radius:9px;cursor:pointer}
+.pm-cell:hover{background:var(--sunken)}
+.pm-cell input{width:18px;height:18px;margin:0;accent-color:var(--blue);cursor:pointer}
+.pm-cell input:disabled{cursor:not-allowed}
+.pm-legend summary{cursor:pointer;font-weight:600;color:var(--blue);font-size:14px}
+.pm-legend dl{display:grid;grid-template-columns:minmax(120px,max-content) 1fr;gap:6px 16px;margin:12px 0 0;font-size:13.5px}
+.pm-legend dt{font-weight:600;color:var(--navy)}
+.pm-legend dd{margin:0;color:var(--muted)}
+
+/* ---- подтверждения ---- */
+.ap-diff{list-style:none;margin:4px 0 2px;padding:0;display:flex;flex-direction:column;gap:2px;font-size:13px}
+.ap-diff s{color:var(--faint);text-decoration-thickness:1px}
+.ap-diff b{color:var(--navy);font-weight:600}
+.rules{display:flex;flex-direction:column}
+.rule-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:10px 0;border-top:1px solid var(--line)}
+.rules > .rule-row:first-child{border-top:0}
+.rule-min{display:flex;align-items:center;gap:8px}
+.rule-amt input{width:150px;min-height:36px;padding:6px 10px;font-family:"IBM Plex Mono",monospace;font-size:14px;text-align:right}
+
+/* ---- сотрудники и журнал ---- */
+.st-acts{gap:4px 12px;flex-wrap:wrap;justify-content:flex-end}
+.st-table .a-end{justify-self:stretch}
+.au-find{flex-wrap:wrap}
+.au-find .minisel{max-width:220px}
+.au-table .a-key{display:flex;flex-direction:column;gap:2px}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
 @container main (max-width:1020px){
   .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
   .rev-grid{grid-template-columns:1fr}
+}
+/* Таблице прав нужна вся ширина: список ролей уходит наверх лентой. */
+@container main (max-width:1260px){
+  .roles-grid{grid-template-columns:minmax(0,1fr)}
+  .role-list{flex-direction:row;overflow-x:auto;scroll-snap-type:x proximity;min-width:0}
+  .role-item{flex:none;scroll-snap-align:start}
 }
 @container main (max-width:760px){
   .task,.task-wide{grid-template-columns:40px minmax(0,1fr)}
@@ -157,6 +203,8 @@ a.arow:hover + .arow{box-shadow:none}
   .arow > .or-ic,.arow > .a-cell:not(.a-key):not(.a-sub),.arow > .a-num:not(.a-keep){display:none}
   .arow > .a-sub{font-size:12px;color:var(--muted)}
   .arow.ahead{display:none}
+  /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
+  .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
 @container main (max-width:720px){
   .ofind{flex-wrap:wrap}
@@ -167,6 +215,9 @@ a.arow:hover + .arow{box-shadow:none}
   .kpi{flex-direction:row;flex-wrap:wrap;align-items:baseline;justify-content:space-between;column-gap:12px;padding:12px 16px}
   .kpi-s{flex-basis:100%}
   .why input,.usd-in input{width:100%}
+  .au-find .minisel{max-width:none;flex:1 1 45%}
+  .pm-legend dl{grid-template-columns:1fr}
+  .rule-amt input{width:100%}
 }
 @media (max-width:600px){
   .live-pill{display:none}

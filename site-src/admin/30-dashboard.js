@@ -74,8 +74,12 @@ document.addEventListener("keydown", e => {
   e.preventDefault(); bars.forEach((b, k) => b.setAttribute("tabindex", k === j ? "0" : "-1")); bars[j].focus();
 });
 
+/* Сумма в плитке: от 100 млн — коротко («320,2 млн сум»), полная — в подсказке
+   и для экранного диктора, чтобы плитка не обрезала цифры. */
+const kpiMoney = n => n >= 1e8 ? { short:compactUZS(n) + NB + t("cur_uzs"), full:fmtUZS(n) } : fmtUZS(n);
 function kpi(label, value, sub, href){
-  const inner = `<span class="kpi-l">${esc(label)}</span><b class="kpi-v">${esc(value)}</b>${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ""}`;
+  const v = typeof value === "object" ? `<b class="kpi-v" title="${esc(value.full)}"><span aria-hidden="true">${esc(value.short)}</span><span class="sr-only">${esc(value.full)}</span></b>` : `<b class="kpi-v">${esc(value)}</b>`;
+  const inner = `<span class="kpi-l">${esc(label)}</span>${v}${sub ? `<span class="kpi-s">${esc(sub)}</span>` : ""}`;
   return href ? `<a class="kpi" href="${href}">${inner}</a>` : `<div class="kpi">${inner}</div>`;
 }
 
@@ -89,16 +93,17 @@ PAGES[""] = {
         <p class="muted">${esc(fdateLong(TODAY))} · ${esc(roleName(u.role))}</p></div></div>
       <div class="kpis">
         ${can("tasks") ? kpi(t("k_tasks"), String(n), n ? t("k_tasks_d") : t("k_tasks_none"), "#/tasks") : ""}
-        ${can("finance") ? kpi(t("k_fee30"), fmtUZS(m30.fee), pl(m30.n, "order"), "#/finance") : ""}
-        ${can("orders") ? kpi(t("k_today"), fmtUZS(today.sales), pl(today.n, "order"), "#/orders") : ""}
-        ${can("agencies") ? kpi(t("k_balances"), fmtUZS(onBalances), tf("k_agencies", { n:agencies().length }), "#/agencies") : ""}
+        ${canDecideAny() ? kpi(t("k_ap"), String(myDecisions().length), t(myDecisions().length ? "k_ap_d" : "k_ap_none"), "#/approvals") : ""}
+        ${can("finance.view") ? kpi(t("k_fee30"), kpiMoney(m30.fee), pl(m30.n, "order"), "#/finance") : ""}
+        ${can("orders.view") ? kpi(t("k_today"), kpiMoney(today.sales), pl(today.n, "order"), "#/orders") : ""}
+        ${can("b2b.view") ? kpi(t("k_balances"), kpiMoney(onBalances), tf("k_agencies", { n:agencies().length }), "#/agencies") : ""}
       </div>
-      ${can("finance") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("chart_fee"))}</h2><span class="muted small">${esc(tf("chart_total", { amount:fmtUZS(data.reduce((s, x) => s + x.v, 0)) }))}</span></div>
+      ${can("finance.view") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("chart_fee"))}</h2><span class="muted small">${esc(tf("chart_total", { amount:fmtUZS(data.reduce((s, x) => s + x.v, 0)) }))}</span></div>
         ${feeChart(data)}</section>` : ""}
       <div class="dash-grid">
         <section class="card stack"><div class="card-h"><h2>${esc(t("an_tasks"))}</h2>${can("tasks") ? `<a class="link" href="#/tasks">${esc(t("open_all"))}</a>` : ""}</div>
           ${taskSummary()}</section>
-        ${can("audit") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("recent_actions"))}</h2><a class="link" href="#/audit">${esc(t("an_audit"))}</a></div>
+        ${can("audit.view") ? `<section class="card stack"><div class="card-h"><h2>${esc(t("recent_actions"))}</h2><a class="link" href="#/audit">${esc(t("an_audit"))}</a></div>
           ${recent.length ? `<ol class="feed">${recent.map(e => `<li><span class="feed-dot"></span><span class="stack" style="gap:2px"><span>${esc(auditText(e))}</span>
             <span class="muted small">${esc(staffName(e.staffId))} · ${esc(ago(e.at))}</span></span></li>`).join("")}</ol>` : `<p class="muted">${esc(t("audit_empty"))}</p>`}</section>` : ""}
       </div></div>`;
@@ -112,11 +117,12 @@ PAGES[""] = {
 /* Сводка задач по видам — ссылкой в очередь. Что роли не положено, не показываем. */
 function taskSummary(){
   const k = tasks(), rows = [
-    ["orders.price", "tk_price", k.price.length, IC.jet], ["topups.confirm", "tk_topups", k.topups.length, IC.wallet],
-    ["agencies.moderate", "tk_apps", k.apps.length, IC.users], ["requests.resolve", "tk_reqs", k.reqs.length, IC.person], ["refunds.credit", "tk_refunds", k.refunds.length, IC.back]
-  ].filter(([p]) => can(p));
+    ["approvals", "tk_ap", myDecisions().length, IC.stamp, "#/approvals"],
+    ["orders.edit", "tk_price", k.price.length, IC.jet], ["finance.approve", "tk_topups", k.topups.length, IC.wallet],
+    ["b2b.approve", "tk_apps", k.apps.length, IC.users], ["b2c.edit", "tk_reqs", k.reqs.length, IC.person], ["finance.refund", "tk_refunds", k.refunds.length, IC.back]
+  ].filter(([p]) => p === "approvals" ? canDecideAny() : can(p));
   if (!rows.length) return `<p class="muted">${esc(t("tasks_not_role"))}</p>`;
-  return `<div class="att">${rows.map(([, key, n, ic]) => `<a class="att-row" href="#/tasks"><span class="att-ic ${n ? "warn" : ""}">${ic}</span>
+  return `<div class="att">${rows.map(([, key, n, ic, href = "#/tasks"]) => `<a class="att-row" href="${href}"><span class="att-ic ${n ? "warn" : ""}">${ic}</span>
     <span class="att-main"><b>${esc(t(key))}</b><span class="muted small">${esc(n ? tf("tk_waiting", { n }) : t("tk_clear"))}</span></span>
     <span class="att-go"><b class="mono">${n}</b></span></a>`).join("")}</div>`;
 }

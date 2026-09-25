@@ -18,25 +18,25 @@ const takeInp = key => { const v = (M.ui.inp?.[key] ?? $(`[data-inp="${CSS.escap
 
 /* ---- заказы ---- */
 function priceOrder(r, usd){
-  if (denied("orders.price")) return false;
+  if (denied("orders.edit")) return false;
   if (!(usd > 0 && usd < 5_000_000)) { toast(t("err_price")); return false; }
   let done = false;
   change(() => mutOrder(r, (o, st) => {
     if (o.status !== "NEW") return;
     o.total = amt(usd); o.status = "PENDING"; hist(o, "PENDING"); done = true;
     if (st) { o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); note("price_ready", { orderId:o.id }, st); }
-    audit("price", { no:o.no, amount:fmtUZS(o.total.uzs), src:srcName(r) });
+    audit("price", { no:o.no, amount:uzsRef(o.total.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_NEW"), to:strRef("st_PENDING") }] });
   }));
   if (done) toast(tf("t_priced", { no:r.o.no }));
   return done;
 }
 function confirmOrder(r){
-  if (denied("orders.confirm")) return;
+  if (denied("orders.approve")) return;
   change(() => mutOrder(r, (o, st) => {
     if (o.status !== "PAID") return;
     o.status = "CONFIRMED"; hist(o, "CONFIRMED");
     if (st) note("confirmed", { orderId:o.id }, st);
-    audit("confirm", { no:o.no, src:srcName(r) });
+    audit("confirm", { no:o.no, src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_PAID"), to:strRef("st_CONFIRMED") }] });
   }));
 }
 /* Оплаченный заказ: штраф поставщика по правилам услуги, сбор не возвращается,
@@ -45,61 +45,76 @@ function cancelOrder(r){
   if (denied("orders.cancel")) return;
   change(() => mutOrder(r, (o, st) => {
     if (!["NEW", "PENDING", "PAID", "CONFIRMED"].includes(o.status)) return;
+    const was = o.status;
     if (["PAID", "CONFIRMED"].includes(o.status) && o.total) {
       const p = penaltyOf(o); o.refund = { rate:p.rate, penalty:p.penalty, uzs:p.refund, at:Date.now(), done:false };
     }
     o.status = "CANCELLED"; hist(o, "CANCELLED");
     if (st) note("cancelled", { orderId:o.id }, st);
-    audit("cancel", { no:o.no, src:srcName(r), amount:o.refund ? fmtUZS(o.refund.uzs) : "—" });
+    audit("cancel", { no:o.no, src:srcVal(r), amount:o.refund ? uzsRef(o.refund.uzs) : "—" }, { diff:[{ k:"col_status", from:strRef("st_" + was), to:strRef("st_CANCELLED") }] });
   }));
   M.ui.cancelFor = null;
 }
+/* Возврат к зачислению. Крупный (по правилу подтверждения) ждёт второго
+   сотрудника; решение и само зачисление — в execRefund. */
 function creditRefund(r){
-  if (denied("refunds.credit")) return;
-  change(() => mutOrder(r, (o, st) => {
+  if (denied("finance.refund")) return;
+  const amount = r.o.refund?.uzs || 0;
+  if (needsApproval("refund", amount)) return requestApproval("refund", { key:refundKey(r), payload:{ src:r.src, id:r.o.id }, amount,
+    vars:{ no:r.o.no, amount:uzsRef(amount), src:srcVal(r) } });
+  let err = null;
+  change(() => { err = execRefund({ src:r.src, id:r.o.id }); });
+  if (err) toast(t(err));
+}
+function execRefund({ src, id }){
+  const r = findOrder(src, id); if (!r) return "ap_err_gone";
+  let err = "ap_err_state";
+  mutOrder(r, (o, st) => {
     if (o.status !== "CANCELLED" || !o.refund || o.refund.done) return;
-    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED");
+    o.refund.done = true; o.status = "REFUNDED"; hist(o, "REFUNDED"); err = null;
     if (st) { if (o.refund.uzs > 0) post("refund", o.refund.uzs, { orderId:o.id }, st); note("refunded", { orderId:o.id, amount:o.refund.uzs }, st); }
-    audit("refund", { no:o.no, amount:fmtUZS(o.refund.uzs), src:srcName(r) });
-  }));
+    audit("refund", { no:o.no, amount:uzsRef(o.refund.uzs), src:srcVal(r) }, { diff:[{ k:"col_status", from:strRef("st_CANCELLED"), to:strRef("st_REFUNDED") }] });
+  });
+  return err;
 }
 function resolveReq(r, status, reply){
-  if (denied("requests.resolve")) return false;
+  if (denied("b2c.edit")) return false;
   if (status === "declined" && !reply) { toast(t("err_reply")); return false; }
   const done = withSite(site => { const o = site.orders.find(x => x.id === r.o.id); if (!o?.req || o.req.status) return false;
     Object.assign(o.req, { status, reply, doneAt:Date.now(), by:me().name }); return true; });
   if (!done) { rerender(); return false; }
-  change(() => audit(status === "done" ? "req_done" : "req_declined", { no:r.o.no }));
+  change(() => audit(status === "done" ? "req_done" : "req_declined", { no:r.o.no }, { diff:reply ? [{ k:"reply", from:"", to:reply }] : [] }));
   return true;
 }
 
 /* ---- пополнения ---- */
 function confirmTopup(aid, pid){
-  if (denied("topups.confirm")) return;
+  if (denied("finance.approve")) return;
   let amount = 0;
   change(() => withAgency(aid, st => {
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"done", doneAt:Date.now(), by:me().name }); amount = p.amount;
+    const before = st.balance;
     post("topup", p.amount, { method:p.method }, st); note("topup_ok", { amount:p.amount }, st);
-    audit("topup_ok", { amount:fmtUZS(p.amount), agency:agencyById(aid)?.name || "" });
+    audit("topup_ok", { amount:uzsRef(p.amount), agency:st.agency.name }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
   }));
   if (amount) toast(tf("t_topup_ok", { amount:fmtUZS(amount) }));
 }
 function rejectTopup(aid, pid, reason){
-  if (denied("topups.confirm")) return false;
+  if (denied("finance.approve")) return false;
   if (!reason) { toast(t("err_reason")); return false; }
   change(() => withAgency(aid, st => {
     const p = st.topups.find(x => x.id === pid); if (!p || p.status !== "pending") return;
     Object.assign(p, { status:"rejected", doneAt:Date.now(), by:me().name, reason });
     note("topup_rejected", { amount:p.amount, reason }, st);
-    audit("topup_rejected", { amount:fmtUZS(p.amount), agency:agencyById(aid)?.name || "", reason });
+    audit("topup_rejected", { amount:uzsRef(p.amount), agency:st.agency.name, reason }, { diff:[{ k:"col_status", from:strRef("tu_pending"), to:strRef("tu_rejected") }] });
   }));
   return true;
 }
 
 /* ---- агентства ---- */
 function decideApp(id, ok, reason = ""){
-  if (denied("agencies.moderate")) return false;
+  if (denied("b2b.approve")) return false;
   if (!ok && !reason) { toast(t("err_reason")); return false; }
   const apps = loadApps(), a = apps.find(x => x.id === id); if (!a || a.status !== "pending") return false;
   // Агентство с тем же ИНН уже есть (создали вручную) — второе не открываем.
@@ -115,30 +130,46 @@ function decideApp(id, ok, reason = ""){
   return true;
 }
 function setBlocked(aid, blocked, reason = ""){
-  if (denied("agencies.block")) return false;
+  if (denied("b2b.manage")) return false;
   if (blocked && !reason) { toast(t("err_reason")); return false; }
   change(() => withAgency(aid, st => {
     st.agency.status = blocked ? "blocked" : "verified"; st.agency.blockReason = blocked ? reason : "";
     note(blocked ? "blocked" : "unblocked", { reason }, st);
-    audit(blocked ? "block" : "unblock", { agency:st.agency.name, reason });
+    audit(blocked ? "block" : "unblock", { agency:st.agency.name, reason }, { diff:[{ k:"col_status", from:strRef(blocked ? "ag_active" : "agency_blocked"), to:strRef(blocked ? "agency_blocked" : "ag_active") }] });
   }));
   return true;
 }
-/* Ручная корректировка: только с причиной и не ниже нуля — как любое движение денег. */
+/* Ручная корректировка: только с причиной и не ниже нуля — как любое движение
+   денег. По правилу подтверждения ждёт второго сотрудника. */
 const ADJUST_MAX = 10_000_000_000;
 function adjustBalance(aid, amount, reason){
-  if (denied("balance.adjust")) return false;
+  if (denied("finance.manage")) return false;
   if (!amount || !Number.isFinite(amount) || Math.abs(amount) > ADJUST_MAX) { toast(t("err_amount")); return false; }
   if (!reason) { toast(t("err_reason")); return false; }
-  let ok = false;
-  change(() => withAgency(aid, st => {
-    if (st.balance + amount < 0) return;
-    post("adjust", amount, { reason, by:me().name }, st); note("adjust", { amount, reason }, st); ok = true;
-    audit("adjust", { agency:st.agency.name, amount:(amount > 0 ? "+" : "") + fmtUZS(amount), reason });
-  }));
-  toast(ok ? t("t_adjusted") : t("err_negative"));
-  return ok;
+  const a = agencyById(aid); if (!a) return false;
+  if (a.st.balance + amount < 0) { toast(t("err_negative")); return false; }
+  if (needsApproval("adjust", amount)) return requestApproval("adjust", { key:uid("adj"), payload:{ aid, amount, reason }, amount,
+    vars:{ agency:a.name, amount:uzsRef(amount, true), reason } });
+  let err = null;
+  change(() => { err = execAdjust({ aid, amount, reason }); });
+  toast(err ? t(err) : t("t_adjusted"));
+  return !err;
 }
+/* ap — запрос на подтверждение, если операция выполняется по нему: тогда в
+   выписке автор — тот, кто просил. */
+function execAdjust({ aid, amount, reason }, ap){
+  let err = "ap_err_gone";
+  withAgency(aid, st => {
+    if (st.balance + amount < 0) { err = "err_negative"; return; }
+    const before = st.balance;
+    post("adjust", amount, { reason, by:ap ? staffName(ap.by) : me().name }, st); note("adjust", { amount, reason }, st); err = null;
+    audit("adjust", { agency:st.agency.name, amount:uzsRef(amount, true), reason }, { diff:[{ k:"col_balance", from:uzsRef(before), to:uzsRef(st.balance) }] });
+  });
+  return err;
+}
+
+/* Источник заказа в журнале: агентство — названием, сайт — строкой интерфейса. */
+const srcVal = r => r.a ? r.a.name : strRef("src_site");
 
 /* ---- кнопки ---- */
 const rowOf = el => findOrder(el.dataset.src, el.dataset.v);
@@ -170,9 +201,9 @@ Object.assign(ACT, {
 
 /* ---- общие куски разметки для очереди, заказов и агентств ---- */
 /* Кнопка «Отклонить» с полем причины: key — уникальный ключ строки. */
-function rejectBox(key, act, data, perm){
+function rejectBox(key, act, data, perm, ph = "reason_ph"){
   if (!M.ui.ask?.[key]) return `<button type="button" class="link danger" data-act="aask" data-k="${esc(key)}" ${guard(perm)}>${esc(t("reject"))}</button>`;
-  return `<span class="why">${inpField("why:" + key, { label:t("reason"), ph:t("reason_ph"), extra:'maxlength="120"' })}
+  return `<span class="why">${inpField("why:" + key, { label:t("reason"), ph:t(ph), extra:'maxlength="120"' })}
     <button type="button" class="solid sm danger-solid" data-act="${act}" ${data} ${guard(perm)}>${esc(t("reject"))}</button>
     <button type="button" class="link" data-act="aask" data-k="${esc(key)}">${esc(t("cancel"))}</button></span>`;
 }
@@ -181,14 +212,14 @@ function topupRow(p, a){
   return `<div class="task"><span class="task-ic">${IC.wallet}</span>
     <span class="task-main"><b>${esc(a.name)}</b><span class="muted small">${esc(methodLabel(p.method))} · ${esc(ago(p.at))}</span></span>
     <b class="task-amt mono">+${esc(fmtUZS(p.amount))}</b>
-    <span class="task-act"><button type="button" class="solid sm" data-act="atopup" data-ag="${a.id}" data-v="${p.id}" ${guard("topups.confirm")}>${esc(t("confirm"))}</button>
-      ${rejectBox("t" + p.id, "atopupno", `data-ag="${a.id}" data-v="${p.id}"`, "topups.confirm")}</span></div>`;
+    <span class="task-act"><button type="button" class="solid sm" data-act="atopup" data-ag="${a.id}" data-v="${p.id}" ${guard("finance.approve")}>${esc(t("confirm"))}</button>
+      ${rejectBox("t" + p.id, "atopupno", `data-ag="${a.id}" data-v="${p.id}"`, "finance.approve")}</span></div>`;
 }
 function appRow(x){
   return `<div class="task"><span class="task-ic">${IC.users}</span>
     <span class="task-main"><b>${esc(x.company)}</b><span class="muted small">${esc(t("req_inn"))} <span class="mono">${esc(x.inn)}</span> · ${esc(x.person)} · <span class="mono">${esc(x.phone)}</span> · ${esc(ago(x.at))}</span></span>
-    <span class="task-act"><button type="button" class="solid sm" data-act="aappok" data-v="${x.id}" ${guard("agencies.moderate")}>${esc(t("approve"))}</button>
-      ${rejectBox("a" + x.id, "aappno", `data-v="${x.id}"`, "agencies.moderate")}</span></div>`;
+    <span class="task-act"><button type="button" class="solid sm" data-act="aappok" data-v="${x.id}" ${guard("b2b.approve")}>${esc(t("approve"))}</button>
+      ${rejectBox("a" + x.id, "aappno", `data-v="${x.id}"`, "b2b.approve")}</span></div>`;
 }
 function priceRow(r){
   const o = r.o, d = o.details, key = "p:" + o.id;
@@ -197,7 +228,7 @@ function priceRow(r){
       <span class="muted small">${esc(srcName(r))} · ${esc(fdateY(d.date))}, ${esc(d.time)} · ${esc(pl(d.pax, "pax"))} · ${esc(d.model)} · ${esc(ago(o.createdAt))}</span>
       <span class="muted small">${esc(t("estimate"))}: <span class="mono">$${grp(d.low.usd)} – $${grp(d.high.usd)}</span></span></span>
     <span class="task-act price-in"><span class="usd-in"><i>$</i>${inpField(key, { value:String(d.quote.usd), label:t("price_usd"), extra:'inputmode="numeric" maxlength="7"' })}</span>
-      <button type="button" class="solid sm" data-act="aprice" data-src="${r.src}" data-v="${o.id}" ${guard("orders.price")}>${esc(t("set_price"))}</button></span></div>`;
+      <button type="button" class="solid sm" data-act="aprice" data-src="${r.src}" data-v="${o.id}" ${guard("orders.edit")}>${esc(t("set_price"))}</button></span></div>`;
 }
 function reqRow(r){
   const o = r.o, key = "r:" + o.id;
@@ -206,8 +237,8 @@ function reqRow(r){
       <span class="muted small"><span class="mono">${o.no}</span> · ${esc(t("req_kind_" + o.req.kind))} · ${esc(o.contact.phone)} · ${esc(ago(o.req.at))}</span>
       ${o.req.note ? `<span class="small">«${esc(o.req.note)}»</span>` : ""}</span>
     <span class="task-act reply">${inpField(key, { label:t("reply"), ph:t("reply_ph"), extra:'maxlength="200"' })}
-      <button type="button" class="solid sm" data-act="areq" data-s="done" data-src="site" data-v="${o.id}" ${guard("requests.resolve")}>${esc(t("req_done_cta"))}</button>
-      <button type="button" class="link danger" data-act="areq" data-s="declined" data-src="site" data-v="${o.id}" ${guard("requests.resolve")}>${esc(t("req_decline_cta"))}</button></span></div>`;
+      <button type="button" class="solid sm" data-act="areq" data-s="done" data-src="site" data-v="${o.id}" ${guard("b2c.edit")}>${esc(t("req_done_cta"))}</button>
+      <button type="button" class="link danger" data-act="areq" data-s="declined" data-src="site" data-v="${o.id}" ${guard("b2c.edit")}>${esc(t("req_decline_cta"))}</button></span></div>`;
 }
 function refundRow(r){
   const o = r.o;
@@ -215,5 +246,11 @@ function refundRow(r){
     <span class="task-main"><a href="#/orders/${r.src}/${o.id}"><b>${esc(orderTitle(o))}</b></a>
       <span class="muted small"><span class="mono">${o.no}</span> · ${esc(srcName(r))} · ${esc(tf("penalty_short", { p:Math.round(o.refund.rate * 100) }))} · ${esc(ago(o.refund.at))}</span></span>
     <b class="task-amt mono">${esc(fmtUZS(o.refund.uzs))}</b>
-    <span class="task-act"><button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${o.id}" ${guard("refunds.credit")}>${esc(t(r.a ? "credit_refund" : "card_refund"))}</button></span></div>`;
+    <span class="task-act">${refundAction(r)}</span></div>`;
+}
+/* Кнопка зачисления или отметка, что возврат ждёт второго сотрудника. */
+function refundAction(r){
+  const ap = pendingAp(refundKey(r));
+  if (ap) return `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>${can("approvals") ? `<a class="link" href="#/approvals">${esc(t("an_approvals"))}</a>` : ""}`;
+  return `<button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${r.o.id}" ${guard("finance.refund")}>${esc(t(r.a ? "credit_refund" : "card_refund"))}</button>`;
 }

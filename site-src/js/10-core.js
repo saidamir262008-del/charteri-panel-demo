@@ -263,7 +263,7 @@ document.addEventListener("click", e => {
   const a = document.activeElement;
   if (a && a !== document.body && a.isConnected) return;
   const same = twin && $(twin);
-  if (same) same.focus({ preventScroll:true });
+  if (same && !same.disabled) same.focus({ preventScroll:true });
   else { const h = $("#app h1"); if (h) { h.tabIndex = -1; h.focus({ preventScroll:true }); } }
 });
 /* <details> не всплывает событием toggle — ловим на погружении, чтобы

@@ -70,7 +70,7 @@ document.addEventListener("change", e => {
 function admActions(r){
   const o = r.o, st = effStatus(o), live = o.start >= TODAY, rows = [];
   if (isCharter(o) && st === "NEW") rows.push(`<div class="stack" style="gap:8px"><h3>${esc(t("set_price"))}</h3><p class="muted small">${esc(t("set_price_d"))}</p>${priceRow(r)}</div>`);
-  if (st === "PAID") rows.push(`<div class="row"><button type="button" class="solid" data-act="aconfirm" data-src="${r.src}" data-v="${o.id}" ${guard("orders.confirm")}>${esc(t("confirm_supplier"))}</button>
+  if (st === "PAID") rows.push(`<div class="row"><button type="button" class="solid" data-act="aconfirm" data-src="${r.src}" data-v="${o.id}" ${guard("orders.approve")}>${esc(t("confirm_supplier"))}</button>
     <span class="muted small">${esc(t("confirm_supplier_d"))}</span></div>`);
   if (o.status === "CANCELLED" && o.refund && !o.refund.done) rows.push(refundRow(r));
   if (["NEW", "PENDING", "PAID", "CONFIRMED"].includes(st) && live) {
@@ -120,9 +120,9 @@ PAGES["orders/:src/:id"] = {
           <div class="card stack">${admPayment(r)}</div>${admRefund(r)}
           <div class="card stack"><span class="lbl">${esc(r.a ? t("col_source") : t("customer"))}</span>
             ${r.a ? `<div class="client-mini"><span class="bmark-wrap" style="${brandStyle(r.a.brand)}">${brandMark("", r.a.brand)}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(r.a.name)}</b>
-              <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("agencies") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
+              <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
-              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("customers") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
+              <span class="mono small muted">${esc(o.contact.phone)}</span></div>${can("b2c.view") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
             <ol class="timeline">${o.history.map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(t("st_" + h.s))}</b><span class="muted small">${esc(fdt(h.at))}</span></li>`).join("")}</ol></div>
         </aside></div></div>`;

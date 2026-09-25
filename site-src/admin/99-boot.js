@@ -8,7 +8,7 @@ applyDirections();                // направления из админки 
 S = loadState();
 if (!S || !Array.isArray(S.ledger) || !S.agency) { S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S); }
 O = loadOps() || freshOps(null);
-if (!O.rev) saveOps();
+if (!O.rev || O._migrated) saveOps();          // перенос на новые роли сохраняем сразу
 SITE = loadSite();
 seedApps();
 adminPrefs();

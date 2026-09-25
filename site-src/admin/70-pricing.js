@@ -18,7 +18,7 @@ PAGES.pricing = {
         <section class="card stack"><h2>${esc(t("pr_markup"))}</h2><p class="muted small">${esc(t("pr_markup_d"))}</p>
           <div class="pr-row"><span class="pct-in">${pctInput("pr_markup_in", p.flightMarkupBps)}<i>%</i></span></div></section>
         <div class="row"><button type="button" class="solid" data-act="prsave" ${guard("pricing.edit")}>${esc(t("pr_save"))}</button>
-          ${can("pricing.edit") ? "" : `<span class="muted small">${esc(t("pr_admin_only"))}</span>`}</div>
+          ${pricingNote() ? `<span class="muted small">${esc(pricingNote())}</span>` : ""}${pendingAp("pricing") ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>` : ""}</div>
         <section class="card stack"><h2>${esc(t("pr_fixed"))}</h2><div class="rows">
           ${[["pr_tour", "−7%"], ["pr_transfer", "$20"], ["pr_infant", "10%"], ["pr_charter", "+10%"]].map(([k, v]) => `<div><span class="k">${esc(t(k))}</span><span class="v mono">${v}</span></div>`).join("")}</div>
           <p class="muted small">${esc(t("pr_fixed_d"))}</p></section>
@@ -36,16 +36,26 @@ ACT.prsave = () => {
   if (denied("pricing.edit")) return;
   const p = prices(), fee = readPct("pr_fee_in", 10), mk = readPct("pr_markup_in", 30);
   if (Number.isNaN(fee) || Number.isNaN(mk)) return toast(t("err_pct"));
-  const next = { feeBps:fee ?? p.feeBps, flightMarkupBps:mk ?? p.flightMarkupBps };
-  if (next.feeBps === p.feeBps && next.flightMarkupBps === p.flightMarkupBps) return toast(t("pr_same"));
-  writeJSON(PRICES_KEY, next); PRICES = null;
-  change(() => {
-    if (next.feeBps !== p.feeBps) audit("fee", { from:pctText(p.feeBps) + "%", to:pctText(next.feeBps) + "%" });
-    if (next.flightMarkupBps !== p.flightMarkupBps) audit("markup", { from:pctText(p.flightMarkupBps) + "%", to:pctText(next.flightMarkupBps) + "%" });
-  });
-  delete M.ui.inp?.pr_fee_in; delete M.ui.inp?.pr_markup_in;
-  toast(t("pr_saved"));
+  const from = { feeBps:p.feeBps, flightMarkupBps:p.flightMarkupBps }, to = { feeBps:fee ?? p.feeBps, flightMarkupBps:mk ?? p.flightMarkupBps };
+  if (to.feeBps === from.feeBps && to.flightMarkupBps === from.flightMarkupBps) return toast(t("pr_same"));
+  const clear = () => { delete M.ui.inp?.pr_fee_in; delete M.ui.inp?.pr_markup_in; rerender(); };
+  if (needsApproval("pricing")) { if (requestApproval("pricing", { key:"pricing", payload:{ from, to }, diff:pricingDiff(from, to) })) clear(); return; }
+  let err = null;
+  change(() => { err = execPricing({ from, to }); });
+  clear(); toast(err ? t(err) : t("pr_saved"));
 };
+const pricingDiff = (from, to) => [["pr_fee", "feeBps"], ["pr_markup", "flightMarkupBps"]].filter(([, k]) => from[k] !== to[k])
+  .map(([label, k]) => ({ k:label, from:{ pct:from[k] }, to:{ pct:to[k] } }));
+/* Цены могли поменяться, пока запрос ждал: тогда он не выполняется. */
+function execPricing({ from, to }){
+  const p = prices();
+  if (p.feeBps !== from.feeBps || p.flightMarkupBps !== from.flightMarkupBps) return "ap_err_changed";
+  writeJSON(PRICES_KEY, to); PRICES = null;
+  for (const d of pricingDiff(from, to)) audit(d.k === "pr_fee" ? "fee" : "markup", { from:d.from, to:d.to }, { diff:[d] });
+  return null;
+}
+/* Строка под кнопкой: сохранить нельзя или изменение пойдёт на подтверждение. */
+const pricingNote = () => !can("pricing.edit") ? t("pr_admin_only") : needsApproval("pricing") ? t("pr_needs_ap") : "";
 
 /* ---- интеграции ----
    Карта работает без ключа; остальное в демо — на тестовых данных. Ключи —

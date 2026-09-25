@@ -48,7 +48,7 @@ function dirForm(){
           <label class="chk"><input type="checkbox" data-dh="${i}.pool" ${h.pool ? "checked" : ""}><span>${esc(t("dir_pool"))}</span></label></div></fieldset>`).join("")}
       ${d.hotels.length < 6 ? `<button type="button" class="ghost sm" data-act="dirhoteladd">${IC.plus}<span>${esc(t("dir_hotel_add"))}</span></button>` : ""}</div>` : ""}
     <div class="err" id="direrr" hidden></div>
-    <div class="row"><button type="button" class="solid" data-act="dirsave" ${guard("catalog.edit")}>${esc(t("dir_save"))}</button>
+    <div class="row"><button type="button" class="solid" data-act="dirsave" ${guard("services.create")}>${esc(t("dir_save"))}</button>
       <button type="button" class="link" data-act="dirclose">${esc(t("cancel"))}</button></div></section>`;
 }
 function dirRows(){
@@ -71,14 +71,15 @@ function dirList(){
         <span class="a-cell a-sub">${esc(d.country[S.lang] || d.country.ru)}</span>
         <span class="a-cell wrap small">${esc([t("type_FLIGHT"), t("type_JET"), ...(d.resort ? [t("type_TOUR"), t("type_HOTEL")] : [])].join(", "))}${d.popular ? ` · <b>${esc(t("dir_popular_short"))}</b>` : ""}</span>
         <span class="a-cell muted small">${custom ? esc(tf("dir_added_by", { name:d.by || "—", date:d.at ? fdate(ymd(new Date(d.at))) : "" })) : esc(t("dir_builtin"))}</span>
-        <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${custom ? `<button type="button" class="link" data-act="${d.hidden ? "dirshow" : "dirhide"}" data-v="${esc(d.iata)}" aria-label="${esc(t(d.hidden ? "dir_show" : "dir_hide"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t(d.hidden ? "dir_show" : "dir_hide"))}</button>
-          ${n ? `<span class="muted small">${esc(tf("dir_in_orders", { n:pl(n, "order") }))}</span>` : `<button type="button" class="link danger" data-act="dirdel" data-v="${esc(d.iata)}" aria-label="${esc(t("dir_delete"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("catalog.edit")}>${esc(t("dir_delete"))}</button>`}` : ""}</span></div>`; }).join("")}</div>`;
+        <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${custom ? `<button type="button" class="link" data-act="${d.hidden ? "dirshow" : "dirhide"}" data-v="${esc(d.iata)}" aria-label="${esc(t(d.hidden ? "dir_show" : "dir_hide"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("services.edit")}>${esc(t(d.hidden ? "dir_show" : "dir_hide"))}</button>
+          ${n ? `<span class="muted small">${esc(tf("dir_in_orders", { n:pl(n, "order") }))}</span>` : pendingAp("dir_del:" + d.iata) ? `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>`
+            : `<button type="button" class="link danger" data-act="dirdel" data-v="${esc(d.iata)}" aria-label="${esc(t("dir_delete"))}: ${esc(d.city[S.lang] || d.city.ru)}" ${guard("services.delete")}>${esc(t("dir_delete"))}</button>`}` : ""}</span></div>`; }).join("")}</div>`;
 }
 PAGES.directions = {
   render(){
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_directions"))}</h1><p class="muted">${esc(t("directions_sub"))}</p></div>
-        <button type="button" class="solid" data-act="dirnew" ${guard("catalog.edit")}>${IC.plus}<span>${esc(t("dir_new"))}</span></button></div>
+        <button type="button" class="solid" data-act="dirnew" ${guard("services.create")}>${IC.plus}<span>${esc(t("dir_new"))}</span></button></div>
       ${dirForm()}
       <div class="card stack">
         <label class="search wide">${IC.search}<input id="dirq" type="search" value="${esc(M.ui.dirq || "")}" placeholder="${esc(t("dir_search"))}" aria-label="${esc(t("dir_search"))}"></label>
@@ -110,18 +111,19 @@ function dirError(x){
     if (i >= 0) return { key:"err_dir_hotels", hotel:`${i}.${x.hotels[i].name.length < 3 ? "name" : "base"}` }; }
   return null;
 }
-function saveDirs(list, action, vars){
+function saveDirs(list, action, vars, diff){
   writeJSON(DIRS_KEY, list); applyDirections();
-  change(() => audit(action, vars));
+  change(() => audit(action, vars, { diff }));
 }
+const DIR_SHOWN = () => [{ k:"col_status", from:strRef("dir_hidden"), to:strRef("dir_visible") }], DIR_HID = () => [{ k:"col_status", from:strRef("dir_visible"), to:strRef("dir_hidden") }];
 Object.assign(ACT, {
-  dirnew:   () => { if (denied("catalog.edit")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
+  dirnew:   () => { if (denied("services.create")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
   dirclose: () => { M.ui.dirDraft = null; rerender(); },
   dircolor: el => { M.ui.dirDraft.color = Number(el.dataset.v); rerender(); },
   dirhoteladd: () => { const h = M.ui.dirDraft.hotels; h.push(blankHotel()); rerender(); $(`[data-dh="${h.length - 1}.name"]`)?.focus(); },
   dirhoteldel: el => { M.ui.dirDraft.hotels.splice(Number(el.dataset.v), 1); rerender(); ($('[data-act="dirhoteladd"]') || $('[data-dh="0.name"]'))?.focus(); },
   dirsave: () => {
-    if (denied("catalog.edit")) return;
+    if (denied("services.create")) return;
     const x = readDir(M.ui.dirDraft), e = dirError(x);
     if (e) {
       $$("#diredit [aria-invalid]").forEach(el => el.removeAttribute("aria-invalid"));
@@ -132,21 +134,33 @@ Object.assign(ACT, {
     saveDirs([...dirsSaved(), { ...x, hidden:false, by:me().name, at:Date.now() }], "dir_add", { city:x.city, iata:x.iata });
     M.ui.dirDraft = null; rerender(); toast(tf("t_dir_add", { city:x.city[S.lang] || x.city.ru }));
   },
-  dirhide: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
-    d.hidden = true; saveDirs(list, "dir_hide", { city:d.city, iata:d.iata }); $(`[data-act="dirshow"][data-v="${d.iata}"]`)?.focus(); },
-  dirshow: el => { if (denied("catalog.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
-    d.hidden = false; saveDirs(list, "dir_show", { city:d.city, iata:d.iata }); $(`[data-act="dirhide"][data-v="${d.iata}"]`)?.focus(); },
+  dirhide: el => { if (denied("services.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = true; saveDirs(list, "dir_hide", { city:d.city, iata:d.iata }, DIR_HID()); $(`[data-act="dirshow"][data-v="${d.iata}"]`)?.focus(); },
+  dirshow: el => { if (denied("services.edit")) return; const list = dirsSaved(), d = list.find(x => x.iata === el.dataset.v); if (!d) return;
+    d.hidden = false; saveDirs(list, "dir_show", { city:d.city, iata:d.iata }, DIR_SHOWN()); $(`[data-act="dirhide"][data-v="${d.iata}"]`)?.focus(); },
   dirdel: el => {
-    if (denied("catalog.edit")) return;
+    if (denied("services.delete")) return;
     const code = el.dataset.v, d0 = dirsSaved().find(x => x.iata === code); if (!d0) return;
     if (!confirm(tf("dir_delete_q", { city:d0.city[S.lang] || d0.city.ru }))) return;
     // Пока было открыто окно подтверждения, другая вкладка могла изменить данные.
     S = loadState() || S; adminPrefs(); SITE = loadSite(); O = loadOps() || O;
-    const list = dirsSaved(), d = list.find(x => x.iata === code); if (!d) return rerender();
+    const d = dirsSaved().find(x => x.iata === code); if (!d) return rerender();
     if (ordersTo(code)) { rerender(); return toast(t("dir_has_orders")); }
-    saveDirs(list.filter(x => x.iata !== code), "dir_delete", { city:d.city, iata:d.iata }); $("#dirq")?.focus();
+    if (needsApproval("dir_del")) { requestApproval("dir_del", { key:"dir_del:" + code, payload:{ iata:code }, vars:{ city:d.city, iata:code } }); $("#dirq")?.focus(); return; }
+    let err = null;
+    change(() => { err = execDirDel({ iata:code }); });
+    if (err) toast(t(err));
+    $("#dirq")?.focus();
   }
 });
+/* Удаление: направления нет в заказах — иначе они потеряли бы город и отель. */
+function execDirDel({ iata }){
+  const list = dirsSaved(), d = list.find(x => x.iata === iata); if (!d) return "ap_err_gone";
+  if (ordersTo(iata)) return "dir_has_orders";
+  writeJSON(DIRS_KEY, list.filter(x => x.iata !== iata)); applyDirections();
+  audit("dir_delete", { city:d.city, iata:d.iata }, { diff:[{ k:"dir_city", from:d.city, to:"—" }] });
+  return null;
+}
 /* Поля формы → черновик. Флажки перерисовывают форму (курорт открывает отели). */
 document.addEventListener("input", e => {
   const d = M.ui.dirDraft, k = e.target.dataset?.dir, h = e.target.dataset?.dh;
