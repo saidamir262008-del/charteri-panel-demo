@@ -17,6 +17,7 @@ const PERM_MODS = {
   finance:  ["view", "approve", "refund", "manage", "export"],
   pricing:  ["view", "edit", "approve"],
   services: ["view", "create", "edit", "delete", "approve"],
+  content:  ["view", "create", "edit", "delete", "manage"],
   staff:    ["view", "create", "edit"],
   roles:    ["view", "create", "edit", "delete", "approve"],
   audit:    ["view", "export"],
@@ -31,19 +32,20 @@ const SYS_ROLES = {
   sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
   finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
   b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"], crm:["view", "create", "edit", "export"] },
-  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"] },
-  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"] },
+  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"], content:["view"] },
+  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"], content:["view"] },
   ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"], crm:["view"] },
-  content:  { services:["view", "create", "edit"] },
+  content:  { services:["view", "create", "edit"], content:["view", "create", "edit", "delete", "manage"] },
   support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"], crm:["view", "create", "edit"] },
-  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"] }
+  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"], content:["view"] }
 };
 /* Права, добавленные в новых версиях: у системных ролей из сохранённой админки
    их ещё нет — дописываются по умолчанию один раз (O.permsV). Свои роли
    основатель настраивает сам. */
-const PERMS_V = 2;
-const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"] };
-const PERMS_NEW_MODS = { 2:["crm"] };
+const PERMS_V = 3;
+const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"],
+  3:["content.view", "content.create", "content.edit", "content.delete", "content.manage"] };
+const PERMS_NEW_MODS = { 2:["crm"], 3:["content"] };
 /* Основатель и владелец: их назначает и меняет только основатель. */
 const TOP_ROLES = ["founder", "owner"];
 /* Роли прошлой версии админки → роли из ТЗ. */

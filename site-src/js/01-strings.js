@@ -311,7 +311,27 @@ const STR = {
   board_flight:["Рейс","Reys","Flight"],
   board_to:["Направление","Yo‘nalish","Destination"],
   board_price:["Цена","Narx","Fare"],
-  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"]
+  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"],
+  /* содержимое из админки (13-cms.js, 71-cms-pages.js) */
+  cms_faq:["Вопросы и ответы","Savol va javoblar","Questions and answers"],
+  cms_faq_sub:["Коротко о том, как работают заказы, оплата и возврат","Buyurtma, to‘lov va qaytarish qanday ishlashi haqida qisqacha","How orders, payment and refunds work, in short"],
+  cms_faq_empty:["Вопросов пока нет","Hozircha savollar yo‘q","No questions yet"],
+  cms_faq_other:["Общие вопросы","Umumiy savollar","General questions"],
+  cms_news:["Новости","Yangiliklar","News"],
+  cms_news_sub:["Что нового в Charteri","Charteri’da nima yangi","What’s new at Charteri"],
+  cms_news_empty:["Новостей пока нет","Hozircha yangiliklar yo‘q","No news yet"],
+  cms_missing:["Страница не найдена","Sahifa topilmadi","Page not found"],
+  cms_missing_d:["Её убрали, или в адресе опечатка.","U olib tashlangan yoki manzilda xato bor.","It was removed, or the address has a typo."],
+  cms_contacts:["Контакты","Aloqa","Contacts"],
+  cms_follow:["Мы в соцсетях","Ijtimoiy tarmoqlarda","Follow us"],
+  cms_info:["Информация","Ma’lumot","Information"],
+  cms_offers:["Предложения","Takliflar","Offers"],
+  cms_play:["Смотреть видео","Videoni ko‘rish","Watch the video"],
+  cms_new_tab:["откроется в новой вкладке","yangi oynada ochiladi","opens in a new tab"],
+  cms_soc_telegram:["Telegram","Telegram","Telegram"],
+  cms_soc_instagram:["Instagram","Instagram","Instagram"],
+  cms_soc_facebook:["Facebook","Facebook","Facebook"],
+  cms_soc_youtube:["YouTube","YouTube","YouTube"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */

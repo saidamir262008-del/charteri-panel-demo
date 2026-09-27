@@ -21,6 +21,10 @@ function destCard(c, i){
 }
 PAGES[""] = {
   render(){
+    // «#/?m=tours» (кнопка баннера из админки) — главная с поиском этого раздела;
+    // адрес сразу «#/», чтобы следующая перерисовка не вернула раздел обратно.
+    const qm = new URLSearchParams(location.hash.split("?")[1] || "").get("m");
+    if (qm) { if (MODULES[qm]) M.module = qm; history.replaceState(null, "", location.pathname + location.search + "#/"); }
     const mod = MODULES[M.module], swapped = M.ui.lastModule && M.ui.lastModule !== M.module;
     M.ui.lastModule = M.module;
     return `<section class="hero"><div class="hero-map" id="mapdock" aria-hidden="true"></div><div class="hero-scrim" aria-hidden="true"></div><div class="container">
@@ -35,18 +39,18 @@ PAGES[""] = {
           <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
           <div class="${swapped && !REDUCED ? "swap-in" : ""}">${modForm(mod)}</div>
         </div></div></div></section>
-      ${departureBoard()}
+      ${cmsBanners("top")}${departureBoard()}
       <section class="container section">
         <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
         <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>
-      <section class="band"><div class="container section">
+      ${cmsBanners("mid")}<section class="band"><div class="container section">
         <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
         <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
           <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>
       <section class="container section">
         <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
         <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(t("how_" + i + "_d"))}</p></li>`).join("")}</ol></section>
-      <section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
+      ${cmsBanners("end")}<section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
         `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(t(k + "_d"))}</p></div></div>`).join("")}</div></section>`;
   },
   after(){ centerActive($(".modtab[aria-selected=\"true\"]")); armBoard(); dockMap(); }
@@ -258,19 +262,24 @@ function centerActive(el){
 function renderNav(key){
   const active = key === "" ? M.module : key.startsWith("charter/") ? key.split("/")[1] : key.split("/")[0];
   const live = S.orders.filter(o => o.start >= TODAY && !["CANCELLED","REFUNDED"].includes(o.status)).length;
-  $("#nav").innerHTML = `<div class="container nav-in">
-    <a class="logo" href="#/" aria-label="Charteri"><span class="wordmark dark">CHARTERI<b>.UZ</b></span></a>
+  // Ссылки из админки — своей строкой под разделами (cmsNavLinks), чтобы не прятать ни то, ни другое.
+  const cmsNav = cmsNavLinks();
+  $("#nav").innerHTML = `<div class="container nav-in ${cmsNav ? "has-cms" : ""}">
+    <a class="logo" href="#/" aria-label="${esc((cmsSiteTitle() || "Charteri").split(" — ")[0])}">${cmsLogo()}</a>
     <nav class="navmods" aria-label="${esc(t("all_services"))}">${MODULE_ORDER.map(k => `<button type="button" data-act="mod" data-v="${k}" aria-current="${active === k}">${esc(t(MODULES[k].label))}</button>`).join("")}</nav>
     <div class="navright">
       <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
       <div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>
       <a class="navlink" href="#/orders" aria-current="${key.startsWith("orders")}">${IC.bag}<span>${esc(t("my_orders"))}</span>${live ? `<i class="badge">${live}</i>` : ""}</a>
       <a class="navlink" href="#/${S.user ? "account" : "login"}" aria-current="${key === "account" || key === "login"}">${IC.user}<span>${esc(S.user ? t("tab_profile") : t("sign_in"))}</span></a>
-    </div></div>`;
+    </div>${cmsNav}</div>`;
   centerActive($('.navmods [aria-current="true"]'));
-  $("#footer").innerHTML = `<div class="container foot-in">
-    <div class="stack" style="gap:8px"><span class="wordmark">CHARTERI<b>.UZ</b></span><p class="small">${esc(t("tagline"))}</p></div>
+  cmsNavArm();
+  // Колонки из админки (информация, контакты) — между услугами и оплатой.
+  const extra = cmsFootCols();
+  $("#footer").innerHTML = `<div class="container foot-in" style="--fc:${2 + extra.length}">
+    <div class="stack" style="gap:8px">${cmsFootLogo()}<p class="small">${esc(t("tagline"))}</p></div>
     <div class="stack" style="gap:6px"><b>${esc(t("all_services"))}</b>${MODULE_ORDER.map(k => `<button type="button" class="footlink" data-act="mod" data-v="${k}">${esc(t(MODULES[k].label))}</button>`).join("")}</div>
-    <div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${PAY_METHODS.map(m => `<span>${m[1]}</span>`).join("")}</div></div>
+    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${PAY_METHODS.map(m => `<span>${m[1]}</span>`).join("")}</div></div>
     <p class="foot-note small">${esc(t("demo_footer"))}<br>${esc(t("credits"))}</p></div>`;
 }

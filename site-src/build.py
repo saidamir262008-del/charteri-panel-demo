@@ -10,10 +10,17 @@
   python3 build.py b2b admin    только перечисленные
 
 Общие модули лежат в js/ (данные, поиск, отели, туры, чартеры, оформление,
-карта, табло, фото). Страницы сайта — js/70-pages.js и js/99-boot.js, в кабинет
-и админку они не входят. Страницы кабинета — b2b/*.js, его оформление —
-b2b/panel.css поверх общего styles.css. Админка берёт из кабинета только общие
-части (строки, состояние и деньги, документы с брендом) и свои страницы admin/*.js.
+карта, табло, фото, содержимое сайта из админки). Страницы сайта — js/70-pages.js,
+js/71-cms-pages.js и js/99-boot.js (SITE_ONLY), в кабинет и админку они не
+входят. Страницы кабинета — b2b/*.js, его оформление — b2b/panel.css поверх
+общего styles.css. Админка берёт из кабинета только общие части (строки,
+состояние и деньги, документы с брендом) и свои страницы admin/*.js.
+
+Админке нужны тексты сайта такими, какими их видит посетитель: её строки
+перекрывают часть ключей сайта. Поэтому в её сборку сразу за js/01-strings.js
+(до строк кабинета и админки) вставляются SITE_KEYS — все ключи, которые может
+показать сайт (строки js/01-strings.js и ключи словаря приложения из кода
+сайта), и SITE_STR — их копия на трёх языках в тот момент.
 
 Перед сборкой проверяет, что каждый ключ строки, который встречается в коде
 приложения, есть в словаре мобильного приложения (00-data.js) или в строках
@@ -24,13 +31,14 @@ import base64, json, pathlib, re, sys
 here = pathlib.Path(__file__).parent
 MIME = {".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp"}
 
+SITE_ONLY = ("70-pages.js", "71-cms-pages.js", "99-boot.js")
 APPS = {
     "b2c": {"files": sorted((here / "js").glob("*.js")),
             "css": ["styles.css"], "shell": "shell.html", "out": here.parent / "b2c" / "index.html"},
-    "b2b": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in ("70-pages.js", "99-boot.js")]
+    "b2b": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in SITE_ONLY]
                      + sorted((here / "b2b").glob("*.js")),
             "css": ["styles.css", "b2b/panel.css"], "shell": "b2b/shell.html", "out": here.parent / "index.html"},
-    "admin": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in ("70-pages.js", "99-boot.js")]
+    "admin": {"files": [p for p in sorted((here / "js").glob("*.js")) if p.name not in SITE_ONLY]
                        + [here / "b2b" / n for n in ("01-strings-b2b.js", "10-state.js", "15-common.js")]
                        + sorted((here / "admin").glob("*.js")),
               "css": ["styles.css", "b2b/panel.css", "admin/admin.css"], "shell": "admin/shell.html", "out": here.parent / "admin" / "index.html"},
@@ -83,6 +91,17 @@ for f in sorted((here / "img" / "airlines").glob("*-wordmark.*")):
         marks[f.stem.split("-")[0]] = f"data:{MIME[f.suffix]};base64," + base64.b64encode(f.read_bytes()).decode()
 logo_js = "/* ---- логотипы (build.py) ---- */\nconst LOGOS = " + json.dumps(logos) + ";\nconst WORDMARKS = " + json.dumps(marks) + ";\n"
 
+# ---- тексты сайта для админки ------------------------------------------------------
+def site_snapshot():
+    """SITE_KEYS и SITE_STR: что и на каком языке показывает сайт (см. докстринг)."""
+    code = "\n".join(p.read_text() for p in APPS["b2c"]["files"] if p.name not in STRING_FILES)
+    words = set(re.findall(r'"([A-Za-z]\w*)"', code))
+    prefixes = set(re.findall(r'"([a-z_]+_)"\s*\+', code))
+    keys = str_keys(here / "js/01-strings.js") | {k for k in app_keys if k in words or any(k.startswith(p) for p in prefixes)}
+    return ("/* ---- тексты сайта для админки (build.py) ---- */\n"
+            f"const SITE_KEYS = {json.dumps(sorted(keys))};\n"
+            "const SITE_STR = Object.fromEntries(SITE_KEYS.map(k => [k, I18N[k] ? [I18N[k].ru, I18N[k].uz ?? I18N[k].ru, I18N[k].en ?? I18N[k].ru] : [...STR[k]]]));\n")
+
 # ---- сборка ------------------------------------------------------------------------
 def build(name):
     app = APPS[name]
@@ -90,6 +109,10 @@ def build(name):
     n_used, n_pref = check_strings(app["files"], known)
     js = f'"use strict";\nconst APP = "{name}";\n' + "\n".join(f"/* ---- {p.name} ---- */\n" + p.read_text() for p in app["files"])
     js = js.replace("/* ---- 10-core.js ---- */", logo_js + "/* ---- 10-core.js ---- */", 1)
+    if name == "admin":                 # сразу за строками сайта, до строк кабинета и админки
+        names = [p.name for p in app["files"]]
+        after = f"/* ---- {names[names.index('01-strings.js') + 1]} ---- */"
+        js = js.replace(after, site_snapshot() + after, 1)
     css = "\n".join((here / c).read_text() for c in app["css"])
     out = (here / app["shell"]).read_text().replace("/*__CSS__*/", css).replace("/*__JS__*/", js)
     app["out"].parent.mkdir(exist_ok=True)

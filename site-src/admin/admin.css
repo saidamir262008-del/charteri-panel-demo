@@ -271,6 +271,87 @@ a.arow:hover + .arow{box-shadow:none}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .oc-form{gap:10px}
 
+/* ---- управление сайтом ---- */
+.cms-tabs{margin-bottom:14px;min-width:0}
+.cms-tabs .chip[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--paper)}
+.cms-tabs .chip[aria-selected="true"] .chip-n{background:rgba(255,255,255,.2);color:inherit}
+.iconbtn.sm{width:32px;height:32px;border-radius:10px}
+.iconbtn.sm svg{width:18px;height:18px}
+.iconbtn:disabled{opacity:.35}
+.cms-acts{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;justify-content:flex-end}
+/* Черновик, скрытое, корзина: приглушено только название (оттенком, без
+   прозрачности); статус и строка под названием — полной контрастности */
+.arow.cms-dim > .a-main b{color:var(--muted);font-weight:600}
+.cms-table .a-main b{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
+.cms-grp{display:flex;flex-direction:column;gap:2px}
+.cms-grp + .cms-grp{margin-top:10px}
+.cms-grp-h{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);padding:6px 10px 2px}
+.cms-ord{display:inline-flex;gap:2px}
+.cms-open{display:inline-flex;align-items:center;gap:4px}
+.cms-open svg{width:15px;height:15px}
+.cms-form{padding:16px;border-radius:14px;background:var(--sunken)}
+.cms-form input,.cms-form textarea,.cms-form select{background:var(--surface)}
+.cms-lf{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cms-lf legend{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;padding:0}
+.cms-long textarea{min-height:150px}
+.cms-sel,.cms-date{max-width:360px}
+/* .cms-slug — span прямо в .field: снимаем с него оформление подписи поля */
+.field > .cms-slug{position:relative;display:block;font-size:inherit;font-weight:400;letter-spacing:normal;text-transform:none;color:inherit;overflow:visible;white-space:normal}
+.cms-slug i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:14px}
+.cms-slug input{padding-left:42px;font-family:"IBM Plex Mono",monospace}
+/* Образец цвета — фон баннера и «Aa» его цветом текста, как на сайте */
+.cms-sws{display:flex;gap:10px;flex-wrap:wrap}
+.cms-sw{width:56px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--navy);
+  box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow 200ms ease,transform 160ms var(--ease-out)}
+.cms-sw:active{transform:scale(.94)}
+.cms-sw.tone-blue{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff}
+.cms-sw.tone-navy{background:#16275C;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.cms-sw.tone-sky{background:var(--sky)}.cms-sw.tone-mint{background:var(--mint-bg);color:var(--mint)}.cms-sw.tone-sand{background:var(--band);color:var(--ink)}
+.cms-sw[aria-pressed="true"]{box-shadow:inset 0 0 0 1px var(--line),0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
+.cms-icons{display:flex;flex-wrap:wrap;gap:6px}
+.cms-icb{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600}
+.cms-icb svg{width:21px;height:21px}
+.cms-icb[aria-pressed="true"]{border-color:var(--blue);color:var(--blue);box-shadow:0 0 0 2px color-mix(in srgb,var(--blue) 30%,transparent)}
+.cms-img{align-items:center}
+.cms-img img{width:160px;max-width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line);background:var(--surface)}
+.cms-img-logo img{width:auto;height:48px;aspect-ratio:auto;object-fit:contain;padding:6px}
+.cms-img-favicon img{width:48px;height:48px;aspect-ratio:1;object-fit:contain;padding:4px}
+.cms-brand{align-items:start}
+.cms-tx{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
+#cmstxlist > .cms-tx:first-child{border-top:0;padding-top:4px}
+.cms-tx-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cms-tx-h code{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--navy);overflow-wrap:anywhere}
+.cms-def{display:block;font-size:12.5px;line-height:1.4;overflow-wrap:anywhere}
+/* Строка текста: три языка — группа, текст по умолчанию — под полем, вне подписи */
+.cms-txf{border:0;padding:0;margin:0;min-width:0}
+.cms-txc{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cms-tx .field{align-self:start}
+.cms-hero{border-top:1px solid var(--line)}
+.cms-hero > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 2px;border-radius:12px}
+.cms-hero > summary::-webkit-details-marker{display:none}
+.cms-hero > summary b{color:var(--navy)}
+.cms-hero > summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(45deg);transition:transform 200ms var(--ease-out)}
+.cms-hero[open] > summary::after{transform:rotate(225deg)}
+.cms-hero > .stack{padding:0 0 14px}
+.cms-pr{display:flex;align-items:center;gap:14px}
+.cms-pr-t{flex:1;min-width:0}
+/* Ошибки полей: красная рамка и текст под полем */
+.cms-form [aria-invalid="true"],.cms-tx [aria-invalid="true"],#cmsseo [aria-invalid="true"],#cmscontacts [aria-invalid="true"]{border-color:var(--coral);box-shadow:0 0 0 3px color-mix(in srgb,var(--coral) 18%,transparent)}
+.ferr{color:var(--coral);font-size:12.5px;font-weight:500;line-height:1.35}
+#cmserr{white-space:pre-line}
+/* Тексты сайта: свёрнутая строка — текст и ключ */
+.cms-txl{flex-direction:row;align-items:center;gap:10px;padding:6px 0}
+.cms-txl-b{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;margin-inline:-10px;border-radius:12px;text-align:left}
+.cms-txl-b:hover{background:var(--sunken)}
+.cms-txl-t{color:var(--ink);font-weight:500;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.cms-txl-b code{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);overflow-wrap:anywhere}
+.cms-txl-e{display:flex;align-items:center;gap:10px;flex:none}
+.cms-tx.is-open{padding:14px;margin-block:6px;border-radius:14px;background:var(--sunken);border-top:0}
+.cms-tx.is-open + .cms-tx{border-top:0}
+.cms-tx.is-open .cms-tx-h .cms-txl-b{margin:0;padding:0}
+.cms-tx.is-open .cms-tx-h .cms-txl-b:hover{background:none}
+.cms-tx.is-open input,.cms-tx.is-open textarea{background:var(--surface)}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
@@ -304,6 +385,7 @@ a.arow:hover + .arow{box-shadow:none}
   .adj-row .minisel{min-width:0;flex:1 1 100%}
   /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
   .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
+  .cms-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
 @container main (max-width:720px){
   .ofind{flex-wrap:wrap}
@@ -317,6 +399,17 @@ a.arow:hover + .arow{box-shadow:none}
   .au-find .minisel{max-width:none;flex:1 1 45%}
   .pm-legend dl{grid-template-columns:1fr}
   .rule-amt input{width:100%}
+  .cms-tx .sgrid-3,.cms-lf .sgrid-3,.cms-lf .sgrid-2,.cms-brand,#cmscontacts .sgrid-2{grid-template-columns:minmax(0,1fr)}
+  /* Строка списка: название во всю ширину, статус под ним, кнопки — строкой ниже */
+  .cms-table .arow{grid-template-columns:minmax(0,1fr)!important}
+  .cms-table .arow > .a-keep{grid-column:1;justify-self:start;text-align:left;margin-top:4px}
+  .cms-acts{gap:4px 10px}
+  .cms-list-h{flex-direction:column;align-items:stretch}
+  .cms-list-h > .ghost{width:100%;justify-content:center}
+  .cms-pr{flex-direction:column;align-items:stretch;text-align:left}
+  .cms-pr > .ghost{width:100%;justify-content:center}
+  .cms-pr > .task-ic{align-self:flex-start}
+  .cms-txl{flex-wrap:wrap}
 }
 @media (max-width:600px){
   .live-pill{display:none}

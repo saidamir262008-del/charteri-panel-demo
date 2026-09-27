@@ -145,7 +145,8 @@ input:disabled,select:disabled{opacity:.6}
   background:color-mix(in srgb,var(--surface) 76%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
   border:1px solid color-mix(in srgb,var(--line) 80%,transparent);box-shadow:0 12px 32px -20px rgba(22,39,92,.45);view-transition-name:nav}
 .nav-in{display:flex;align-items:center;gap:14px;min-height:60px;padding-inline:16px 10px}
-.navmods{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+/* position — чтобы скрытые для глаз подписи (.sr-only) не выходили из полосы прокрутки и не расширяли страницу */
+.navmods{position:relative;display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
 .navmods::-webkit-scrollbar{display:none}
 .navmods button{padding:8px 10px;border-radius:10px;font-weight:600;font-size:14.5px;color:var(--muted);white-space:nowrap}
 .navmods button:hover{background:var(--sunken);color:var(--ink)}
@@ -547,13 +548,109 @@ input:disabled,select:disabled{opacity:.6}
 
 /* ---- подвал ---- */
 #footer{background:#16275C;color:rgba(255,255,255,.78);margin-top:40px}
-.foot-in{display:grid;grid-template-columns:1.4fr 1fr 1.4fr;gap:28px;padding-block:40px}
+/* --fc — сколько колонок после первой: админка добавляет «Информацию» и «Контакты». */
+.foot-in{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(var(--fc,2),minmax(0,1fr));gap:28px;padding-block:40px}
+.foot-in a.footlink{overflow-wrap:anywhere}
+.foot-soc-h{margin-top:8px;color:rgba(255,255,255,.6)}
 .foot-in b{color:#fff}
 .footlink{color:rgba(255,255,255,.78);font-size:14px;text-align:left}
 .footlink:hover{color:#fff}
 .paychips{display:flex;flex-wrap:wrap;gap:6px}
 .paychips span{font-size:12.5px;padding:4px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
 .foot-note{grid-column:1 / -1;border-top:1px solid rgba(255,255,255,.14);padding-top:18px;color:rgba(255,255,255,.6)}
+
+/* ---- содержимое из админки (71-cms-pages.js) ---- */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.cms-logo{display:block;height:34px;width:auto;max-width:170px;object-fit:contain}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cms-logo{background:#fff;border-radius:9px;padding:3px 8px}}
+:root[data-theme="dark"] .cms-logo{background:#fff;border-radius:9px;padding:3px 8px}
+.foot-logo{align-self:flex-start;display:inline-flex;background:#fff;border-radius:10px;padding:5px 10px}
+.foot-logo img{display:block;height:34px;width:auto;max-width:170px;object-fit:contain}
+/* Ссылки шапки из админки — третьей строкой, мельче разделов */
+.nav-in.has-cms{flex-wrap:wrap;row-gap:0}
+.navcms{position:relative;order:4;flex-basis:100%;min-width:0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+  border-top:1px solid var(--line);padding:5px 0 6px}
+.navcms::-webkit-scrollbar{display:none}
+.navcms a{position:relative;flex:none;padding:5px 10px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.navcms a:hover{background:var(--sunken);color:var(--ink)}
+.navcms a[aria-current="page"]{color:var(--navy);background:var(--sky)}
+/* Значок ссылки из админки — перед подписью, в шапке и в подвале */
+.cms-lic{display:inline-flex;vertical-align:-3px;margin-right:6px}
+.cms-lic svg{width:16px;height:16px}
+.navcms.cms-fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.navcms.cms-fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px);mask-image:linear-gradient(90deg,transparent,#000 36px)}
+.navcms.cms-fl.cms-fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
+.cms-bn-sec + .section{padding-top:8px}
+/* start — баннер без текста не растягивается под высокого соседа */
+.cms-bns{display:grid;gap:16px;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.cms-bn{container-type:inline-size;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border);background:var(--surface);color:var(--ink);min-width:0}
+.cms-bn-in{display:grid;grid-template-columns:minmax(0,1fr);height:100%}
+.cms-bn-in.has-media{grid-template-rows:auto 1fr}
+.cms-bn-in.has-media .cms-bn-media{order:-1}
+@container (min-width:720px){
+  .cms-bn-in.has-media{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:none}
+  .cms-bn-in.has-media .cms-bn-media{order:0}
+}
+.cms-bn-body{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:24px}
+.cms-bn h2{font-size:clamp(20px,2.4vw,26px);overflow-wrap:anywhere}
+.cms-bn p{margin:0;max-width:62ch;color:var(--muted)}
+.cms-bn .solid{margin-top:6px}
+.cms-bn-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
+.cms-bn-ic svg{width:24px;height:24px}
+.cms-bn-media{position:relative;min-width:0;background:var(--sunken)}
+.cms-bn-media > img{display:block;width:100%;height:100%;min-height:180px;aspect-ratio:16/9;object-fit:cover}
+.cms-vid{position:relative;width:100%;height:100%;min-height:180px;aspect-ratio:16/9;background:linear-gradient(135deg,var(--hero-a),var(--hero-b))}
+.cms-vid img,.cms-vid iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0}
+.cms-play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:600;
+  background:linear-gradient(180deg,transparent 30%,rgba(8,14,34,.55))}
+.cms-play span{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(8,14,34,.6);box-shadow:0 0 0 2px rgba(255,255,255,.7);
+  transition:transform 160ms var(--ease-out)}
+.cms-play span svg{width:30px;height:30px;margin-left:3px}
+.cms-play:hover span{transform:scale(1.06)}
+.cms-play:active span{transform:scale(.97)}
+/* Кольцо фокуса — вокруг круглой кнопки: снаружи его обрезал бы баннер, а синее терялось бы на синем */
+.cms-play:focus-visible{outline:none}
+.cms-play:focus-visible span{box-shadow:0 0 0 3px #fff,0 0 0 6px #16275C}
+.tone-blue{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff}
+.tone-navy{background:#16275C;color:#fff}
+.tone-blue h2,.tone-navy h2{color:#fff}
+.tone-blue p,.tone-navy p{color:rgba(255,255,255,.84)}
+.tone-blue .cms-bn-ic,.tone-navy .cms-bn-ic{background:rgba(255,255,255,.14);color:#fff}
+.tone-blue .solid,.tone-navy .solid{background:#fff;color:#16275C}
+.tone-blue .solid:hover,.tone-navy .solid:hover{background:#E7EFFC}
+/* Синее кольцо фокуса на синем и тёмно-синем фоне не видно — белое, с зазором */
+.tone-blue .solid:focus-visible,.tone-navy .solid:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.tone-sky{background:var(--sky)}
+.tone-mint{background:var(--mint-bg)}
+.tone-mint .cms-bn-ic{background:var(--surface);color:var(--mint)}
+.tone-sand{background:var(--band)}
+.tone-sky .cms-bn-ic,.tone-sand .cms-bn-ic{background:var(--surface)}
+.cms-page{max-width:760px;display:flex;flex-direction:column;gap:12px}
+.cms-page > h1{align-self:flex-start;max-width:100%;font-size:clamp(26px,3.4vw,36px);overflow-wrap:anywhere}
+.cms-page h1:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:6px}
+.cms-page .backlink{align-self:flex-start;margin-bottom:0}
+.cms-body{display:flex;flex-direction:column;gap:12px;line-height:1.6;overflow-wrap:anywhere}
+.cms-body p,.cms-body ul{margin:0}
+.cms-body ul{padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.cms-body h2{font-size:21px;margin-top:10px}
+.cms-body h3{font-size:17px;margin-top:6px}
+.cms-faq-g{display:flex;flex-direction:column}
+.cms-faq-g + .cms-faq-g{margin-top:26px}
+.cms-faq-g > h2{font-size:20px;margin-bottom:6px}
+.cms-qa{border-bottom:1px solid var(--line)}
+.cms-qa summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 4px;font-weight:600;color:var(--navy);border-radius:10px}
+.cms-qa summary::-webkit-details-marker{display:none}
+.cms-qa summary::after{content:"";flex:none;width:10px;height:10px;border-right:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(45deg) translate(-2px,-2px);transition:transform 200ms var(--ease-out)}
+.cms-qa[open] summary::after{transform:rotate(225deg) translate(-2px,-2px)}
+.cms-qa .cms-body{padding:0 4px 18px}
+.cms-news{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.cms-nc{position:relative;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border)}
+.cms-nc > img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.cms-nc-b{display:flex;flex-direction:column;gap:6px;padding:16px 18px 18px}
+.cms-nc h2{font-size:18px;overflow-wrap:anywhere}
+.cms-nc h2 a::after{content:"";position:absolute;inset:0}
+.cms-nc p{margin:0}
+.cms-hero-img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r);margin-block:6px}
 
 /* ---- тост и оверлей ---- */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);border-radius:14px;
@@ -604,11 +701,13 @@ input:disabled,select:disabled{opacity:.6}
   .ho-buy .solid{width:auto;margin-top:0}
   .destgrid{grid-template-columns:repeat(2,1fr)}
   .how,.trust{grid-template-columns:1fr}
-  .foot-in{grid-template-columns:1fr}
+  .foot-in{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .foot-in > :first-child{grid-column:1 / -1}
   .cal{grid-template-columns:repeat(7,minmax(128px,1fr))}
 }
 @media (max-width:600px){
   .container{padding-inline:16px}
+  .foot-in{grid-template-columns:minmax(0,1fr)}
   .hero{padding-block:calc(var(--navh, 104px) + 24px) 36px;--hero-top:calc(var(--navh, 104px) + 24px)}
   /* «Откуда» и «Куда» друг под другом, «поменять» справа между ними —
      как пара полей в мобильном приложении; в строку названия не помещаются. */
@@ -1571,6 +1670,87 @@ a.arow:hover + .arow{box-shadow:none}
 .filebtn input{position:absolute;inset:0;opacity:0;cursor:pointer}
 .oc-form{gap:10px}
 
+/* ---- управление сайтом ---- */
+.cms-tabs{margin-bottom:14px;min-width:0}
+.cms-tabs .chip[aria-selected="true"]{background:var(--navy);border-color:var(--navy);color:var(--paper)}
+.cms-tabs .chip[aria-selected="true"] .chip-n{background:rgba(255,255,255,.2);color:inherit}
+.iconbtn.sm{width:32px;height:32px;border-radius:10px}
+.iconbtn.sm svg{width:18px;height:18px}
+.iconbtn:disabled{opacity:.35}
+.cms-acts{display:flex;align-items:center;gap:6px 12px;flex-wrap:wrap;justify-content:flex-end}
+/* Черновик, скрытое, корзина: приглушено только название (оттенком, без
+   прозрачности); статус и строка под названием — полной контрастности */
+.arow.cms-dim > .a-main b{color:var(--muted);font-weight:600}
+.cms-table .a-main b{white-space:normal;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2}
+.cms-grp{display:flex;flex-direction:column;gap:2px}
+.cms-grp + .cms-grp{margin-top:10px}
+.cms-grp-h{font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint);padding:6px 10px 2px}
+.cms-ord{display:inline-flex;gap:2px}
+.cms-open{display:inline-flex;align-items:center;gap:4px}
+.cms-open svg{width:15px;height:15px}
+.cms-form{padding:16px;border-radius:14px;background:var(--sunken)}
+.cms-form input,.cms-form textarea,.cms-form select{background:var(--surface)}
+.cms-lf{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.cms-lf legend{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:8px;padding:0}
+.cms-long textarea{min-height:150px}
+.cms-sel,.cms-date{max-width:360px}
+/* .cms-slug — span прямо в .field: снимаем с него оформление подписи поля */
+.field > .cms-slug{position:relative;display:block;font-size:inherit;font-weight:400;letter-spacing:normal;text-transform:none;color:inherit;overflow:visible;white-space:normal}
+.cms-slug i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--faint);font-family:"IBM Plex Mono",monospace;font-size:14px}
+.cms-slug input{padding-left:42px;font-family:"IBM Plex Mono",monospace}
+/* Образец цвета — фон баннера и «Aa» его цветом текста, как на сайте */
+.cms-sws{display:flex;gap:10px;flex-wrap:wrap}
+.cms-sw{width:56px;height:42px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:15px;color:var(--navy);
+  box-shadow:inset 0 0 0 1px var(--line);transition:box-shadow 200ms ease,transform 160ms var(--ease-out)}
+.cms-sw:active{transform:scale(.94)}
+.cms-sw.tone-blue{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff}
+.cms-sw.tone-navy{background:#16275C;color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.18)}
+.cms-sw.tone-sky{background:var(--sky)}.cms-sw.tone-mint{background:var(--mint-bg);color:var(--mint)}.cms-sw.tone-sand{background:var(--band);color:var(--ink)}
+.cms-sw[aria-pressed="true"]{box-shadow:inset 0 0 0 1px var(--line),0 0 0 2px var(--surface),0 0 0 4px var(--blue)}
+.cms-icons{display:flex;flex-wrap:wrap;gap:6px}
+.cms-icb{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600}
+.cms-icb svg{width:21px;height:21px}
+.cms-icb[aria-pressed="true"]{border-color:var(--blue);color:var(--blue);box-shadow:0 0 0 2px color-mix(in srgb,var(--blue) 30%,transparent)}
+.cms-img{align-items:center}
+.cms-img img{width:160px;max-width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;box-shadow:inset 0 0 0 1px var(--line);background:var(--surface)}
+.cms-img-logo img{width:auto;height:48px;aspect-ratio:auto;object-fit:contain;padding:6px}
+.cms-img-favicon img{width:48px;height:48px;aspect-ratio:1;object-fit:contain;padding:4px}
+.cms-brand{align-items:start}
+.cms-tx{display:flex;flex-direction:column;gap:10px;padding:14px 0;border-top:1px solid var(--line)}
+#cmstxlist > .cms-tx:first-child{border-top:0;padding-top:4px}
+.cms-tx-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cms-tx-h code{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--navy);overflow-wrap:anywhere}
+.cms-def{display:block;font-size:12.5px;line-height:1.4;overflow-wrap:anywhere}
+/* Строка текста: три языка — группа, текст по умолчанию — под полем, вне подписи */
+.cms-txf{border:0;padding:0;margin:0;min-width:0}
+.cms-txc{display:flex;flex-direction:column;gap:4px;min-width:0}
+.cms-tx .field{align-self:start}
+.cms-hero{border-top:1px solid var(--line)}
+.cms-hero > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:12px;padding:12px 2px;border-radius:12px}
+.cms-hero > summary::-webkit-details-marker{display:none}
+.cms-hero > summary b{color:var(--navy)}
+.cms-hero > summary::after{content:"";margin-left:auto;width:9px;height:9px;border-right:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(45deg);transition:transform 200ms var(--ease-out)}
+.cms-hero[open] > summary::after{transform:rotate(225deg)}
+.cms-hero > .stack{padding:0 0 14px}
+.cms-pr{display:flex;align-items:center;gap:14px}
+.cms-pr-t{flex:1;min-width:0}
+/* Ошибки полей: красная рамка и текст под полем */
+.cms-form [aria-invalid="true"],.cms-tx [aria-invalid="true"],#cmsseo [aria-invalid="true"],#cmscontacts [aria-invalid="true"]{border-color:var(--coral);box-shadow:0 0 0 3px color-mix(in srgb,var(--coral) 18%,transparent)}
+.ferr{color:var(--coral);font-size:12.5px;font-weight:500;line-height:1.35}
+#cmserr{white-space:pre-line}
+/* Тексты сайта: свёрнутая строка — текст и ключ */
+.cms-txl{flex-direction:row;align-items:center;gap:10px;padding:6px 0}
+.cms-txl-b{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:8px 10px;margin-inline:-10px;border-radius:12px;text-align:left}
+.cms-txl-b:hover{background:var(--sunken)}
+.cms-txl-t{color:var(--ink);font-weight:500;overflow-wrap:anywhere;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden}
+.cms-txl-b code{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--faint);overflow-wrap:anywhere}
+.cms-txl-e{display:flex;align-items:center;gap:10px;flex:none}
+.cms-tx.is-open{padding:14px;margin-block:6px;border-radius:14px;background:var(--sunken);border-top:0}
+.cms-tx.is-open + .cms-tx{border-top:0}
+.cms-tx.is-open .cms-tx-h .cms-txl-b{margin:0;padding:0}
+.cms-tx.is-open .cms-tx-h .cms-txl-b:hover{background:none}
+.cms-tx.is-open input,.cms-tx.is-open textarea{background:var(--surface)}
+
 /* ---- вход ---- */
 
 /* ---- узкая колонка ---- */
@@ -1604,6 +1784,7 @@ a.arow:hover + .arow{box-shadow:none}
   .adj-row .minisel{min-width:0;flex:1 1 100%}
   /* Сотрудники: кнопки — отдельной строкой под человеком, имени нужно место. */
   .st-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
+  .cms-table .arow > .a-end{grid-column:1 / -1;justify-self:start;justify-content:flex-start;text-align:left;margin-top:6px}
 }
 @container main (max-width:720px){
   .ofind{flex-wrap:wrap}
@@ -1617,6 +1798,17 @@ a.arow:hover + .arow{box-shadow:none}
   .au-find .minisel{max-width:none;flex:1 1 45%}
   .pm-legend dl{grid-template-columns:1fr}
   .rule-amt input{width:100%}
+  .cms-tx .sgrid-3,.cms-lf .sgrid-3,.cms-lf .sgrid-2,.cms-brand,#cmscontacts .sgrid-2{grid-template-columns:minmax(0,1fr)}
+  /* Строка списка: название во всю ширину, статус под ним, кнопки — строкой ниже */
+  .cms-table .arow{grid-template-columns:minmax(0,1fr)!important}
+  .cms-table .arow > .a-keep{grid-column:1;justify-self:start;text-align:left;margin-top:4px}
+  .cms-acts{gap:4px 10px}
+  .cms-list-h{flex-direction:column;align-items:stretch}
+  .cms-list-h > .ghost{width:100%;justify-content:center}
+  .cms-pr{flex-direction:column;align-items:stretch;text-align:left}
+  .cms-pr > .ghost{width:100%;justify-content:center}
+  .cms-pr > .task-ic{align-self:flex-start}
+  .cms-txl{flex-wrap:wrap}
 }
 @media (max-width:600px){
   .live-pill{display:none}
@@ -2036,7 +2228,27 @@ const STR = {
   board_flight:["Рейс","Reys","Flight"],
   board_to:["Направление","Yo‘nalish","Destination"],
   board_price:["Цена","Narx","Fare"],
-  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"]
+  map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"],
+  /* содержимое из админки (13-cms.js, 71-cms-pages.js) */
+  cms_faq:["Вопросы и ответы","Savol va javoblar","Questions and answers"],
+  cms_faq_sub:["Коротко о том, как работают заказы, оплата и возврат","Buyurtma, to‘lov va qaytarish qanday ishlashi haqida qisqacha","How orders, payment and refunds work, in short"],
+  cms_faq_empty:["Вопросов пока нет","Hozircha savollar yo‘q","No questions yet"],
+  cms_faq_other:["Общие вопросы","Umumiy savollar","General questions"],
+  cms_news:["Новости","Yangiliklar","News"],
+  cms_news_sub:["Что нового в Charteri","Charteri’da nima yangi","What’s new at Charteri"],
+  cms_news_empty:["Новостей пока нет","Hozircha yangiliklar yo‘q","No news yet"],
+  cms_missing:["Страница не найдена","Sahifa topilmadi","Page not found"],
+  cms_missing_d:["Её убрали, или в адресе опечатка.","U olib tashlangan yoki manzilda xato bor.","It was removed, or the address has a typo."],
+  cms_contacts:["Контакты","Aloqa","Contacts"],
+  cms_follow:["Мы в соцсетях","Ijtimoiy tarmoqlarda","Follow us"],
+  cms_info:["Информация","Ma’lumot","Information"],
+  cms_offers:["Предложения","Takliflar","Offers"],
+  cms_play:["Смотреть видео","Videoni ko‘rish","Watch the video"],
+  cms_new_tab:["откроется в новой вкладке","yangi oynada ochiladi","opens in a new tab"],
+  cms_soc_telegram:["Telegram","Telegram","Telegram"],
+  cms_soc_instagram:["Instagram","Instagram","Instagram"],
+  cms_soc_facebook:["Facebook","Facebook","Facebook"],
+  cms_soc_youtube:["YouTube","YouTube","YouTube"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
@@ -2056,6 +2268,9 @@ const PL = {
 const I18N_FIX = { boarding: { uz: "Bortga chiqish" } };
 for (const [k, v] of Object.entries(I18N_FIX)) Object.assign(I18N[k], v);
 
+/* ---- тексты сайта для админки (build.py) ---- */
+const SITE_KEYS = ["accept_new_price", "adults", "age_adult", "age_child", "age_child_tour", "age_infant", "aircraft", "aircraft_class", "airlines", "all", "all_services", "all_services_sub", "am_beach", "am_golf", "am_kids", "am_pool", "am_spa", "am_wifi", "any_price", "appearance", "back", "back_results", "baggage", "beach_first", "beach_m", "beach_none", "best", "board", "board_AI", "board_BB", "board_HB", "board_RO", "board_UAI", "board_dep", "board_flight", "board_now", "board_price", "board_status", "board_sub", "board_time", "board_title", "board_to", "boarding", "book", "book_tour", "booking_confirmed", "booking_ref", "business", "cabin_class", "cancel", "carryon", "change", "change_number", "change_out", "checkin", "checkin_from", "checkout", "checkout_title", "checkout_until", "children", "children_free", "choose_room", "citizenship", "city", "clear_filters", "cls_auto", "cms_contacts", "cms_faq", "cms_faq_empty", "cms_faq_other", "cms_faq_sub", "cms_follow", "cms_info", "cms_missing", "cms_missing_d", "cms_new_tab", "cms_news", "cms_news_empty", "cms_news_sub", "cms_offers", "cms_play", "cms_soc_facebook", "cms_soc_instagram", "cms_soc_telegram", "cms_soc_youtube", "confirming_body", "confirming_title", "contact_details", "contact_phone", "credits", "cur_uzs", "currency", "customer", "date", "dates", "delete_traveller_title", "demo_banner", "demo_footer", "dep_time", "depart", "details", "dir_gone", "direct", "distance", "dob", "doc_FLIGHT", "doc_HELI", "doc_HOTEL", "doc_JET", "doc_TOUR", "doc_sent", "done", "economy", "edit_search", "email_opt", "err_blocked", "err_checkout", "err_code", "err_contact", "err_date_past", "err_dob", "err_email", "err_expiry", "err_gender", "err_generic", "err_name", "err_nights_max", "err_passport", "err_phone", "err_promo_empty", "err_promo_expired", "err_promo_min", "err_promo_svc", "err_promo_unknown", "err_promo_used", "err_return", "err_rooms", "err_same_city", "err_total", "err_your_name", "est_line", "estimate", "estimate_note", "expiry", "fare_note", "filter_direct", "filters", "find_hotels", "find_tours", "flight_details", "flight_rt", "flight_time", "for_nights", "found_hotels", "found_n", "found_tours", "from", "fs_boarding", "fs_checkin", "fs_closed", "fs_departed", "fs_sched", "fs_tomorrow", "gate", "gender", "gender_f", "gender_m", "given_name", "grp_international", "grp_uzbekistan", "guest_details", "guest_note", "guests", "h", "heli_base", "heli_base_short", "heli_calc", "heli_max", "heli_note_ph", "heli_rt", "heli_sub", "heli_title", "heli_tour_note", "heli_type", "hero_eyebrow", "hero_flights", "hero_flights_sub", "hero_heli", "hero_heli_sub", "hero_hotels", "hero_hotels_sub", "hero_jet", "hero_jet_sub", "hero_tours", "hero_tours_sub", "history", "home", "hotel", "hotel_note", "hour", "how_1", "how_1_d", "how_2", "how_2_d", "how_3", "how_3_d", "how_title", "incl_flight", "incl_flight_full", "incl_hotel_full", "incl_insurance", "incl_insurance_full", "incl_transfer", "incl_transfer_full", "included", "infant_fare", "infants", "insurance", "insurance_basic", "jet_calc", "jet_heavy", "jet_light", "jet_max", "jet_mid", "jet_note_ph", "jet_sub", "jet_supermid", "jet_title", "kg", "km", "language", "lead_guest", "leg_back", "leg_out", "login_cta", "login_sub", "login_title", "m", "map_aria", "mgr_body", "mgr_title", "min", "mod_flights", "mod_heli", "mod_hotels", "mod_jet", "mod_tours", "my_orders", "nav_book", "new_price", "nights", "no_aircraft", "no_results", "no_results_body", "offline_note", "old_price", "oneway", "order_changed", "order_missing", "orders_count", "orders_empty", "orders_empty_d", "orders_sub", "otp_cta", "otp_hint", "otp_sub", "otp_title", "package_discount", "passenger", "passenger_details", "passengers", "passport_no", "past_trips", "pax_adult", "pax_child", "pax_infant", "pay_demo_note", "pay_method", "pay_now", "payment", "per_night", "per_passenger", "per_person", "phone_label", "popular_dest", "popular_dest_sub", "price_calendar", "price_changed_body", "price_changed_title", "price_confirmed", "price_from", "price_night", "price_ready", "price_ready_d", "processing", "profile_guest", "promo_apply", "promo_auto_line", "promo_better_auto", "promo_changed", "promo_h", "promo_line", "promo_ok", "promo_ph", "promo_remove", "remove", "req_kind_cancel", "req_kind_change_date", "req_kind_change_passenger", "req_kind_label", "req_kind_other", "req_local_note", "req_note", "req_note_ph", "req_reply", "req_status_declined", "req_status_done", "req_status_new", "req_submit", "req_title", "request_change", "reset_confirm", "reset_demo", "return_", "room", "room_deluxe", "room_deluxe_d", "room_family", "room_family_d", "room_standard", "room_standard_d", "room_suite", "room_suite_d", "rooms", "rooms_title", "roundtrip", "route", "route_when", "save_traveller", "save_vs", "saved_travellers", "search_cta", "searching_providers", "seat", "seats_left", "secure_note", "select_flight", "select_traveller", "send_request", "settings", "sign_in", "sign_out", "signed_in", "signed_out", "site_cancel_d", "site_cancel_h", "site_penalty", "site_refund_done", "site_refund_wait", "sort", "sort_cheapest", "sort_early", "sort_fastest", "sort_rating", "sort_stars", "sqm", "st_CANCELLED", "st_COMPLETED", "st_CONFIRMED", "st_NEW", "st_PAID", "st_PENDING", "st_REFUNDED", "stars_label", "surname", "svc_flights", "svc_heli", "svc_hotels", "svc_jet", "svc_off_d", "svc_off_h", "svc_tours", "swap", "t_day", "t_evening", "t_morning", "t_night", "tab_profile", "tagline", "theme_dark", "theme_light", "theme_system", "time", "to", "to_checkout", "toast_confirmed", "toast_priced", "total", "tour_flights", "tour_includes", "tour_pp", "tour_price", "tour_to", "tourists", "transfer", "transfer_group", "travellers_empty_body", "trip_kind", "trips_start", "trust_1", "trust_1_d", "trust_2", "trust_2_d", "trust_3", "trust_3_d", "type_FLIGHT", "type_HELI", "type_HOTEL", "type_JET", "type_TOUR", "up_to_seats", "upcoming", "verifying_price", "via", "view_ticket", "view_voucher", "we_accept", "where_to", "wishes", "your_fare", "your_name"];
+const SITE_STR = Object.fromEntries(SITE_KEYS.map(k => [k, I18N[k] ? [I18N[k].ru, I18N[k].uz ?? I18N[k].ru, I18N[k].en ?? I18N[k].ru] : [...STR[k]]]));
 /* ---- 02-catalog.js ---- */
 /* ==========================================================================
    Каталог демо: отели, самолёты, вертолёты, координаты.
@@ -2462,7 +2677,9 @@ window.addEventListener("storage", e => { if (e.key === PRICES_KEY) { PRICES = n
 
 /* ---- язык ---- */
 const LIDX = { ru:0, uz:1, en:2 };
+/* На сайте текст можно заменить в админке (13-cms.js): замена на языке экрана — первой. */
 function t(k){
+  if (APP === "b2c") { const o = cmsTexts()[k]?.[S.lang]; if (o) return o; }
   const a = I18N[k]; if (a) return a[S.lang] ?? a.ru;
   const b = STR[k];  if (b) return b[LIDX[S.lang]] ?? b[0];
   return k;
@@ -2567,11 +2784,14 @@ function render(scrollTop = true){
 }
 /* Новая страница: заголовок вкладки — по её h1, фокус — на h1, чтобы клавиатура
    и экранный диктор начинали с неё, а не с начала документа. Перерисовка той
-   же страницы (фильтр, степпер) фокус не трогает. */
+   же страницы (фильтр, степпер) фокус не трогает. На сайте название, описание
+   и значок вкладки задаёт админка (13-cms.js), у страницы могут быть свои. */
 const BASE_TITLE = document.title;
 function announcePage(isNav){
-  const h = $("#app h1");
-  document.title = h && currentParts().length ? `${h.textContent.trim()} — ${BASE_TITLE.split(" — ")[0]}` : BASE_TITLE;
+  const h = $("#app h1"), parts = currentParts();
+  const base = (APP === "b2c" && cmsSiteTitle()) || BASE_TITLE, seo = APP === "b2c" ? cmsRouteSeo(parts) : null;
+  document.title = seo?.title || (h && parts.length ? `${h.textContent.trim()} — ${base.split(" — ")[0]}` : base);
+  if (APP === "b2c") cmsApplyHead(seo?.desc);
   if (!isNav || !h || !announcePage.ready) { announcePage.ready = true; return; }
   if ($("#app").contains(document.activeElement)) return;
   h.tabIndex = -1; h.focus({ preventScroll:true });
@@ -2868,6 +3088,273 @@ window.addEventListener("storage", e => {
   if (!S) return;
   if (changed && DIR_PAGES.includes(currentParts()[0])) { toast(t("dir_gone")); go(SEARCH_PATH); return; }
   onExternalChange();
+});
+
+/* ---- 13-cms.js ---- */
+/* ==========================================================================
+   Содержимое сайта из админки (CMS). Админка пишет его в CMS_KEY, сайт
+   читает при загрузке и при изменении в другой вкладке. Кабинет файл тоже
+   загружает, но содержимое сайта не показывает.
+
+   { v:1, texts:{ ключ:{ru,uz,en} }, site:{ title, desc, logo, favicon, phone,
+     email, address, socials:{telegram,instagram,facebook,youtube} }, items:[…] }
+   texts — замены строк сайта (t() берёт их первыми); site — название и
+   описание для поисковиков, логотип, значок вкладки, контакты, соцсети.
+   Элемент: { id, type, status, deleted, order, at, by, …поля типа }:
+     banner  title, text, btn, href, icon, image, video, tone, place
+     page    slug, title, body, seoTitle, seoDesc, menu, mo
+     faq     q, a, group
+     news    title, date, image, text
+     link    label, href, place, icon, mo
+   mo — место в меню своего места (шапка или подвал): страницы с меню и ссылки
+   идут в нём одним списком (cmsMenuItems), order у них — только для списков админки.
+   Тексты — {ru,uz,en}; status — draft | published | hidden; deleted — время
+   переноса в корзину (0 — не в корзине). Ключа нет — встроенное содержимое
+   (cmsDefaults): так демо сразу показывает страницы, и «Сбросить все демо»
+   к нему возвращает.
+   ========================================================================== */
+"use strict";
+
+const CMS_KEY = "charteri.cms";
+const CMS_LANGS = ["ru", "uz", "en"];
+const CMS_TYPES = ["banner", "page", "faq", "news", "link"];
+const CMS_STATUS = ["draft", "published", "hidden"];
+const CMS_PLACES = ["top", "mid", "end"], CMS_MENUS = ["none", "header", "footer"], CMS_LINK_PLACES = ["header", "footer"];
+const CMS_ICONS = ["flights", "tours", "hotels", "jet", "heli", "shield", "globe", "clock", "star", "ok", "bag"];
+const CMS_TONES = ["blue", "navy", "sky", "mint", "sand"];
+const CMS_SOCIALS = ["telegram", "instagram", "facebook", "youtube"];
+/* Картинка — строкой data:, поэтому пределы в символах. Всё хранилище —
+   не больше CMS_MAX: localStorage у сайта один на всех (≈ 5 МБ). */
+const CMS_IMG_MAX = 400_000, CMS_MAX = 2_500_000, CMS_ITEMS_MAX = 300, CMS_TEXTS_MAX = 800, CMS_TEXT_MAX = 1000;
+const CMS_LEN = { title:120, text:600, btn:40, q:200, a:2000, body:20000, label:40, seoTitle:70, seoDesc:200, group:60, news:5000, siteTitle:80, siteDesc:200, address:160 };
+const CMS_IMG_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
+const CMS_SLUG_RE = /^[a-z0-9-]{2,40}$/, CMS_YT_RE = /^[\w-]{11}$/, CMS_ID_RE = /^[\w-]{1,40}$/, CMS_TKEY_RE = /^[A-Za-z][\w]{0,60}$/;
+const CMS_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+let CMS_CACHE = null;
+
+Object.assign(IC, {
+  up:     svg('<path d="M6 15l6-6 6 6"/>'),
+  down:   svg('<path d="M6 9l6 6 6-6"/>'),
+  ext:    svg('<path d="M14 4h6v6M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
+  play:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5.5v13l11-6.5z"/></svg>',
+  layout: svg('<rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M3.5 9h17M9 9v11"/>')
+});
+
+/* Значок элемента. Звезда в IC залита цветом рейтинга отеля (.stars svg) —
+   здесь она берёт цвет текста, как контурные значки. */
+const cmsIcon = k => k === "star" ? IC.star.replace("<path ", '<path fill="currentColor" ') : IC[k] || "";
+
+/* ---- проверка чужих данных ----
+   Всё из хранилища — чужое: берём только известные поля в правильном виде. */
+const cmsL = (v, max) => Object.fromEntries(CMS_LANGS.map(l => [l, typeof v?.[l] === "string" ? v[l].trim().slice(0, max) : ""]));
+const cmsImg = v => typeof v === "string" && v.length <= CMS_IMG_MAX && CMS_IMG_RE.test(v) ? v : null;
+const cmsEnum = (v, list, def) => list.includes(v) ? v : def;
+const cmsPhone = v => typeof v === "string" && /^\+?[\d\s()-]{7,20}$/.test(v.trim()) ? v.trim() : "";
+const cmsEmail = v => typeof v === "string" && v.trim().length <= 80 && /^[^@\s"'<>]+@[^@\s"'<>]+\.[^@\s"'<>]+$/.test(v.trim()) ? v.trim() : "";
+const cmsDate = v => typeof v === "string" && CMS_DATE_RE.test(v) && !isNaN(parseYMD(v)) ? v : "";
+/* Ссылка: адрес сайта (http/https), телефон, почта или страница этого сайта
+   «#/…». Всё прочее (javascript:, data: и т. п.) — пустая строка. */
+function cmsSafeHref(h){
+  if (typeof h !== "string") return "";
+  const s = h.trim(); if (!s || s.length > 300) return "";
+  if (/^#\/[\w\-/.~%?=&]*$/.test(s)) return s;
+  if (/^tel:\+?[\d\s()-]{3,30}$/.test(s)) return s.replace(/\s/g, "");
+  if (/^mailto:[^@\s"'<>]+@[^@\s"'<>]+\.[^@\s"'<>]+$/.test(s)) return s;
+  try { const u = new URL(s); return (u.protocol === "https:" || u.protocol === "http:") && u.hostname.includes(".") ? u.href : ""; } catch(e) { return ""; }
+}
+const cmsWebHref = h => { const v = cmsSafeHref(h); return /^https?:/.test(v) ? v : ""; };
+const cmsIsExt = h => /^https?:/.test(h);
+/* Замена строки сайта — только текст: на сайте t() вставляют в разметку и в
+   атрибуты без экранирования. Поэтому без < > и ", апостроф — типографский. */
+const CMS_TX_BAD = /[<>"]/;
+const cmsTx = s => s.replace(/[<>"]/g, "").replace(/'/g, "’");
+const cmsMo = (x, it) => Number.isInteger(x.mo) ? clamp(x.mo, 0, 9999) : it.order;
+/* Адрес, как его ввёл человек: «charteri.uz/…» и «www.…» — это https. */
+const cmsNormHref = h => { const s = String(h ?? "").trim(); return /^(www\.|[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,})(\/|$)/i.test(s) ? "https://" + s : s; };
+
+const CMS_CLEAN = {
+  banner: (x, it) => ({ ...it, title:cmsL(x.title, CMS_LEN.title), text:cmsL(x.text, CMS_LEN.text), btn:cmsL(x.btn, CMS_LEN.btn), href:cmsSafeHref(x.href),
+    icon:cmsEnum(x.icon, CMS_ICONS, ""), image:cmsImg(x.image), video:typeof x.video === "string" && CMS_YT_RE.test(x.video) ? x.video : "",
+    tone:cmsEnum(x.tone, CMS_TONES, "blue"), place:cmsEnum(x.place, CMS_PLACES, "top") }),
+  page: (x, it) => CMS_SLUG_RE.test(x.slug) ? { ...it, slug:x.slug, title:cmsL(x.title, CMS_LEN.title), body:cmsL(x.body, CMS_LEN.body),
+    seoTitle:cmsL(x.seoTitle, CMS_LEN.seoTitle), seoDesc:cmsL(x.seoDesc, CMS_LEN.seoDesc), menu:cmsEnum(x.menu, CMS_MENUS, "none"), mo:cmsMo(x, it) } : null,
+  faq: (x, it) => ({ ...it, q:cmsL(x.q, CMS_LEN.q), a:cmsL(x.a, CMS_LEN.a), group:cmsL(x.group, CMS_LEN.group) }),
+  news: (x, it) => cmsDate(x.date) ? { ...it, title:cmsL(x.title, CMS_LEN.title), date:x.date, image:cmsImg(x.image), text:cmsL(x.text, CMS_LEN.news) } : null,
+  link: (x, it) => cmsSafeHref(x.href) ? { ...it, label:cmsL(x.label, CMS_LEN.label), href:cmsSafeHref(x.href), place:cmsEnum(x.place, CMS_LINK_PLACES, "footer"), icon:cmsEnum(x.icon, CMS_ICONS, ""), mo:cmsMo(x, it) } : null
+};
+/* Главное поле элемента: по нему элемент называют в списках и журнале. */
+const CMS_MAIN = { banner:"title", page:"title", faq:"q", news:"title", link:"label" };
+function cmsCleanItem(x){
+  if (!x || typeof x !== "object" || typeof x.id !== "string" || !CMS_ID_RE.test(x.id) || !CMS_TYPES.includes(x.type) || !CMS_STATUS.includes(x.status)) return null;
+  const it = { id:x.id, type:x.type, status:x.status, deleted:Number.isFinite(x.deleted) && x.deleted > 0 ? x.deleted : 0,
+    order:Number.isInteger(x.order) ? clamp(x.order, 0, 9999) : 0, at:Number.isFinite(x.at) ? x.at : 0, by:typeof x.by === "string" ? x.by.slice(0, 60) : "" };
+  const r = CMS_CLEAN[x.type](x, it);
+  if (r && x.type === "faq" && !r.a.ru) return null;
+  return r && r[CMS_MAIN[x.type]].ru ? r : null;
+}
+function cmsClean(r){
+  if (!r || typeof r !== "object" || r.v !== 1) return null;
+  const texts = {};
+  if (r.texts && typeof r.texts === "object" && !Array.isArray(r.texts))
+    for (const [k, v] of Object.entries(r.texts).slice(0, CMS_TEXTS_MAX)) { if (!CMS_TKEY_RE.test(k)) continue;
+      const l = Object.fromEntries(Object.entries(cmsL(v, CMS_TEXT_MAX)).map(([x, s]) => [x, cmsTx(s)])); if (CMS_LANGS.some(x => l[x])) texts[k] = l; }
+  const s = r.site && typeof r.site === "object" ? r.site : {};
+  const site = { title:cmsL(s.title, CMS_LEN.siteTitle), desc:cmsL(s.desc, CMS_LEN.siteDesc), logo:cmsImg(s.logo), favicon:cmsImg(s.favicon),
+    phone:cmsPhone(s.phone), email:cmsEmail(s.email), address:cmsL(s.address, CMS_LEN.address),
+    socials:Object.fromEntries(CMS_SOCIALS.map(k => [k, cmsWebHref(s.socials?.[k])])) };
+  // Повтор номера или адреса страницы — берём первый: второй перекрыл бы его на сайте.
+  const ids = new Set(), slugs = new Set(), items = [];
+  for (const raw of (Array.isArray(r.items) ? r.items : []).slice(0, CMS_ITEMS_MAX)) {
+    const x = cmsCleanItem(raw); if (!x || ids.has(x.id) || (x.slug && slugs.has(x.slug))) continue;
+    ids.add(x.id); if (x.slug) slugs.add(x.slug); items.push(x);
+  }
+  return { v:1, texts, site, items };
+}
+
+/* ---- встроенное содержимое ----
+   Ответы FAQ — ровно о том, как работает демо: способы оплаты из оформления,
+   цена чартера от менеджера, «Изменить или отменить» в карточке заказа,
+   возврат за вычетом штрафа поставщика. */
+function cmsDefaults(){
+  const sup = CONFIG.support || {}, tg = String(sup.telegram || "").trim().replace(/^@/, "");
+  const it = (id, type, order, x) => ({ id, type, status:"published", deleted:0, order, at:0, by:"Charteri", ...x });
+  return cmsClean({ v:1, texts:{},
+    site:{ title:{ ru:"Charteri — авиабилеты, туры, отели и частные рейсы", uz:"Charteri — aviachiptalar, turlar, mehmonxonalar va xususiy reyslar", en:"Charteri — flights, tours, hotels and private charters" },
+      desc:{ ru:"Демонстрация сайта Charteri: авиабилеты, туры, отели, частные самолёты и вертолёты из Узбекистана. Оплата Payme, Click, Uzum, Uzcard, Humo или картой.",
+        uz:"Charteri sayti namoyishi: O‘zbekistondan aviachiptalar, turlar, mehmonxonalar, xususiy samolyot va vertolyotlar. To‘lov Payme, Click, Uzum, Uzcard, Humo yoki karta orqali.",
+        en:"Charteri site demo: flights, tours, hotels, private jets and helicopters from Uzbekistan. Pay with Payme, Click, Uzum, Uzcard, Humo or a card." },
+      logo:null, favicon:null, phone:sup.phone || "", email:sup.email || "", address:{ ru:"", uz:"", en:"" },
+      socials:{ telegram:/^[\w]{3,32}$/.test(tg) ? "https://t.me/" + tg : cmsWebHref(sup.telegram), instagram:"", facebook:"", youtube:"" } },
+    items:[
+      it("c-about", "page", 0, { slug:"about", menu:"footer",
+        title:{ ru:"О компании", uz:"Kompaniya haqida", en:"About us" },
+        seoTitle:{ ru:"О компании Charteri", uz:"Charteri kompaniyasi haqida", en:"About Charteri" },
+        seoDesc:{ ru:"Charteri — бронирование авиабилетов, туров, отелей и частных рейсов из Узбекистана.", uz:"Charteri — O‘zbekistondan aviachipta, tur, mehmonxona va xususiy reyslarni bron qilish.", en:"Charteri books flights, tours, hotels and private charters from Uzbekistan." },
+        body:{
+          ru:"Charteri — сервис бронирования путешествий из Узбекистана: авиабилеты, туры, отели, частные самолёты и вертолёты в одном месте.\n\n## Что мы делаем\n- Ищем рейсы и показываем цены до оплаты\n- Собираем туры «перелёт + отель + трансфер»\n- Бронируем отели на курортах и в городах\n- Организуем частные рейсы на самолёте и вертолёте\n\n## Как с нами работать\nПассажиры бронируют на этом сайте, турагентства — в своём кабинете Charteri. Оплата — Payme, Click, Uzum, Uzcard, Humo или картой Visa и Mastercard. Билеты и ваучеры приходят с кодом брони и QR-кодом.\n\nЭто демонстрация на тестовых данных: деньги не списываются, названия отелей вымышлены.",
+          uz:"Charteri — O‘zbekistondan sayohatlarni bron qilish xizmati: aviachiptalar, turlar, mehmonxonalar, xususiy samolyot va vertolyotlar bir joyda.\n\n## Nima qilamiz\n- Reyslarni topamiz va narxni to‘lovdan oldin ko‘rsatamiz\n- «Parvoz + mehmonxona + transfer» turlarini yig‘amiz\n- Kurort va shaharlarda mehmonxona bron qilamiz\n- Samolyot va vertolyotda xususiy reyslar tashkil qilamiz\n\n## Biz bilan qanday ishlash mumkin\nYo‘lovchilar shu saytda, turagentliklar Charteri kabinetida bron qiladi. To‘lov — Payme, Click, Uzum, Uzcard, Humo yoki Visa va Mastercard kartasi. Chipta va vaucherlar bron kodi va QR-kod bilan keladi.\n\nBu test ma’lumotlaridagi namoyish: pul yechilmaydi, mehmonxona nomlari o‘ylab topilgan.",
+          en:"Charteri books trips from Uzbekistan: flights, tours, hotels, private jets and helicopters in one place.\n\n## What we do\n- Find flights and show the price before you pay\n- Put together tours: flight, hotel and transfer\n- Book hotels at resorts and in cities\n- Arrange private flights by jet and helicopter\n\n## How to work with us\nTravellers book on this site, travel agencies in their Charteri workspace. Pay with Payme, Click, Uzum, Uzcard, Humo or a Visa or Mastercard card. Tickets and vouchers come with a booking reference and a QR code.\n\nThis is a demo on test data: no money is charged and hotel names are fictional." } }),
+      it("c-faq-pay", "faq", 0, { group:{ ru:"Оплата и возврат", uz:"To‘lov va qaytarish", en:"Payment and refunds" },
+        q:{ ru:"Как оплатить заказ?", uz:"Buyurtmani qanday to‘lash mumkin?", en:"How do I pay?" },
+        a:{ ru:"Через Payme, Click или Uzum, картой Uzcard или Humo, а также картой Visa или Mastercard — способ выбирается на шаге оплаты. В демо деньги не списываются.",
+          uz:"Payme, Click yoki Uzum orqali, Uzcard yoki Humo kartasi, shuningdek Visa yoki Mastercard kartasi bilan — usul to‘lov bosqichida tanlanadi. Demoda pul yechilmaydi.",
+          en:"With Payme, Click or Uzum, an Uzcard or Humo card, or a Visa or Mastercard card — you choose at the payment step. The demo charges no money." } }),
+      it("c-faq-refund", "faq", 1, { group:{ ru:"Оплата и возврат", uz:"To‘lov va qaytarish", en:"Payment and refunds" },
+        q:{ ru:"Вернут ли деньги, если отменить бронь?", uz:"Bron bekor qilinsa, pul qaytariladimi?", en:"Do I get my money back if I cancel?" },
+        a:{ ru:"Да, за вычетом штрафа поставщика по правилам услуги. Штраф и сумму возврата вы увидите в карточке заказа, деньги возвращаются на карту.",
+          uz:"Ha, xizmat qoidalari bo‘yicha yetkazib beruvchi jarimasi ushlab qolinadi. Jarima va qaytariladigan summa buyurtma kartasida ko‘rinadi, pul kartaga qaytadi.",
+          en:"Yes, minus the supplier’s penalty under the service rules. The order card shows the penalty and the refund; the money goes back to your card." } }),
+      it("c-faq-change", "faq", 2, { group:{ ru:"Заказы", uz:"Buyurtmalar", en:"Orders" },
+        q:{ ru:"Как перенести дату, поменять пассажира или отменить бронь?", uz:"Sanani qanday ko‘chirish, yo‘lovchini almashtirish yoki bronni bekor qilish mumkin?", en:"How do I change the date or passenger, or cancel?" },
+        a:{ ru:"Откройте заказ в «Моих заказах» и нажмите «Изменить или отменить». Выберите, что нужно сделать, и оставьте комментарий — оператор ответит в карточке заказа.",
+          uz:"«Buyurtmalarim»da buyurtmani oching va «O‘zgartirish yoki bekor qilish» tugmasini bosing. Nima qilish kerakligini tanlab, izoh qoldiring — operator javobi buyurtma kartasida chiqadi.",
+          en:"Open the order in My orders and press Change or cancel. Pick what you need and leave a comment — the operator replies in the order card." } }),
+      it("c-faq-docs", "faq", 3, { group:{ ru:"Заказы", uz:"Buyurtmalar", en:"Orders" },
+        q:{ ru:"Где мой билет или ваучер?", uz:"Chipta yoki vaucherim qayerda?", en:"Where is my ticket or voucher?" },
+        a:{ ru:"В разделе «Мои заказы». После оплаты там появляется документ с кодом брони и QR-кодом.",
+          uz:"«Buyurtmalarim» bo‘limida. To‘lovdan keyin u yerda bron kodi va QR-kodli hujjat paydo bo‘ladi.",
+          en:"In My orders. After payment the document with the booking reference and a QR code appears there." } }),
+      it("c-faq-charter", "faq", 4, { group:{ ru:"Частные рейсы", uz:"Xususiy reyslar", en:"Private flights" },
+        q:{ ru:"Как заказать частный самолёт или вертолёт?", uz:"Xususiy samolyot yoki vertolyotni qanday buyurtma qilish mumkin?", en:"How do I book a private jet or helicopter?" },
+        a:{ ru:"Выберите маршрут, дату и число пассажиров — сайт покажет ориентировочную цену. После заявки менеджер проверит борт и слоты в аэропортах и пришлёт точную цену, обычно за 15 минут. Оплата — только после вашего подтверждения.",
+          uz:"Yo‘nalish, sana va yo‘lovchilar sonini tanlang — sayt taxminiy narxni ko‘rsatadi. So‘rovdan keyin menejer samolyot va aeroport slotlarini tekshirib, aniq narxni odatda 15 daqiqada yuboradi. To‘lov — faqat sizning tasdig‘ingizdan keyin.",
+          en:"Pick the route, date and number of passengers — the site shows an estimate. After your request a manager checks the aircraft and airport slots and sends the exact price, usually within 15 minutes. You pay only after you confirm." } }),
+      it("c-news-demo", "news", 0, { date:"2026-09-20", image:null,
+        title:{ ru:"Сайт Charteri открыт в демо-режиме", uz:"Charteri sayti demo rejimida ochildi", en:"The Charteri site is open in demo mode" },
+        text:{ ru:"На сайте работают все пять разделов: авиабилеты, туры, отели, частные самолёты и вертолёты.\n\n- Цена показывается до оплаты\n- Документы приходят с QR-кодом\n- Заявку на частный рейс оценивает менеджер\n\nЭто демонстрация на тестовых данных: деньги не списываются.",
+          uz:"Saytda beshta bo‘lim ishlaydi: aviachiptalar, turlar, mehmonxonalar, xususiy samolyot va vertolyotlar.\n\n- Narx to‘lovdan oldin ko‘rsatiladi\n- Hujjatlar QR-kod bilan keladi\n- Xususiy reys so‘rovini menejer baholaydi\n\nBu test ma’lumotlaridagi namoyish: pul yechilmaydi.",
+          en:"All five sections work: flights, tours, hotels, private jets and helicopters.\n\n- You see the price before you pay\n- Documents come with a QR code\n- A manager prices private flight requests\n\nThis is a demo on test data: no money is charged." } }),
+      // Черновик: на сайте его нет, пока в админке не нажмут «Опубликовать».
+      // «#/?m=tours» — главная с открытым поиском туров (PAGES[""]).
+      { ...it("c-banner-tours", "banner", 0, { place:"top", tone:"blue", icon:"tours", href:"#/?m=tours", image:null, video:"",
+        title:{ ru:"Туры на лето — бронируйте заранее", uz:"Yozgi turlar — oldindan bron qiling", en:"Summer tours — book early" },
+        text:{ ru:"Пакет «перелёт + отель + трансфер» дешевле, чем покупать всё по отдельности.", uz:"«Parvoz + mehmonxona + transfer» paketi hammasini alohida sotib olishdan arzonroq.", en:"A flight, hotel and transfer package costs less than buying each separately." },
+        btn:{ ru:"Выбрать тур", uz:"Tur tanlash", en:"Choose a tour" } }), status:"draft" }
+    ] });
+}
+
+/* ---- чтение и запись ---- */
+function cmsLoad(){
+  if (CMS_CACHE) return CMS_CACHE;
+  return (CMS_CACHE = cmsClean(readJSON(CMS_KEY, null)) || cmsDefaults());
+}
+/* Перед правкой — свежие данные: другая вкладка админки могла записать их только что. */
+function cmsFresh(){ CMS_CACHE = null; return cmsLoad(); }
+const cmsClone = x => JSON.parse(JSON.stringify(x));
+/* Запись: false — не поместилось (предел CMS_MAX или хранилище браузера полно). */
+function cmsWrite(next){
+  const clean = cmsClean(next); if (!clean) return false;
+  const json = JSON.stringify(clean);
+  if (json.length > CMS_MAX) return false;
+  try { localStorage.setItem(CMS_KEY, json); } catch(e) { return false; }
+  CMS_CACHE = clean; return true;
+}
+const cmsTexts = () => (CMS_CACHE || cmsLoad()).texts;
+const cmsSite = () => cmsLoad().site;
+const cmsText = v => v?.[S.lang] || v?.ru || "";
+/* Элементы типа по порядку; published — только опубликованные, trash — только корзина. */
+function cmsItems(type, { published = false, trash = false } = {}){
+  return cmsLoad().items.filter(x => (!type || x.type === type) && (trash ? !!x.deleted : !x.deleted) && (!published || x.status === "published"))
+    .sort((a, b) => a.order - b.order || a.at - b.at);
+}
+/* Меню места: страницы с этим меню и ссылки — одним списком по mo; при
+   равных — страница раньше ссылки, внутри вида — по order (сортировка стабильна). */
+const cmsMenuOf = x => x.type === "link" ? x.place : x.type === "page" ? x.menu : "";
+function cmsMenuList(items, place){
+  const of = ty => items.filter(x => x.type === ty && cmsMenuOf(x) === place).sort((a, b) => a.order - b.order || a.at - b.at);
+  return [...of("page"), ...of("link")].sort((a, b) => a.mo - b.mo);
+}
+const cmsMenuItems = (place, opts) => cmsMenuList(cmsItems(null, opts), place);
+/* Новости — новые сверху; в один день — созданная позже выше. */
+const cmsByDate = (a, b) => b.date.localeCompare(a.date) || b.order - a.order || b.at - a.at;
+const cmsPageBySlug = slug => cmsItems("page", { published:true }).find(x => x.slug === slug) || null;
+
+/* Текст страницы: пустая строка — новый абзац, «- » — пункт списка,
+   «## » — подзаголовок. HTML не принимается: всё экранируется. */
+function cmsBody(text, h = "h2"){
+  const out = []; let para = [], list = [];
+  const flushP = () => { if (para.length) out.push(`<p>${para.map(esc).join("<br>")}</p>`); para = []; };
+  const flushL = () => { if (list.length) out.push(`<ul>${list.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`); list = []; };
+  for (const raw of String(text || "").split(/\r?\n/)) {
+    const l = raw.trim();
+    if (!l) { flushP(); flushL(); continue; }
+    if (l.startsWith("## ")) { flushP(); flushL(); out.push(`<${h}>${esc(l.slice(3))}</${h}>`); continue; }
+    if (l.startsWith("- ")) { flushP(); list.push(l.slice(2)); continue; }
+    flushL(); para.push(l);
+  }
+  flushP(); flushL();
+  return out.join("");
+}
+/* Первый абзац без разметки — для карточки новости и описания страницы. */
+function cmsExcerpt(text, max = 180){
+  const p = String(text || "").split(/\r?\n\s*\r?\n/).map(s => s.replace(/^(## |- )/gm, "").replace(/\s+/g, " ").trim()).find(Boolean) || "";
+  return p.length > max ? p.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : p;
+}
+
+/* ---- заголовок вкладки, описание и значок сайта ---- */
+const CMS_HEAD0 = { desc:$('meta[name="description"]')?.content || "", icon:$('link[rel="icon"]')?.getAttribute("href") || "" };
+const cmsSiteTitle = () => cmsText(cmsSite().title);
+/* Своё название и описание страницы сайта (или null — берутся общие). */
+function cmsRouteSeo(parts){
+  if (parts[0] === "p" && parts.length === 2) { const p = cmsPageBySlug(safeDecode(parts[1])); if (p) return { title:cmsText(p.seoTitle), desc:cmsText(p.seoDesc) || cmsExcerpt(cmsText(p.body), 200) }; }
+  if (parts[0] === "news" && parts.length === 2) { const n = cmsItems("news", { published:true }).find(x => x.id === parts[1]); if (n) return { title:"", desc:cmsExcerpt(cmsText(n.text), 200) }; }
+  return null;
+}
+function cmsApplyHead(desc){
+  const d = desc || cmsText(cmsSite().desc) || CMS_HEAD0.desc;
+  const set = (sel, v) => { const m = $(sel); if (m && m.getAttribute("content") !== v) m.setAttribute("content", v); };
+  set('meta[name="description"]', d); set('meta[property="og:description"]', d); set('meta[property="og:title"]', document.title);
+  const icon = $('link[rel="icon"]'), href = cmsSite().favicon || CMS_HEAD0.icon;
+  if (icon && icon.getAttribute("href") !== href) icon.setAttribute("href", href);
+}
+
+/* Админка в другой вкладке изменила содержимое (или сбросила демо). */
+window.addEventListener("storage", e => {
+  if (e.key !== CMS_KEY && e.key !== null) return;
+  CMS_CACHE = null;
+  if (!S || APP === "b2b") return;
+  onExternalChange();
+  if (APP === "b2c") announcePage(false);
 });
 
 /* ---- 15-motion.js ---- */
@@ -5773,10 +6260,10 @@ Object.assign(STR, {
   rd_sysadmin:["Сотрудники, направления, интеграции и журнал. Денег не видит.","Xodimlar, yo‘nalishlar, integratsiyalar va jurnal. Pulni ko‘rmaydi.","Staff, destinations, integrations and the log. No access to money."],
   rd_finance:["Пополнения, возвраты, балансы агентств и выгрузки.","To‘ldirishlar, qaytimlar, agentlik balanslari va yuklab olish.","Top-ups, refunds, agency balances and exports."],
   rd_b2b:["Агентства: подключение, реквизиты, блокировка; их заказы.","Agentliklar: ulash, rekvizitlar, bloklash; ularning buyurtmalari.","Agencies: onboarding, details, blocking; their orders."],
-  rd_b2c:["Пассажиры сайта: их заказы и просьбы.","Sayt yo‘lovchilari: buyurtmalari va so‘rovlari.","Site customers: their orders and requests."],
+  rd_b2c:["Пассажиры сайта: их заказы и просьбы; видит содержимое сайта.","Sayt yo‘lovchilari: buyurtmalari va so‘rovlari; sayt mazmunini ko‘radi.","Site customers: their orders and requests; can view site content."],
   rd_sales:["Заказы и цены чартеров; смотрит агентства и клиентов.","Buyurtmalar va charter narxlari; agentlik va mijozlarni ko‘radi.","Orders and charter prices; can view agencies and customers."],
   rd_ops:["Подтверждения у поставщиков, отмены, новые агентства, направления.","Yetkazib beruvchida tasdiqlash, bekor qilish, yangi agentliklar, yo‘nalishlar.","Supplier confirmations, cancellations, new agencies, destinations."],
-  rd_content:["Направления и витрина сайта.","Yo‘nalishlar va sayt vitrinasi.","Destinations and the site’s showcase."],
+  rd_content:["Содержимое сайта: страницы, баннеры, вопросы и ответы, новости, тексты, SEO; направления.","Sayt mazmuni: sahifalar, bannerlar, savol-javoblar, yangiliklar, matnlar, SEO; yo‘nalishlar.","Site content: pages, banners, FAQ, news, texts, SEO; destinations."],
   rd_support:["Отвечает пассажирам; смотрит заказы и агентства.","Yo‘lovchilarga javob beradi; buyurtma va agentliklarni ko‘radi.","Answers passengers; can view orders and agencies."],
   rd_viewer:["Только просмотр и выгрузки для отчётов.","Faqat ko‘rish va hisobot uchun yuklab olish.","View only, plus exports for reports."],
 
@@ -6334,7 +6821,200 @@ Object.assign(STR, {
   pm_sta_used:["Исчерпана","Tugagan limit","Used up"],
   pm_edit_auto:["Акция","Aksiya","Offer"],
   pm_del_q_auto:["Удалить акцию «{code}»?","«{code}» aksiyasini o‘chirasizmi?","Delete the offer “{code}”?"],
-  pm_auto_limit:["Лимит у акции считает заказы, к которым она применилась.","Aksiya limiti u qo‘llangan buyurtmalarni hisoblaydi.","An offer’s limit counts the orders it was applied to."]
+  pm_auto_limit:["Лимит у акции считает заказы, к которым она применилась.","Aksiya limiti u qo‘llangan buyurtmalarni hisoblaydi.","An offer’s limit counts the orders it was applied to."],
+  /* ---- управление сайтом (73-cms.js, 74-cms-edit.js, 76-cms-site.js) ---- */
+  an_cms:["Управление сайтом","Saytni boshqarish","Site content"],
+  cms_sub:["Главная, страницы, меню и подвал, вопросы и ответы, новости, тексты, SEO и бренд. Сайт показывает изменения сразу.","Bosh sahifa, sahifalar, menyu va pastki qism, savol-javoblar, yangiliklar, matnlar, SEO va brend. Sayt o‘zgarishlarni darhol ko‘rsatadi.","Home page, pages, menus and footer, FAQ, news, texts, SEO and brand. The site shows changes at once."],
+  m_content:["Сайт","Sayt","Site content"],
+  pm_content_view:["видеть содержимое сайта","sayt mazmunini ko‘rish","see site content"],
+  pm_content_create:["добавлять баннеры, страницы, вопросы, новости, ссылки","banner, sahifa, savol, yangilik, havola qo‘shish","add banners, pages, questions, news, links"],
+  pm_content_edit:["менять содержимое, порядок и тексты сайта","mazmun, tartib va sayt matnlarini o‘zgartirish","edit content, order and site texts"],
+  pm_content_delete:["удалять в корзину, восстанавливать, удалять навсегда","savatga o‘chirish, tiklash, butunlay o‘chirish","move to trash, restore, delete for good"],
+  pm_content_manage:["публиковать и скрывать; SEO, логотип, значок, контакты","e’lon qilish va yashirish; SEO, logotip, belgi, kontaktlar","publish and hide; SEO, logo, icon, contacts"],
+  a_cms_create:["Добавлено на сайт: {what} «{name}»","Saytga qo‘shildi: {what} «{name}»","Added to the site: {what} “{name}”"],
+  a_cms_edit:["Изменено на сайте: {what} «{name}»","Saytda o‘zgartirildi: {what} «{name}»","Edited on the site: {what} “{name}”"],
+  a_cms_publish:["Опубликовано на сайте: {what} «{name}»","Saytda e’lon qilindi: {what} «{name}»","Published on the site: {what} “{name}”"],
+  a_cms_hide:["Скрыто с сайта: {what} «{name}»","Saytdan yashirildi: {what} «{name}»","Hidden from the site: {what} “{name}”"],
+  a_cms_delete:["Перенесено в корзину: {what} «{name}»","Savatga o‘tkazildi: {what} «{name}»","Moved to trash: {what} “{name}”"],
+  a_cms_restore:["Восстановлено из корзины: {what} «{name}»","Savatdan tiklandi: {what} «{name}»","Restored from trash: {what} “{name}”"],
+  a_cms_purge:["Удалено навсегда: {what} «{name}»","Butunlay o‘chirildi: {what} «{name}»","Deleted for good: {what} “{name}”"],
+  a_cms_text:["Изменён текст сайта {key}","Sayt matni o‘zgartirildi: {key}","Site text changed: {key}"],
+  a_cms_site:["Изменены настройки сайта: {what}","Sayt sozlamalari o‘zgartirildi: {what}","Site settings changed: {what}"],
+  a_cms_order:["Изменён порядок: {what} «{name}»","Tartib o‘zgartirildi: {what} «{name}»","Order changed: {what} “{name}”"],
+  cms_tab_home:["Главная","Bosh sahifa","Home page"],
+  cms_tab_pages:["Страницы","Sahifalar","Pages"],
+  cms_tab_menu:["Меню и подвал","Menyu va pastki qism","Menus and footer"],
+  cms_tab_faq:["FAQ","FAQ","FAQ"],
+  cms_tab_news:["Новости","Yangiliklar","News"],
+  cms_tab_texts:["Тексты сайта","Sayt matnlari","Site texts"],
+  cms_tab_seo:["SEO и бренд","SEO va brend","SEO and brand"],
+  cms_tab_trash:["Корзина","Savat","Trash"],
+  cms_t_banner:["баннер","banner","banner"],
+  cms_t_page:["страница","sahifa","page"],
+  cms_t_faq:["вопрос","savol","question"],
+  cms_t_news:["новость","yangilik","news item"],
+  cms_t_link:["ссылка","havola","link"],
+  cms_st_draft:["Черновик","Qoralama","Draft"],
+  cms_st_published:["Опубликовано","E’lon qilingan","Published"],
+  cms_st_hidden:["Скрыто","Yashirilgan","Hidden"],
+  cms_in_trash:["В корзине","Savatda","In trash"],
+  cms_was:["до удаления: {st}","o‘chirishdan oldin: {st}","before deletion: {st}"],
+  cms_new:["Новый","Yangi","New"],
+  cms_h_banner:["Баннеры на главной","Bosh sahifadagi bannerlar","Home page banners"],
+  cms_h_page:["Страницы","Sahifalar","Pages"],
+  cms_h_faq:["Вопросы и ответы","Savol va javoblar","Questions and answers"],
+  cms_h_news:["Новости","Yangiliklar","News"],
+  cms_h_link:["Ссылки в меню и подвале","Menyu va pastki qismdagi havolalar","Menu and footer links"],
+  cms_d_banner:["Заголовок, текст, кнопка, картинка или видео. Место на главной: под поиском, после направлений или внизу.","Sarlavha, matn, tugma, rasm yoki video. Bosh sahifadagi joyi: qidiruv ostida, yo‘nalishlardan keyin yoki pastda.","Title, text, button, image or video. Placed below search, after destinations or near the bottom of the home page."],
+  cms_d_page:["Страница по адресу /p/…: текст, заголовок и описание для поисковиков, место в меню.","/p/… manzilidagi sahifa: matn, qidiruv tizimlari uchun sarlavha va tavsif, menyudagi o‘rni.","A page at /p/…: text, search title and description, place in a menu."],
+  cms_d_faq:["Раздел «Вопросы и ответы» на сайте; ссылка на него появляется в подвале.","Saytdagi «Savol va javoblar» bo‘limi; unga havola pastki qismda paydo bo‘ladi.","The site’s FAQ section; a link to it appears in the footer."],
+  cms_d_news:["Лента новостей на сайте; ссылка на неё появляется в подвале.","Saytdagi yangiliklar lentasi; unga havola pastki qismda paydo bo‘ladi.","The site’s news feed; a link to it appears in the footer."],
+  cms_d_link:["Ссылка на другой сайт, телефон, почту или страницу этого сайта.","Boshqa sayt, telefon, pochta yoki shu saytdagi sahifaga havola.","A link to another site, a phone, an email or a page of this site."],
+  cms_d_trash:["Удалённое можно восстановить — оно вернётся с прежним статусом.","O‘chirilganni tiklash mumkin — avvalgi holati bilan qaytadi.","Anything deleted can be restored with its previous status."],
+  cms_new_banner:["Новый баннер","Yangi banner","New banner"],
+  cms_new_page:["Новая страница","Yangi sahifa","New page"],
+  cms_new_faq:["Новый вопрос","Yangi savol","New question"],
+  cms_new_news:["Новая новость","Yangi yangilik","New news item"],
+  cms_new_link:["Новая ссылка","Yangi havola","New link"],
+  cms_edit_banner:["Баннер","Banner","Banner"],
+  cms_edit_page:["Страница","Sahifa","Page"],
+  cms_edit_faq:["Вопрос","Savol","Question"],
+  cms_edit_news:["Новость","Yangilik","News item"],
+  cms_edit_link:["Ссылка","Havola","Link"],
+  cms_none:["Пока ничего нет","Hozircha hech narsa yo‘q","Nothing here yet"],
+  cms_trash_empty:["Корзина пуста","Savat bo‘sh","The trash is empty"],
+  cms_deleted_ago:["удалено {ago}","o‘chirilgan: {ago}","deleted {ago}"],
+  cms_restore:["Восстановить","Tiklash","Restore"],
+  cms_purge:["Удалить навсегда","Butunlay o‘chirish","Delete for good"],
+  cms_purge_q:["Удалить «{name}» навсегда? Вернуть будет нельзя.","«{name}» butunlay o‘chirilsinmi? Qaytarib bo‘lmaydi.","Delete “{name}” for good? This cannot be undone."],
+  cms_up:["Выше","Yuqoriga","Move up"],
+  cms_down:["Ниже","Pastga","Move down"],
+  cms_hide:["Скрыть","Yashirish","Hide"],
+  cms_publish:["Опубликовать","E’lon qilish","Publish"],
+  cms_open:["На сайте","Saytda","On the site"],
+  cms_save_pub:["Сохранить и опубликовать","Saqlash va e’lon qilish","Save and publish"],
+  cms_save_draft:["Сохранить черновик","Qoralamani saqlash","Save draft"],
+  cms_live_note:["изменения сразу появятся на сайте","o‘zgarishlar saytda darhol ko‘rinadi","changes go live at once"],
+  cms_pr_h:["Акции, скидки, тарифы и цены","Aksiyalar, chegirmalar, tariflar va narxlar","Offers, discounts, fares and prices"],
+  cms_pr_d:["Промокоды, акции, наценки и цены услуг настраиваются в разделе «Услуги и цены» — сайт берёт их оттуда.","Promokodlar, aksiyalar, ustamalar va xizmat narxlari «Xizmatlar va narxlar» bo‘limida sozlanadi — sayt ularni o‘sha yerdan oladi.","Promo codes, offers, markups and service prices live in Services and pricing — the site takes them from there."],
+  cms_menu_note:["Страницы попадают в меню из вкладки «Страницы» — поле «Меню». Порядок страниц и ссылок в шапке и подвале — стрелками в списке выше.","Sahifalar menyuga «Sahifalar» bo‘limidagi «Menyu» maydoni orqali tushadi. Yuqori menyu va pastki qismdagi sahifa va havolalar tartibi — yuqoridagi ro‘yxatdagi strelkalar bilan.","Pages get into a menu from the Pages tab — the Menu field. Use the arrows in the list above to order pages and links in the header and footer."],
+  cms_place_top:["Главная, под поиском","Bosh sahifa, qidiruv ostida","Home, below search"],
+  cms_place_mid:["Главная, после направлений","Bosh sahifa, yo‘nalishlardan keyin","Home, after destinations"],
+  cms_place_end:["Главная, внизу","Bosh sahifa, pastda","Home, near the bottom"],
+  cms_place_header:["Шапка сайта","Yuqori menyu","Site header"],
+  cms_place_footer:["Подвал сайта","Pastki qism","Site footer"],
+  cms_menu_none:["Не в меню","Menyuda emas","Not in a menu"],
+  cms_menu_header:["В шапке","Yuqori menyuda","In the header"],
+  cms_menu_footer:["В подвале","Pastki qismda","In the footer"],
+  cms_f_title:["Заголовок","Sarlavha","Title"],
+  cms_f_text:["Текст","Matn","Text"],
+  cms_f_btn:["Надпись на кнопке","Tugmadagi yozuv","Button label"],
+  cms_f_href:["Ссылка","Havola","Link"],
+  cms_f_place:["Где показать","Qayerda ko‘rsatish","Where to show"],
+  cms_f_tone:["Цвет","Rang","Colour"],
+  cms_f_icon:["Значок","Belgi","Icon"],
+  cms_f_image:["Картинка","Rasm","Image"],
+  cms_f_video:["Видео YouTube","YouTube video","YouTube video"],
+  cms_f_slug:["Адрес страницы","Sahifa manzili","Page address"],
+  cms_f_menu:["Меню","Menyu","Menu"],
+  cms_f_body:["Текст страницы","Sahifa matni","Page text"],
+  cms_f_seoTitle:["Заголовок для поисковиков","Qidiruv tizimlari uchun sarlavha","Search title"],
+  cms_f_seoDesc:["Описание для поисковиков","Qidiruv tizimlari uchun tavsif","Search description"],
+  cms_f_q:["Вопрос","Savol","Question"],
+  cms_f_a:["Ответ","Javob","Answer"],
+  cms_f_group:["Группа","Guruh","Group"],
+  cms_f_date:["Дата","Sana","Date"],
+  cms_f_label:["Надпись","Yozuv","Label"],
+  cms_f_order:["Место в списке","Ro‘yxatdagi o‘rni","Position"],
+  cms_f_logo:["Логотип","Logotip","Logo"],
+  cms_f_favicon:["Значок вкладки","Varaq belgisi","Tab icon"],
+  cms_f_site_title:["Название сайта","Sayt nomi","Site title"],
+  cms_f_site_desc:["Описание сайта","Sayt tavsifi","Site description"],
+  cms_f_site_address:["Адрес","Manzil","Address"],
+  cms_required:["обязательно","majburiy","required"],
+  cms_body_hint:["Пустая строка — новый абзац, «- » в начале строки — пункт списка, «## » — подзаголовок. HTML не нужен.","Bo‘sh qator — yangi xatboshi, qator boshidagi «- » — ro‘yxat bandi, «## » — kichik sarlavha. HTML kerak emas.","A blank line starts a paragraph, “- ” at the start of a line makes a list item, “## ” a subheading. No HTML needed."],
+  cms_href_hint:["Адрес сайта (https://…), страница этого сайта (#/faq, #/p/about), телефон (tel:+998…) или почта (mailto:…).","Sayt manzili (https://…), shu saytdagi sahifa (#/faq, #/p/about), telefon (tel:+998…) yoki pochta (mailto:…).","A web address (https://…), a page of this site (#/faq, #/p/about), a phone (tel:+998…) or an email (mailto:…)."],
+  cms_slug_hint:["Латиница, цифры и дефис, 2–40 знаков. Пусто — возьмём из английского заголовка.","Lotin harflari, raqamlar va chiziqcha, 2–40 belgi. Bo‘sh bo‘lsa — inglizcha sarlavhadan olinadi.","Latin letters, digits and hyphens, 2–40 characters. Leave empty to use the English title."],
+  cms_video_hint:["Ссылка на ролик YouTube. Видео загрузится у посетителя только по нажатию.","YouTube videosiga havola. Video tashrif buyuruvchida faqat bosilganda yuklanadi.","A YouTube link. The video loads for visitors only when they press play."],
+  cms_img_hint:["PNG, JPEG или WebP до 8 МБ — уменьшим до размера для сайта.","8 MB gacha PNG, JPEG yoki WebP — sayt uchun kichraytiramiz.","PNG, JPEG or WebP up to 8 MB — we resize it for the site."],
+  cms_img_prev:["Выбранная картинка","Tanlangan rasm","Selected image"],
+  cms_img_none:["Картинки нет","Rasm yo‘q","No image"],
+  cms_img_upload:["Загрузить","Yuklash","Upload"],
+  cms_img_replace:["Заменить","Almashtirish","Replace"],
+  cms_img_remove:["Убрать","Olib tashlash","Remove"],
+  cms_img_yes:["есть","bor","set"],
+  cms_img_no:["нет","yo‘q","none"],
+  cms_img_new:["новая","yangi","new"],
+  cms_tone_blue:["синий градиент","ko‘k gradient","blue gradient"],
+  cms_tone_navy:["тёмно-синий","to‘q ko‘k","navy"],
+  cms_tone_sky:["голубой","havorang","sky"],
+  cms_tone_mint:["мятный","yalpiz rang","mint"],
+  cms_tone_sand:["песочный","qum rang","sand"],
+  cms_ic_none:["без значка","belgisiz","no icon"],
+  cms_ic_flights:["самолёт","samolyot","plane"],
+  cms_ic_tours:["тур","tur","tour"],
+  cms_ic_hotels:["отель","mehmonxona","hotel"],
+  cms_ic_jet:["частный самолёт","xususiy samolyot","private jet"],
+  cms_ic_heli:["вертолёт","vertolyot","helicopter"],
+  cms_ic_shield:["щит","qalqon","shield"],
+  cms_ic_globe:["глобус","globus","globe"],
+  cms_ic_clock:["часы","soat","clock"],
+  cms_ic_star:["звезда","yulduz","star"],
+  cms_ic_ok:["галочка","tasdiq belgisi","check mark"],
+  cms_ic_bag:["чемодан","chamadon","suitcase"],
+  cms_hero_h:["Заголовки на главной","Bosh sahifa sarlavhalari","Home page headlines"],
+  cms_hero_d:["Крупный заголовок и строка под ним — свои для каждого раздела поиска.","Katta sarlavha va uning ostidagi qator — har bir qidiruv bo‘limi uchun alohida.","The big headline and the line below it — one pair per search section."],
+  cms_tx_changed:["Изменён","O‘zgartirilgan","Changed"],
+  cms_tx_def:["По умолчанию","Standart","Default"],
+  cms_tx_ph:["Оставьте {ph} — сайт подставит туда значение.","{ph} ni qoldiring — sayt u yerga qiymatni qo‘yadi.","Keep {ph} — the site fills in the value."],
+  cms_tx_reset:["Вернуть исходный","Asl matnni qaytarish","Restore default"],
+  cms_tx_d:["Любой текст сайта на трёх языках. Пустое поле — текст по умолчанию.","Saytning istalgan matni uch tilda. Bo‘sh maydon — standart matn.","Any site text in three languages. An empty field keeps the default."],
+  cms_tx_search:["Найти текст или ключ","Matn yoki kalitni topish","Find a text or key"],
+  cms_tx_only:["Только изменённые","Faqat o‘zgartirilganlar","Changed only"],
+  cms_tx_more:["Показано {n} из {total} — уточните поиск","{total} tadan {n} tasi ko‘rsatildi — qidiruvni aniqlashtiring","Showing {n} of {total} — narrow the search"],
+  cms_tx_count:["Найдено: {n}","Topildi: {n}","Found: {n}"],
+  cms_tx_none:["Ничего не найдено","Hech narsa topilmadi","Nothing found"],
+  cms_seo_d:["Название и описание сайта видят поисковики и соцсети; у страницы могут быть свои. Логотип — в шапке сайта, значок — на вкладке браузера.","Sayt nomi va tavsifini qidiruv tizimlari va ijtimoiy tarmoqlar ko‘radi; sahifaning o‘ziniki bo‘lishi mumkin. Logotip — sayt sarlavhasida, belgi — brauzer varag‘ida.","Search engines and social networks see the site title and description; a page can have its own. The logo shows in the site header, the icon on the browser tab."],
+  cms_manage_only:["Менять может сотрудник с правом «Сайт: управление».","Faqat «Sayt: boshqarish» huquqi bor xodim o‘zgartira oladi.","Only staff with the Site content: manage right can change this."],
+  cms_logo_none:["Логотипа нет — в шапке надпись CHARTERI.UZ","Logotip yo‘q — sarlavhada CHARTERI.UZ yozuvi","No logo — the header shows CHARTERI.UZ"],
+  cms_fav_none:["Значок по умолчанию","Standart belgi","Default icon"],
+  cms_logo_hint:["Лучше PNG с прозрачным фоном; уменьшим до 480 px.","Shaffof fonli PNG yaxshiroq; 480 px gacha kichraytiramiz.","A PNG with a transparent background works best; resized to 480 px."],
+  cms_fav_hint:["Квадратная картинка; уменьшим до 64 × 64 px.","Kvadrat rasm; 64 × 64 px gacha kichraytiramiz.","A square image; resized to 64 × 64 px."],
+  cms_contacts_h:["Контакты и соцсети","Kontaktlar va ijtimoiy tarmoqlar","Contacts and social media"],
+  cms_contacts_d:["Показываются в подвале сайта. Пустое поле на сайте не видно.","Sayt pastki qismida ko‘rinadi. Bo‘sh maydon saytda ko‘rinmaydi.","Shown in the site footer. Empty fields are not shown."],
+  cms_soc_hint:["Для Telegram и Instagram можно просто @имя.","Telegram va Instagram uchun @nom yetarli.","For Telegram and Instagram, @name is enough."],
+  err_cms_quota:["Не хватает места: уменьшите картинки или очистите корзину.","Joy yetmaydi: rasmlarni kichraytiring yoki savatni tozalang.","Out of space: use smaller images or empty the trash."],
+  err_cms_many:["Слишком много элементов — удалите лишние навсегда.","Elementlar juda ko‘p — keraksizlarini butunlay o‘chiring.","Too many items — delete some for good."],
+  err_cms_gone:["Этот элемент уже удалили в другой вкладке.","Bu element boshqa oynada allaqachon o‘chirilgan.","This item was already deleted in another tab."],
+  err_cms_changed:["Это уже изменили в другой вкладке — показана текущая версия, внесите правки заново.","Buni boshqa oynada allaqachon o‘zgartirishgan — joriy versiya ko‘rsatildi, o‘zgarishlarni qaytadan kiriting.","This was already changed in another tab. The current version is shown; make your changes again."],
+  err_cms_html:["Уберите символы < > и \" — здесь можно только текст.","< > va \" belgilarini olib tashlang — bu yerda faqat matn bo‘ladi.","Remove the < > and \" characters. Only plain text is allowed here."],
+  cms_discard_q:["Закрыть редактор? Несохранённые правки пропадут.","Tahrirlagich yopilsinmi? Saqlanmagan o‘zgarishlar yo‘qoladi.","Close the editor? Unsaved changes will be lost."],
+  cms_f_mo:["Место в меню","Menyudagi o‘rni","Menu position"],
+  err_cms_req:["Заполните поле хотя бы на русском.","Maydonni hech bo‘lmasa rus tilida to‘ldiring.","Fill in the field, at least in Russian."],
+  err_cms_lang:["Для публикации заполните поле на всех трёх языках.","E’lon qilish uchun maydonni uchala tilda to‘ldiring.","To publish, fill in the field in all three languages."],
+  err_cms_btn_href:["У кнопки нет ссылки: укажите, куда она ведёт.","Tugmada havola yo‘q: qayerga olib borishini ko‘rsating.","The button has no link: say where it leads."],
+  err_cms_href_btn:["Есть ссылка, но нет надписи на кнопке.","Havola bor, lekin tugmada yozuv yo‘q.","There is a link but no button label."],
+  err_cms_slug:["Только латиница, цифры и дефис, 2–40 знаков.","Faqat lotin harflari, raqamlar va chiziqcha, 2–40 belgi.","Only Latin letters, digits and hyphens, 2–40 characters."],
+  err_cms_slug_dup:["Страница с таким адресом уже есть (возможно, в корзине).","Bunday manzilli sahifa allaqachon bor (balki savatda).","A page with this address already exists (maybe in the trash)."],
+  err_cms_date:["Укажите дату.","Sanani kiriting.","Enter a date."],
+  err_cms_href_req:["Укажите, куда ведёт ссылка.","Havola qayerga olib borishini ko‘rsating.","Say where the link leads."],
+  err_cms_href:["Такую ссылку сайт не откроет: нужен https://…, #/…, tel: или mailto:.","Sayt bunday havolani ochmaydi: https://…, #/…, tel: yoki mailto: kerak.","The site won’t open this link: use https://…, #/…, tel: or mailto:."],
+  err_cms_video:["Не похоже на ссылку YouTube.","YouTube havolasiga o‘xshamaydi.","This doesn’t look like a YouTube link."],
+  err_cms_file:["Файл больше 8 МБ.","Fayl 8 MB dan katta.","The file is larger than 8 MB."],
+  err_cms_img_big:["Картинка слишком большая даже после уменьшения.","Rasm kichraytirilgandan keyin ham juda katta.","The image is too large even after resizing."],
+  err_cms_ph:["Сайт не знает подстановку {ph} — уберите её.","Sayt {ph} o‘rniga nima qo‘yishni bilmaydi — uni olib tashlang.","The site doesn’t know {ph} — remove it."],
+  err_cms_long:["Слишком длинный текст.","Matn juda uzun.","The text is too long."],
+  err_cms_site_title:["Название сайта — на всех трёх языках, от 2 знаков.","Sayt nomi — uchala tilda, kamida 2 belgi.","The site title is needed in all three languages, 2+ characters."],
+  err_cms_phone:["Проверьте номер телефона.","Telefon raqamini tekshiring.","Check the phone number."],
+  err_cms_social:["Нужна ссылка https://… (для Telegram и Instagram — можно @имя).","https://… havolasi kerak (Telegram va Instagram uchun @nom ham bo‘ladi).","Use an https://… link (for Telegram and Instagram, @name works too)."],
+  t_cms_pub:["Опубликовано — уже на сайте","E’lon qilindi — saytda","Published — live on the site"],
+  t_cms_hide:["Скрыто с сайта","Saytdan yashirildi","Hidden from the site"],
+  t_cms_del:["Перенесено в корзину","Savatga o‘tkazildi","Moved to trash"],
+  t_cms_restore:["Восстановлено","Tiklandi","Restored"],
+  t_cms_purge:["Удалено навсегда","Butunlay o‘chirildi","Deleted for good"],
+  t_cms_moved:["Порядок изменён","Tartib o‘zgartirildi","Order changed"],
+  t_cms_saved:["Сохранено","Saqlandi","Saved"],
+  t_cms_tx_reset:["Вернули исходный текст","Asl matn qaytarildi","Default text restored"]
 });
 
 /* ---- 10-ops.js ---- */
@@ -6638,7 +7318,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", cms:"content.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";
@@ -6672,6 +7352,7 @@ const PERM_MODS = {
   finance:  ["view", "approve", "refund", "manage", "export"],
   pricing:  ["view", "edit", "approve"],
   services: ["view", "create", "edit", "delete", "approve"],
+  content:  ["view", "create", "edit", "delete", "manage"],
   staff:    ["view", "create", "edit"],
   roles:    ["view", "create", "edit", "delete", "approve"],
   audit:    ["view", "export"],
@@ -6686,19 +7367,20 @@ const SYS_ROLES = {
   sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
   finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
   b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"], crm:["view", "create", "edit", "export"] },
-  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"] },
-  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"] },
+  b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"], content:["view"] },
+  sales:    { orders:["view", "edit"], b2b:["view"], b2c:["view"], pricing:["view"], services:["view"], crm:["view", "create", "edit", "export"], content:["view"] },
   ops:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "approve"], b2c:["view", "edit"], services:["view", "create", "edit"], settings:["view"], audit:["view"], crm:["view"] },
-  content:  { services:["view", "create", "edit"] },
+  content:  { services:["view", "create", "edit"], content:["view", "create", "edit", "delete", "manage"] },
   support:  { orders:["view"], b2b:["view"], b2c:["view", "edit"], crm:["view", "create", "edit"] },
-  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"] }
+  viewer:   { orders:["view"], b2b:["view"], b2c:["view", "export"], finance:["view", "export"], pricing:["view"], services:["view"], audit:["view", "export"], crm:["view", "export", "manage"], content:["view"] }
 };
 /* Права, добавленные в новых версиях: у системных ролей из сохранённой админки
    их ещё нет — дописываются по умолчанию один раз (O.permsV). Свои роли
    основатель настраивает сам. */
-const PERMS_V = 2;
-const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"] };
-const PERMS_NEW_MODS = { 2:["crm"] };
+const PERMS_V = 3;
+const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"],
+  3:["content.view", "content.create", "content.edit", "content.delete", "content.manage"] };
+const PERMS_NEW_MODS = { 2:["crm"], 3:["content"] };
 /* Основатель и владелец: их назначает и меняет только основатель. */
 const TOP_ROLES = ["founder", "owner"];
 /* Роли прошлой версии админки → роли из ТЗ. */
@@ -7562,7 +8244,7 @@ Object.assign(IC, {
 const ADM_NAV = [
   ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["crm", "an_crm", "funnel", "crm.view"], ["orders", "an_orders", "bag", "orders.view"],
   ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
-  ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
+  ["pricing", "an_pricing", "tag", "pricing.view"], ["cms", "an_cms", "layout", "content.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
   ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
@@ -9510,6 +10192,574 @@ PAGES.integrations = {
   }
 };
 
+/* ---- 73-cms.js ---- */
+/* ==========================================================================
+   Управление сайтом (CMS): главная (тексты героя и баннеры), страницы, меню
+   и подвал, вопросы и ответы, новости, тексты сайта, SEO и бренд, корзина.
+   Хранилище — js/13-cms.js; сайт видит изменения сразу, в том числе в
+   соседней вкладке. У каждого элемента: создать, изменить, опубликовать,
+   скрыть, удалить в корзину, восстановить, удалить навсегда. Подтверждения
+   не нужны: удаление обратимо через корзину. Акции, скидки, тарифы и цены —
+   в «Услугах и ценах», здесь только ссылка туда.
+   Редактор элемента — 74-cms-edit.js, тексты и настройки сайта — 76-cms-site.js.
+   ========================================================================== */
+"use strict";
+
+const ACMS_TABS = ["home", "pages", "menu", "faq", "news", "texts", "seo", "trash"];
+const acmsTab = () => ACMS_TABS.includes(M.ui.cmsTab) ? M.ui.cmsTab : "home";
+const ACMS_PILL = { draft:"st-PENDING", published:"st-CONFIRMED", hidden:"st-NEW" };
+const acmsPill = x => `<span class="pill ${ACMS_PILL[x.status]}">${esc(t("cms_st_" + x.status))}</span>`;
+const acmsName = x => x[CMS_MAIN[x.type]];
+/* Для журнала: вид элемента строкой интерфейса и название на трёх языках. */
+const acmsVars = x => ({ what:strRef("cms_t_" + x.type), name:{ ...acmsName(x) } });
+
+/* Где элемент на сайте — для «Открыть на сайте». Телефон и почту не открываем. */
+function acmsSiteHref(x){
+  const base = "../b2c/";
+  if (x.type === "page") return `${base}#/p/${x.slug}`;
+  if (x.type === "faq") return `${base}#/faq`;
+  if (x.type === "news") return `${base}#/news/${x.id}`;
+  if (x.type === "link") return cmsIsExt(x.href) ? x.href : x.href.startsWith("#/") ? base + x.href : null;
+  return `${base}#/`;
+}
+function acmsSub(x){
+  // Место баннера — заголовок его группы в списке, здесь не повторяем.
+  if (x.type === "banner") return x.video ? t("cms_f_video") : x.image ? t("cms_f_image") : "";
+  if (x.type === "page") return `/p/${x.slug} · ${t("cms_menu_" + x.menu)}`;
+  if (x.type === "faq") return cmsText(x.group);
+  if (x.type === "news") return fdateY(x.date);
+  return `${t("cms_place_" + x.place)} · ${x.href}`;
+}
+
+/* ---- запись ----
+   fn получает свежую копию хранилища, меняет её и возвращает { vars, diff }
+   для журнала (и action, если действие стало ясно только по свежим данным)
+   или null — менять нечего. Не поместилось — сообщение, без журнала. */
+function acmsCommit(action, fn){
+  const next = cmsClone(cmsFresh()), r = fn(next);
+  if (!r) { rerender(); return false; }
+  if (!cmsWrite(next)) { toast(t("err_cms_quota")); return false; }
+  change(() => audit(r.action || action, r.vars, { module:"content", diff:r.diff || [] }));
+  return true;
+}
+const acmsFind = (store, id) => store.items.find(x => x.id === id) || null;
+const acmsStDiff = (a, b) => [{ k:"col_status", from:strRef(a), to:strRef(b) }];
+
+/* Опубликовать можно только заполненный на трёх языках элемент: иначе — в
+   редактор с ошибкой. Открыт редактор другого элемента с несохранёнными
+   правками — сначала спрашиваем, можно ли их бросить. Статус в открытом
+   редакторе этого же элемента берётся из хранилища (acmsForm), править его не надо. */
+function acmsSetStatus(id, status){
+  if (denied("content.manage")) return false;
+  const x = acmsFind(cmsFresh(), id); if (!x || x.deleted || x.status === status) return rerender();
+  if (status === "published") { const e = acmsIssue(x.type, x, true, x.id);
+    if (e.length) {
+      const ed = M.ui.cmsEd; if (ed?.id !== id && !acmsMayDrop()) return false;
+      if (ed?.id !== id) M.ui.cmsEd = acmsDraftOf(x);
+      M.ui.cmsEdErr = e; rerender(); return false; } }
+  return acmsCommit(status === "published" ? "cms_publish" : "cms_hide", s => { const y = acmsFind(s, id); if (!y || y.deleted) return null;
+    const from = y.status; Object.assign(y, { status, at:Date.now(), by:me().name });
+    return { vars:acmsVars(y), diff:acmsStDiff("cms_st_" + from, "cms_st_" + status) }; });
+}
+function acmsTrashIt(id, back){
+  if (denied("content.delete")) return false;
+  const ok = acmsCommit(back ? "cms_restore" : "cms_delete", s => { const y = acmsFind(s, id); if (!y || !!y.deleted === !back) return null;
+    y.deleted = back ? 0 : Date.now();
+    return { vars:acmsVars(y), diff:acmsStDiff(back ? "cms_in_trash" : "cms_st_" + y.status, back ? "cms_st_" + y.status : "cms_in_trash") }; });
+  // Удалённый элемент был открыт в редакторе — закрываем: сохранять его уже некуда.
+  if (ok && !back && M.ui.cmsEd?.id === id) { M.ui.cmsEd = null; rerender(); }
+  return ok;
+}
+function acmsPurge(id){
+  if (denied("content.delete")) return false;
+  const x = acmsFind(cmsFresh(), id); if (!x) return rerender();
+  if (!confirm(tf("cms_purge_q", { name:cmsText(acmsName(x)) }))) return false;
+  return acmsCommit("cms_purge", s => { const i = s.items.findIndex(y => y.id === id && y.deleted); if (i < 0) return null;
+    const [y] = s.items.splice(i, 1); return { vars:acmsVars(y) }; });
+}
+/* Порядок — внутри своего вида, у баннеров — внутри своего места на главной
+   (порядок между местами на сайте ничего не меняет). Новости сайт ставит по
+   дате — их не двигаем. Страницы и ссылки двигают во вкладке «Меню и подвал»
+   (menu): у шапки и подвала один список на страницы и ссылки, номер — mo.
+   Номера после перестановки идут подряд. */
+const acmsSame = (x, y) => x.type === y.type && (x.type !== "banner" || x.place === y.place);
+const acmsByOrder = (a, b) => a.order - b.order || a.at - b.at;
+const acmsInMenu = x => x.type === "page" || x.type === "link";
+/* Новое место в меню (или в «не в меню») — в конец его списка. */
+const acmsMoEnd = (s, place, skip) => Math.max(-1, ...cmsMenuList(s.items.filter(x => !x.deleted && x.id !== skip), place).map(x => x.mo)) + 1;
+function acmsMoveMenu(s, y, d){
+  const place = cmsMenuOf(y); if (!CMS_LINK_PLACES.includes(place)) return null;
+  const group = cmsMenuList(s.items.filter(x => !x.deleted), place), i = group.indexOf(y), j = i + d;
+  if (j < 0 || j >= group.length) return null;
+  [group[i], group[j]] = [group[j], group[i]]; group.forEach((x, n) => { x.mo = n; });
+  return { vars:acmsVars(y), diff:[{ k:"cms_f_mo", from:String(i + 1), to:String(j + 1) }] };
+}
+function acmsMove(id, d, menu = false){
+  if (denied("content.edit")) return false;
+  return acmsCommit("cms_order", s => {
+    const y = acmsFind(s, id); if (!y || y.deleted || y.type === "news" || acmsInMenu(y) !== menu) return null;
+    if (menu) return acmsMoveMenu(s, y, d);
+    const all = s.items.filter(x => x.type === y.type && !x.deleted).sort(acmsByOrder), group = all.filter(x => acmsSame(x, y));
+    const i = group.indexOf(y), j = i + d;
+    if (j < 0 || j >= group.length) return null;
+    const a = all.indexOf(group[i]), b = all.indexOf(group[j]);
+    [all[a], all[b]] = [all[b], all[a]]; all.forEach((x, n) => { x.order = n; });
+    return { vars:acmsVars(y), diff:[{ k:"cms_f_order", from:String(i + 1), to:String(j + 1) }] };
+  });
+}
+
+/* ---- списки ----
+   Скрытое и черновики — приглушены название и статус, кнопки — в полную силу. */
+/* menu — строка списка «Меню и подвал»: стрелки двигают её в меню места. */
+function acmsRow(x, i, n, menu = false){
+  const name = cmsText(acmsName(x)), href = x.status === "published" ? acmsSiteHref(x) : null, lbl = k => `${t(k)}: ${name}`;
+  const mv = (dd, ic, k, off) => `<button type="button" class="iconbtn sm" data-act="acmsmove" data-v="${esc(x.id)}" data-d="${dd}"${menu ? ' data-m="1"' : ""} aria-label="${esc(lbl(k))}" ${off ? "disabled" : can("content.edit") ? "" : 'disabled aria-disabled="true"'}>${IC[ic]}</button>`;
+  const movable = menu || !(x.type === "news" || acmsInMenu(x));
+  return `<div class="arow ${x.status === "published" ? "" : "cms-dim"}">
+    <span class="a-main"><b>${esc(name)}</b><span class="small muted">${esc(menu && x.type === "page" ? `${t("cms_t_page")} · /p/${x.slug}` : acmsSub(x))}</span></span>
+    <span class="a-keep">${acmsPill(x)}</span>
+    <span class="a-end cms-acts">${movable ? `<span class="cms-ord">${mv(-1, "up", "cms_up", i === 0)}${mv(1, "down", "cms_down", i === n - 1)}</span>` : ""}
+      <button type="button" class="link" data-act="acmsedit" data-v="${esc(x.id)}" aria-label="${esc(lbl("edit"))}" ${guard("content.edit")}>${esc(t("edit"))}</button>
+      ${x.status === "published" ? `<button type="button" class="link" data-act="acmshide" data-v="${esc(x.id)}" aria-label="${esc(lbl("cms_hide"))}" ${guard("content.manage")}>${esc(t("cms_hide"))}</button>`
+        : `<button type="button" class="link" data-act="acmspub" data-v="${esc(x.id)}" aria-label="${esc(lbl("cms_publish"))}" ${guard("content.manage")}>${esc(t("cms_publish"))}</button>`}
+      <button type="button" class="link danger" data-act="acmsdel" data-v="${esc(x.id)}" aria-label="${esc(lbl("delete_cta"))}" ${guard("content.delete")}>${esc(t("delete_cta"))}</button>
+      ${href ? `<a class="link cms-open" href="${esc(href)}" target="_blank" rel="noopener">${esc(t("cms_open"))}${IC.ext}<span class="sr-only"> — ${esc(name)} (${esc(t("cms_new_tab"))})</span></a>` : ""}</span></div>`;
+}
+const acmsTable = (list, menu = false) => `<div class="atable cms-table" style="--cols:minmax(0,1fr) auto auto">${list.map((x, i) => acmsRow(x, i, list.length, menu)).join("")}</div>`;
+/* Баннеры — по местам на главной, каждое место со своим порядком;
+   новости — по дате, как на сайте; ссылки — меню шапки и подвала целиком,
+   вместе со страницами из этого меню, в порядке сайта. */
+function acmsListBody(type){
+  if (type === "link") {
+    const html = CMS_LINK_PLACES.map(p => { const g = cmsMenuItems(p);
+      return g.length ? `<div class="cms-grp"><h3 class="cms-grp-h">${esc(t("cms_menu_" + p))}</h3>${acmsTable(g, true)}</div>` : ""; }).join("");
+    return html || `<p class="muted">${esc(t("cms_none"))}</p>`;
+  }
+  const list = cmsItems(type);
+  if (!list.length) return `<p class="muted">${esc(t("cms_none"))}</p>`;
+  if (type === "news") return acmsTable([...list].sort(cmsByDate));
+  if (type !== "banner") return acmsTable(list);
+  return CMS_PLACES.map(p => { const g = list.filter(x => x.place === p);
+    return g.length ? `<div class="cms-grp"><h3 class="cms-grp-h">${esc(t("cms_place_" + p))}</h3>${acmsTable(g)}</div>` : ""; }).join("");
+}
+function acmsList(type){
+  // Во вкладке «Меню и подвал» страницу из меню тоже можно открыть в редакторе.
+  const ed = M.ui.cmsEd, here = ed && (ed.type === type || (type === "link" && ed.type === "page"));
+  return `<section class="card stack" aria-labelledby="cms-h-${type}"><div class="card-h cms-list-h"><div class="stack" style="gap:4px"><h2 id="cms-h-${type}" tabindex="-1">${esc(t("cms_h_" + type))}</h2><p class="muted small">${esc(t("cms_d_" + type))}</p></div>
+      <button type="button" class="ghost sm" data-act="acmsnew" data-v="${type}" ${guard("content.create")}>${IC.plus}<span>${esc(t("cms_new_" + type))}</span></button></div>
+    ${here ? acmsForm(ed) : ""}
+    ${acmsListBody(type)}</section>`;
+}
+function acmsTrash(){
+  const list = cmsItems(null, { trash:true }).sort((a, b) => b.deleted - a.deleted);
+  return `<section class="card stack" aria-labelledby="cms-h-trash"><div class="stack" style="gap:4px"><h2 id="cms-h-trash" tabindex="-1">${esc(t("cms_tab_trash"))}</h2><p class="muted small">${esc(t("cms_d_trash"))}</p></div>
+    ${list.length ? `<div class="atable cms-table" style="--cols:minmax(0,1fr) auto auto">${list.map(x => { const name = cmsText(acmsName(x));
+      // В корзине элемента на сайте нет, какой бы статус у него ни был: статус до удаления — строкой ниже.
+      return `<div class="arow cms-dim"><span class="a-main"><b>${esc(name)}</b><span class="small muted">${esc(t("cms_t_" + x.type))} · ${esc(tf("cms_deleted_ago", { ago:ago(x.deleted) }))} · ${esc(tf("cms_was", { st:t("cms_st_" + x.status) }))}</span></span>
+        <span class="a-keep"><span class="pill st-NEW">${esc(t("cms_in_trash"))}</span></span>
+        <span class="a-end cms-acts"><button type="button" class="link" data-act="acmsrestore" data-v="${esc(x.id)}" aria-label="${esc(t("cms_restore"))}: ${esc(name)}" ${guard("content.delete")}>${esc(t("cms_restore"))}</button>
+          <button type="button" class="link danger" data-act="acmspurge" data-v="${esc(x.id)}" aria-label="${esc(t("cms_purge"))}: ${esc(name)}" ${guard("content.delete")}>${esc(t("cms_purge"))}</button></span></div>`; }).join("")}</div>`
+      : `<p class="muted">${esc(t("cms_trash_empty"))}</p>`}</section>`;
+}
+/* Акции, скидки, тарифы и цены живут в «Услугах и ценах» — не дублируем. */
+const acmsPricingCard = () => `<section class="card cms-pr"><span class="task-ic">${IC.tag}</span><div class="stack cms-pr-t" style="gap:2px"><b>${esc(t("cms_pr_h"))}</b>
+  <p class="muted small">${esc(t("cms_pr_d"))}</p></div>${can("pricing.view") ? `<a class="ghost sm" href="#/pricing">${esc(t("an_pricing"))}</a>` : ""}</section>`;
+
+const ACMS_PANELS = {
+  home:  () => acmsHero() + acmsList("banner"),
+  pages: () => acmsList("page"),
+  menu:  () => acmsList("link") + `<p class="muted small">${esc(t("cms_menu_note"))}</p>` + acmsContacts(),
+  faq:   () => acmsList("faq"),
+  news:  () => acmsList("news"),
+  texts: () => acmsTexts(),
+  seo:   () => acmsSeo(),
+  trash: () => acmsTrash()
+};
+PAGES.cms = {
+  render(){
+    const cur = acmsTab(), n = cmsItems(null, { trash:true }).length;
+    return `<div class="page">
+      <div class="pagehead"><h1>${esc(t("an_cms"))}</h1><p class="muted">${esc(t("cms_sub"))}</p></div>
+      <div class="chipbar cms-tabs" role="tablist" aria-label="${esc(t("an_cms"))}">${ACMS_TABS.map(k => `<button type="button" role="tab" class="chip" id="cmstab-${k}" data-act="acmstab" data-v="${k}"
+        aria-selected="${k === cur}" aria-controls="cmspanel" tabindex="${k === cur ? 0 : -1}">${esc(t("cms_tab_" + k))}${k === "trash" && n ? `<span class="chip-n">${n}</span>` : ""}</button>`).join("")}</div>
+      <div id="cmspanel" class="stack" role="tabpanel" aria-labelledby="cmstab-${cur}">${ACMS_PANELS[cur]()}</div>
+      <div style="margin-top:14px">${acmsPricingCard()}</div></div>`;
+  },
+  after(){
+    // На узком экране вкладки прокручиваются вбок — выбранную держим на виду.
+    const tb = $('.cms-tabs [aria-selected="true"]'), bar = tb?.parentElement;
+    if (bar && bar.scrollWidth > bar.clientWidth) bar.scrollLeft = tb.offsetLeft - (bar.clientWidth - tb.offsetWidth) / 2;
+    // Редактор открыли — фокус на первое поле (или на поле с ошибкой, если публикация не прошла).
+    if (M.ui.cmsEdErr) { const e = M.ui.cmsEdErr; M.ui.cmsEdErr = null; M.ui.cmsEdFocus = false; acmsShowErr(e); }
+    else if (M.ui.cmsEd && M.ui.cmsEdFocus) { M.ui.cmsEdFocus = false; $("#cmsedit [data-ce]")?.focus(); }
+  }
+};
+
+/* ---- кнопки ---- */
+/* Вкладки: стрелки, Home и End — как у списка вкладок в ARIA. */
+/* Другая вкладка закрывает редактор — несохранённые правки только с согласия. */
+function acmsGoTab(k, focus){
+  if (M.ui.cmsTab !== k) { if (!acmsMayDrop()) return; M.ui.cmsTab = k; M.ui.cmsEd = null; rerender(); }
+  if (focus) $(`#cmstab-${k}`)?.focus();
+}
+document.addEventListener("keydown", e => {
+  if (!e.target.matches?.('.cms-tabs [role="tab"]')) return;
+  const i = ACMS_TABS.indexOf(acmsTab()), n = ACMS_TABS.length;
+  const j = { ArrowRight:i + 1, ArrowLeft:i - 1 + n, Home:0, End:n - 1 }[e.key]; if (j == null) return;
+  e.preventDefault(); acmsGoTab(ACMS_TABS[j % n], true);
+});
+Object.assign(ACT, {
+  acmstab:     el => acmsGoTab(el.dataset.v, true),
+  acmspub:     el => { if (acmsSetStatus(el.dataset.v, "published")) { toast(t("t_cms_pub")); $(`[data-act="acmshide"][data-v="${CSS.escape(el.dataset.v)}"]`)?.focus(); } },
+  acmshide:    el => { if (acmsSetStatus(el.dataset.v, "hidden")) { toast(t("t_cms_hide")); $(`[data-act="acmspub"][data-v="${CSS.escape(el.dataset.v)}"]`)?.focus(); } },
+  acmsdel:     el => { const h = el.closest("section")?.querySelector("h2")?.id; if (acmsTrashIt(el.dataset.v, false)) { toast(t("t_cms_del")); if (h) $("#" + h)?.focus(); } },
+  acmsrestore: el => { if (acmsTrashIt(el.dataset.v, true)) { toast(t("t_cms_restore")); $("#cms-h-trash")?.focus(); } },
+  acmspurge:   el => { if (acmsPurge(el.dataset.v)) { toast(t("t_cms_purge")); $("#cms-h-trash")?.focus(); } },
+  acmsmove:    el => {
+    const id = el.dataset.v, d = Number(el.dataset.d);
+    if (!acmsMove(id, d, !!el.dataset.m)) return;
+    const b = $(`[data-act="acmsmove"][data-v="${CSS.escape(id)}"][data-d="${d}"]`);
+    (b && !b.disabled ? b : $(`[data-act="acmsmove"][data-v="${CSS.escape(id)}"][data-d="${-d}"]`))?.focus();
+    announce(t("t_cms_moved"));
+  }
+});
+
+/* ---- 74-cms-edit.js ---- */
+/* ==========================================================================
+   Редактор элемента сайта (баннер, страница, вопрос, новость, ссылка).
+   Черновик — в M.ui.cmsEd, поля как их ввели. Черновик сохраняется с
+   заполненным русским главным полем; опубликовать можно только элемент,
+   заполненный на всех трёх языках. Проверяются все поля сразу: у каждого
+   плохого — красная рамка, текст ошибки под ним (aria-invalid и
+   aria-describedby), перечень «поле: ошибка» — над кнопками; фокус и
+   прокрутка — к первому плохому полю.
+   ========================================================================== */
+"use strict";
+
+/* Поля: [поле, вид, варианты]. Вид: l — строка на трёх языках, lt — текст на
+   трёх языках, href — ссылка, sel — выбор, tone — цвет, icon — значок,
+   img — картинка, yt — видео YouTube, slug — адрес страницы, date — дата. */
+const ACMS_FIELDS = {
+  banner: [["title", "l"], ["text", "lt"], ["btn", "l"], ["href", "href"], ["place", "sel", CMS_PLACES], ["tone", "tone"], ["icon", "icon"], ["image", "img"], ["video", "yt"]],
+  page:   [["title", "l"], ["slug", "slug"], ["menu", "sel", CMS_MENUS], ["body", "lt"], ["seoTitle", "l"], ["seoDesc", "lt"]],
+  faq:    [["q", "l"], ["a", "lt"], ["group", "l"]],
+  news:   [["title", "l"], ["date", "date"], ["image", "img"], ["text", "lt"]],
+  link:   [["label", "l"], ["href", "href"], ["place", "sel", CMS_LINK_PLACES], ["icon", "icon"]]
+};
+const ACMS_REQ = { banner:["title"], page:["title", "body"], faq:["q", "a"], news:["title", "text"], link:["label"] };
+/* Длинный текст — языки друг под другом, а не в три узкие колонки. */
+const ACMS_LONG = new Set(["body", "a"]);
+const acmsLong = (type, f) => ACMS_LONG.has(f) || (type === "news" && f === "text");
+const acmsMax = (type, f) => type === "news" && f === "text" ? CMS_LEN.news : CMS_LEN[f];
+const ACMS_BODY_HINT = new Set(["body", "a", "text"]);
+const ACMS_FILE_MAX = 8 * 1024 * 1024;
+const acmsL = () => ({ ru:"", uz:"", en:"" });
+
+function acmsBlank(type){
+  const d = { type, id:null, status:"draft" };
+  for (const [f, kind, opts] of ACMS_FIELDS[type])
+    d[f] = kind === "l" || kind === "lt" ? acmsL() : kind === "sel" ? opts[0] : kind === "tone" ? "blue" : kind === "img" ? null : kind === "date" ? TODAY : "";
+  if (type === "link") d.place = "footer";
+  return d;
+}
+/* Поля элемента плоско («title.ru», «href» …): по ним черновик сверяют с тем,
+   что было при открытии редактора (base), и с тем, что в хранилище сейчас. */
+function acmsFlat(type, x){
+  const o = {};
+  for (const [f, kind] of ACMS_FIELDS[type]) {
+    if (kind === "l" || kind === "lt") for (const l of CMS_LANGS) o[`${f}.${l}`] = x[f]?.[l] || "";
+    else o[f] = kind === "img" ? x[f] || null : x[f] ?? "";
+  }
+  return o;
+}
+function acmsDraftOf(x){
+  const d = { type:x.type, id:x.id, status:x.status, base:acmsFlat(x.type, x) };
+  for (const [f] of ACMS_FIELDS[x.type]) d[f] = x[f] && typeof x[f] === "object" ? { ...x[f] } : x[f] ?? "";
+  return d;
+}
+/* Правки черновика поверх свежего элемента: пишем только поля, которые меняли
+   в редакторе, остальные — как в хранилище (их могли поменять в другой
+   вкладке). Поле поменяли и там, и здесь, и по-разному — clash: чужую правку
+   молча не затираем. */
+function acmsMerge(d, cur, x){
+  const now = acmsFlat(d.type, cur), mine = acmsFlat(d.type, x), out = {};
+  for (const [f, kind] of ACMS_FIELDS[d.type]) out[f] = kind === "l" || kind === "lt" ? { ...cur[f] } : cur[f];
+  let clash = false;
+  for (const k of Object.keys(mine)) {
+    if (mine[k] === d.base[k]) continue;
+    if (now[k] !== d.base[k] && now[k] !== mine[k]) clash = true;
+    const [f, l] = k.split("."); if (l) out[f][l] = mine[k]; else out[f] = mine[k];
+  }
+  return { x:out, clash };
+}
+/* Есть несохранённые правки: черновик отличается от открытого элемента (или от пустого). */
+function acmsDirty(d){
+  const mine = acmsFlat(d.type, acmsRead(d).x), base = d.base || acmsFlat(d.type, acmsRead(acmsBlank(d.type)).x);
+  return Object.keys(mine).some(k => mine[k] !== base[k]);
+}
+/* Закрыть или заменить редактор: правки есть — только если человек согласен их бросить. */
+const acmsMayDrop = () => !M.ui.cmsEd || !acmsDirty(M.ui.cmsEd) || confirm(t("cms_discard_q"));
+
+/* ---- разметка ---- */
+function acmsLangField(d, f, kind){
+  const req = ACMS_REQ[d.type].includes(f), max = acmsMax(d.type, f), long = acmsLong(d.type, f);
+  const input = l => kind === "lt"
+    ? `<textarea data-ce="${f}.${l}" maxlength="${max}" rows="${long ? 7 : 3}" lang="${l}">${esc(d[f][l])}</textarea>`
+    : `<input data-ce="${f}.${l}" value="${esc(d[f][l])}" maxlength="${max}" lang="${l}" autocomplete="off">`;
+  return `<fieldset class="cms-lf"><legend>${esc(t("cms_f_" + f))}${req ? ` <span class="muted small">${esc(t("cms_required"))}</span>` : ""}</legend>
+    <div class="${long ? "stack cms-long" : "sgrid sgrid-3"}">${CMS_LANGS.map(l => `<label class="field"><span>${l.toUpperCase()}</span>${input(l)}</label>`).join("")}</div>
+    ${ACMS_BODY_HINT.has(f) && kind === "lt" && d.type !== "banner" ? `<p class="muted small">${esc(t("cms_body_hint"))}</p>` : ""}</fieldset>`;
+}
+function acmsField(d, f, kind, opts){
+  const lab = `<span>${esc(t("cms_f_" + f))}</span>`;
+  if (kind === "l" || kind === "lt") return acmsLangField(d, f, kind);
+  if (kind === "href") return `<label class="field">${lab}<input data-ce="${f}" value="${esc(d[f])}" maxlength="300" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://… · #/faq · tel:+998…" aria-describedby="cms-hint-${f}"></label>
+    <p class="muted small" id="cms-hint-${f}">${esc(t("cms_href_hint"))}</p>`;
+  if (kind === "slug") return `<label class="field">${lab}<span class="cms-slug"><i aria-hidden="true">/p/</i><input data-ce="slug" value="${esc(d.slug)}" maxlength="40" autocomplete="off" spellcheck="false" autocapitalize="none" aria-describedby="cms-hint-slug"></span></label>
+    <p class="muted small" id="cms-hint-slug">${esc(t("cms_slug_hint"))}</p>`;
+  if (kind === "date") return `<label class="field cms-date">${lab}<input type="date" data-ce="date" value="${esc(d.date)}"></label>`;
+  if (kind === "yt") return `<label class="field">${lab}<input data-ce="video" value="${esc(d.video)}" maxlength="120" inputmode="url" autocomplete="off" spellcheck="false" placeholder="https://youtu.be/…" aria-describedby="cms-hint-video"></label>
+    <p class="muted small" id="cms-hint-video">${esc(t("cms_video_hint"))}</p>`;
+  if (kind === "sel") return `<label class="field cms-sel">${lab}<select data-ce="${f}">${opts.map(v => `<option value="${v}" ${d[f] === v ? "selected" : ""}>${esc(t((f === "menu" ? "cms_menu_" : "cms_place_") + v))}</option>`).join("")}</select></label>`;
+  // Цвет и значок — панели кнопок: одна остановка Tab, дальше стрелки (acmsToolbarKey).
+  const tb = (v, cur) => `tabindex="${v === cur ? 0 : -1}" aria-pressed="${v === cur}"`;
+  if (kind === "tone") return `<fieldset class="cms-lf"><legend>${esc(t("cms_f_tone"))}</legend><div class="cms-sws cms-tb" role="toolbar" aria-label="${esc(t("cms_f_tone"))}">${CMS_TONES.map(v =>
+    `<button type="button" class="cms-sw tone-${v}" data-act="acmsset" data-f="tone" data-v="${v}" ${tb(v, d.tone)} aria-label="${esc(t("cms_f_tone"))}: ${esc(t("cms_tone_" + v))}" title="${esc(t("cms_tone_" + v))}"><span aria-hidden="true">Aa</span></button>`).join("")}</div></fieldset>`;
+  if (kind === "icon") return `<fieldset class="cms-lf"><legend>${esc(t("cms_f_icon"))}</legend><div class="cms-icons cms-tb" role="toolbar" aria-label="${esc(t("cms_f_icon"))}">${["", ...CMS_ICONS].map(v =>
+    `<button type="button" class="cms-icb" data-act="acmsset" data-f="icon" data-v="${v}" ${tb(v, d.icon || "")} aria-label="${esc(t("cms_f_icon"))}: ${esc(t(v ? "cms_ic_" + v : "cms_ic_none"))}" title="${esc(t(v ? "cms_ic_" + v : "cms_ic_none"))}">${v ? cmsIcon(v) : "—"}</button>`).join("")}</div></fieldset>`;
+  if (kind === "img") return `<div class="field">${lab}<div class="row cms-img">${d.image ? `<img src="${d.image}" alt="${esc(t("cms_img_prev"))}">` : `<span class="muted small">${esc(t("cms_img_none"))}</span>`}
+      <label class="ghost sm filebtn">${IC.upload}<span>${esc(t(d.image ? "cms_img_replace" : "cms_img_upload"))}</span><input id="cmsimg" type="file" accept="image/png,image/jpeg,image/webp" aria-label="${esc(t("cms_f_image"))}: ${esc(t(d.image ? "cms_img_replace" : "cms_img_upload"))}"></label>
+      ${d.image ? `<button type="button" class="link danger" data-act="acmsimgx" aria-label="${esc(t("cms_img_remove"))}: ${esc(t("cms_f_image"))}">${esc(t("cms_img_remove"))}</button>` : ""}</div>
+    <p class="muted small">${esc(t("cms_img_hint"))}</p></div>`;
+  return "";
+}
+/* Кнопки: новый — «Опубликовать» и «Сохранить черновик»; существующий —
+   «Сохранить» (статус прежний) и, если он не опубликован, «Сохранить и опубликовать». */
+const acmsGuard2 = (a, b) => guard(can(a) ? b : a);
+function acmsForm(d){
+  // Статус — из хранилища: элемент могли опубликовать или скрыть, пока открыт редактор.
+  const perm = d.id ? "content.edit" : "content.create", st = (d.id && acmsFind(cmsLoad(), d.id)?.status) || d.status;
+  const btns = d.id
+    ? `<button type="button" class="solid" data-act="acmssave" data-s="keep" ${guard(perm)}>${esc(t("st_save"))}</button>
+       ${st !== "published" ? `<button type="button" class="ghost" data-act="acmssave" data-s="published" ${acmsGuard2(perm, "content.manage")}>${esc(t("cms_save_pub"))}</button>` : ""}`
+    : `<button type="button" class="solid" data-act="acmssave" data-s="published" ${acmsGuard2(perm, "content.manage")}>${esc(t("cms_publish"))}</button>
+       <button type="button" class="ghost" data-act="acmssave" data-s="draft" ${guard(perm)}>${esc(t("cms_save_draft"))}</button>`;
+  return `<div class="stack cl-edit cms-form" id="cmsedit" role="group" aria-labelledby="cmsedit-h"><div class="card-h"><h3 id="cmsedit-h">${esc(t((d.id ? "cms_edit_" : "cms_new_") + d.type))}</h3>
+      <button type="button" class="iconbtn" data-act="acmsclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
+    ${d.id ? `<p class="small muted">${esc(t("col_status"))}: ${acmsPill({ status:st })}${st === "published" ? ` · ${esc(t("cms_live_note"))}` : ""}</p>` : ""}
+    ${ACMS_FIELDS[d.type].map(([f, kind, opts]) => acmsField(d, f, kind, opts)).join("")}
+    <div class="err" id="cmserr" hidden></div>
+    <div class="row">${btns}<button type="button" class="link" data-act="acmsclose">${esc(t("cancel"))}</button></div></div>`;
+}
+
+/* ---- проверка ---- */
+const acmsSlugify = s => String(s || "").toLowerCase().replace(/[‘’'`ʻʼ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40).replace(/-+$/, "");
+/* Видео: ссылка YouTube любого вида или сам номер ролика. "" — нет видео, null — не разобрать. */
+function acmsYtId(s){
+  s = String(s || "").trim(); if (!s) return ""; if (CMS_YT_RE.test(s)) return s;
+  try {
+    const u = new URL(s), h = u.hostname.replace(/^(www|m)\./, "");
+    const id = h === "youtu.be" ? u.pathname.slice(1) : /^youtube(-nocookie)?\.com$/.test(h) ? u.searchParams.get("v") || u.pathname.split("/")[2] || "" : "";
+    return CMS_YT_RE.test(id) ? id : null;
+  } catch(e) { return null; }
+}
+/* Черновик формы → поля элемента и ошибки разбора [{ key, field }]. */
+function acmsRead(d){
+  const x = {}, errs = [];
+  for (const [f, kind] of ACMS_FIELDS[d.type]) {
+    if (kind === "l" || kind === "lt") x[f] = Object.fromEntries(CMS_LANGS.map(l => [l, String(d[f]?.[l] || "").trim().slice(0, acmsMax(d.type, f))]));
+    else if (kind === "href") { const raw = String(d[f] || "").trim(), h = cmsSafeHref(cmsNormHref(raw)); if (raw && !h) errs.push({ key:"err_cms_href", field:f }); x[f] = h; }
+    else if (kind === "yt") { const id = acmsYtId(d.video); if (id === null) errs.push({ key:"err_cms_video", field:"video" }); x.video = id || ""; }
+    else if (kind === "slug") x.slug = String(d.slug || "").trim().toLowerCase() || acmsSlugify(d.title?.en || d.title?.uz || d.title?.ru);
+    else if (kind === "img") x.image = cmsImg(d.image);
+    else x[f] = d[f];
+  }
+  return { x, errs };
+}
+/* Ошибки элемента [{ key, field }] (пусто — всё верно). strict — для публикации:
+   все три языка у обязательных полей, у необязательных — все или ни одного. */
+function acmsIssue(type, x, strict, id){
+  const errs = [], bad = (key, field) => errs.push({ key, field });
+  for (const [f, kind] of ACMS_FIELDS[type]) {
+    if (kind !== "l" && kind !== "lt") continue;
+    const v = x[f] || {}, req = ACMS_REQ[type].includes(f), some = CMS_LANGS.some(l => v[l]);
+    if (req && !v.ru) bad("err_cms_req", `${f}.ru`);
+    if (strict && (req || some)) CMS_LANGS.filter(z => !v[z] && !(z === "ru" && req)).forEach(l => bad("err_cms_lang", `${f}.${l}`));
+  }
+  if (type === "banner" && strict) {
+    if (CMS_LANGS.some(l => x.btn?.[l]) && !x.href) bad("err_cms_btn_href", "href");
+    if (x.href && !x.btn?.ru) bad("err_cms_href_btn", "btn.ru");
+  }
+  // Адрес из пустого заголовка не собрать — хватит ошибки у заголовка.
+  if (type === "page" && (x.slug || x.title?.ru)) {
+    if (!CMS_SLUG_RE.test(x.slug || "")) bad("err_cms_slug", "slug");
+    else if (cmsFresh().items.some(y => y.type === "page" && y.slug === x.slug && y.id !== id)) bad("err_cms_slug_dup", "slug");
+  }
+  if (type === "news" && !cmsDate(x.date)) bad("err_cms_date", "date");
+  if (type === "link" && !x.href) bad("err_cms_href_req", "href");
+  return errs;
+}
+/* Сообщение без прокрутки к нему (showErr прокрутил бы к списку, а нужно к полю). */
+function acmsSay(sel, msg){ const e = $(sel); if (!e) return; e.setAttribute("role", "alert"); e.hidden = false; e.textContent = msg; }
+function acmsFocusBad(f){ if (!f) return; f.focus({ preventScroll:true }); f.scrollIntoView({ block:"center" }); }
+const acmsFieldName = field => { const [f, l] = field.split("."); return t("cms_f_" + f) + (l ? ` (${l.toUpperCase()})` : ""); };
+const acmsErrId = field => "cmserr-" + field.replace(".", "-");
+function acmsClearErr(f){
+  f.removeAttribute("aria-invalid");
+  const ids = (f.getAttribute("aria-describedby") || "").split(" "), own = ids.find(x => x.startsWith("cmserr-"));
+  if (own) { document.getElementById(own)?.remove(); const rest = ids.filter(x => x && x !== own).join(" "); rest ? f.setAttribute("aria-describedby", rest) : f.removeAttribute("aria-describedby"); }
+}
+function acmsShowErr(errs){
+  $$("#cmsedit [aria-invalid]").forEach(acmsClearErr);
+  // Одна ошибка на поле, по порядку полей в форме.
+  const pos = Object.fromEntries($$("#cmsedit [data-ce]").map((el, i) => [el.dataset.ce, i]));
+  const seen = new Set(), list = errs.filter(e => !seen.has(e.field) && seen.add(e.field)).sort((a, b) => (pos[a.field] ?? 999) - (pos[b.field] ?? 999));
+  for (const e of list) {
+    const f = $(`#cmsedit [data-ce="${e.field}"]`); if (!f) continue;
+    const id = acmsErrId(e.field), rest = (f.getAttribute("aria-describedby") || "").split(" ").filter(Boolean);
+    (f.closest(".cms-slug") || f).insertAdjacentHTML("afterend", `<small class="ferr" id="${id}">${esc(t(e.key))}</small>`);
+    f.setAttribute("aria-invalid", "true"); f.setAttribute("aria-describedby", [id, ...rest].join(" "));
+  }
+  acmsSay("#cmserr", list.map(e => `${acmsFieldName(e.field)}: ${t(e.key)}`).join("\n"));
+  acmsFocusBad($("#cmsedit [aria-invalid]"));
+}
+
+/* ---- журнал: что было → что стало, по языкам ----
+   Длинный текст — не начало, а окно вокруг изменённого места: иначе у правки
+   в конце страницы «было» и «стало» в журнале совпали бы. */
+const ACMS_CUT = 120, ACMS_CTX = 40;
+function acmsPair(a, b){
+  a = String(a ?? ""); b = String(b ?? "");
+  if (a.length <= ACMS_CUT && b.length <= ACMS_CUT) return [a, b];
+  let p = 0; while (p < a.length && p < b.length && a[p] === b[p]) p++;
+  let q = 0; while (q < a.length - p && q < b.length - p && a[a.length - 1 - q] === b[b.length - 1 - q]) q++;
+  const win = s => {
+    const i = Math.max(0, p - ACMS_CTX), j = Math.min(s.length, s.length - q + ACMS_CTX);
+    const mid = s.slice(i, j), cut = mid.length > ACMS_CUT ? mid.slice(0, ACMS_CUT - 1) + "…" : mid;
+    return (i > 0 ? "…" : "") + cut + (j < s.length && cut === mid ? "…" : "");
+  };
+  return [win(a), win(b)];
+}
+function acmsDiff(type, a, b){
+  const out = [], ref = (k, v) => strRef(k + v);
+  for (const [f, kind] of ACMS_FIELDS[type]) {
+    if (kind === "l" || kind === "lt") { for (const l of CMS_LANGS) if ((a[f]?.[l] || "") !== (b[f]?.[l] || "")) { const [from, to] = acmsPair(a[f]?.[l], b[f]?.[l]); out.push({ k:"cms_f_" + f, sub:l.toUpperCase(), from, to }); } continue; }
+    const x = f === "image" ? a.image || null : a[f] ?? "", y = f === "image" ? b.image || null : b[f] ?? "";
+    if (x === y) continue;
+    if (kind === "img") out.push({ k:"cms_f_image", from:strRef(x ? "cms_img_yes" : "cms_img_no"), to:strRef(y ? (x ? "cms_img_new" : "cms_img_yes") : "cms_img_no") });
+    else if (kind === "sel") out.push({ k:"cms_f_" + f, from:ref(f === "menu" ? "cms_menu_" : "cms_place_", x), to:ref(f === "menu" ? "cms_menu_" : "cms_place_", y) });
+    else if (kind === "tone") out.push({ k:"cms_f_tone", from:ref("cms_tone_", x), to:ref("cms_tone_", y) });
+    else if (kind === "icon") out.push({ k:"cms_f_icon", from:ref("cms_ic_", x || "none"), to:ref("cms_ic_", y || "none") });
+    else out.push({ k:"cms_f_" + f, from:String(x), to:String(y) });
+  }
+  return out;
+}
+
+/* ---- сохранение ----
+   Существующий элемент: правки черновика — поверх свежего (acmsMerge);
+   «Сохранить» (keep) оставляет статус, какой у элемента сейчас в хранилище.
+   Сменить статус — только с правом публиковать. Действие в журнале — по
+   переходу статуса: стал опубликованным — cms_publish, перестал — cms_hide. */
+const acmsStAction = (from, to) => to === from ? "cms_edit" : to === "published" ? "cms_publish" : from === "published" ? "cms_hide" : "cms_edit";
+/* Заголовок списка — после сохранения; страницу из меню правят во вкладке меню. */
+const acmsFocusList = type => ($(`#cms-h-${type}`) || $("#cmspanel h2[tabindex]"))?.focus();
+function acmsSave(mode){
+  const d = M.ui.cmsEd; if (!d) return;
+  if (denied(d.id ? "content.edit" : "content.create")) return;
+  const r = acmsRead(d);
+  let x = r.x, from = null;
+  if (d.id) {
+    const cur = acmsFind(cmsFresh(), d.id);
+    if (!cur || cur.deleted) { M.ui.cmsEd = null; rerender(); return toast(t("err_cms_gone")); }
+    const m = acmsMerge(d, cur, r.x);
+    if (m.clash) { M.ui.cmsEd = acmsDraftOf(cur); M.ui.cmsEdFocus = true; rerender(); return toast(t("err_cms_changed")); }
+    x = m.x; from = cur.status;
+  }
+  const status = mode === "keep" ? from || "draft" : mode;
+  if ((d.id ? status !== from : status === "published") && denied("content.manage")) return;
+  const e = [...r.errs, ...acmsIssue(d.type, x, status === "published", d.id)];
+  if (e.length) return acmsShowErr(e);
+  let same = false, full = false;
+  const ok = acmsCommit("cms_create", s => {
+    const at = Date.now(), by = me().name, place = cmsMenuOf({ type:d.type, ...x });
+    if (!d.id) {
+      if (s.items.length >= CMS_ITEMS_MAX) { full = true; return null; }
+      const order = Math.max(-1, ...s.items.filter(y => y.type === d.type && !y.deleted).map(y => y.order)) + 1;
+      const y = { id:uid("c"), type:d.type, status, deleted:0, order, at, by, ...x, ...(acmsInMenu(d) ? { mo:acmsMoEnd(s, place) } : {}) }; s.items.push(y);
+      return { vars:acmsVars(y), diff:acmsStDiff("cms_new", "cms_st_" + status) };
+    }
+    const y = acmsFind(s, d.id); if (!y || y.deleted) return null;
+    const diff = [...acmsDiff(d.type, y, x), ...(y.status !== status ? acmsStDiff("cms_st_" + y.status, "cms_st_" + status) : [])];
+    if (!diff.length) { same = true; return null; }
+    const action = acmsStAction(y.status, status);
+    // Перешла в другое меню — в конец его списка.
+    Object.assign(y, x, { status, at, by }, acmsInMenu(y) && place !== cmsMenuOf(y) ? { mo:acmsMoEnd(s, place, y.id) } : {});
+    return { vars:acmsVars(y), diff, action };
+  });
+  if (full) return toast(t("err_cms_many"));
+  if (same) { M.ui.cmsEd = null; rerender(); acmsFocusList(d.type); return toast(t("pr_same")); }
+  if (!ok) return;
+  M.ui.cmsEd = null; rerender(); acmsFocusList(d.type);
+  toast(t(status === "published" ? "t_cms_pub" : "t_cms_saved"));
+}
+
+/* Картинка: уменьшаем на холсте, пока строка не станет меньше CMS_IMG_MAX.
+   png — сохраняет прозрачность (логотип, значок); иначе JPEG на белом. */
+async function acmsImage(file, { sides, png = false, square = 0 }){
+  if (!AB_LOGO_TYPES.includes(file.type)) throw "err_logo_type";
+  if (file.size > ACMS_FILE_MAX) throw "err_cms_file";
+  const img = await createImageBitmap(file);
+  for (const side of sides) {
+    const k = Math.min(1, side / Math.max(img.width, img.height)), w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+    const c = Object.assign(document.createElement("canvas"), { width:square || w, height:square || h }), g = c.getContext("2d");
+    if (!png) { g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); }
+    g.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+    for (const q of png ? [0] : [0.84, 0.72]) { const url = png ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", q); if (url.length <= CMS_IMG_MAX) return url; }
+  }
+  throw "err_cms_img_big";
+}
+async function acmsItemImage(file){
+  try { const url = await acmsImage(file, { sides:[1600, 1200, 960, 720] }); if (!M.ui.cmsEd) return; M.ui.cmsEd.image = url; rerender(); $("#cmsimg")?.focus(); }
+  catch(err) { showErr("#cmserr", t(typeof err === "string" ? err : "err_logo_type")); }
+}
+
+Object.assign(ACT, {
+  acmsnew:   el => { if (denied("content.create") || !acmsMayDrop()) return; M.ui.cmsEd = acmsBlank(el.dataset.v); M.ui.cmsEdFocus = true; rerender(); },
+  acmsedit:  el => {
+    if (denied("content.edit")) return;
+    if (M.ui.cmsEd?.id === el.dataset.v) return $("#cmsedit [data-ce]")?.focus();   // уже открыт — не сбрасываем правки
+    if (!acmsMayDrop()) return;
+    const x = acmsFind(cmsFresh(), el.dataset.v); if (!x) return rerender(); M.ui.cmsEd = acmsDraftOf(x); M.ui.cmsEdFocus = true; rerender(); },
+  acmsclose: () => { const type = M.ui.cmsEd?.type; if (!acmsMayDrop()) return; M.ui.cmsEd = null; rerender(); acmsFocusList(type); },
+  acmssave:  el => acmsSave(el.dataset.s),
+  acmsset:   el => { const d = M.ui.cmsEd; if (!d) return; d[el.dataset.f] = el.dataset.v; rerender(); $(`#cmsedit [data-act="acmsset"][data-f="${el.dataset.f}"][data-v="${el.dataset.v}"]`)?.focus(); },
+  acmsimgx:  () => { if (!M.ui.cmsEd) return; M.ui.cmsEd.image = null; rerender(); $("#cmsimg")?.focus(); }
+});
+/* Поля редактора → черновик; без перерисовки, чтобы не сбить ввод. */
+document.addEventListener("input", e => {
+  const k = e.target.dataset?.ce, d = M.ui.cmsEd; if (!k || !d || e.target.type === "file") return;
+  const [f, l] = k.split("."); if (l) d[f][l] = e.target.value; else d[f] = e.target.value;
+  if (e.target.getAttribute("aria-invalid")) acmsClearErr(e.target);
+});
+/* Панель кнопок (цвет, значок): стрелки, Home и End переводят фокус; выбор — Enter или пробел. */
+function acmsToolbarKey(e){
+  const bar = e.target.closest?.(".cms-tb"); if (!bar || e.target.tagName !== "BUTTON") return false;
+  const bs = [...bar.querySelectorAll("button")], i = bs.indexOf(e.target), n = bs.length;
+  const j = { ArrowRight:i + 1, ArrowDown:i + 1, ArrowLeft:i - 1 + n, ArrowUp:i - 1 + n, Home:0, End:n - 1 }[e.key]; if (j == null) return false;
+  e.preventDefault(); bs.forEach(b => { b.tabIndex = -1; }); bs[j % n].tabIndex = 0; bs[j % n].focus(); return true;
+}
+/* Esc в редакторе — закрыть его, как «Отмена» (с правками — после вопроса). */
+document.addEventListener("keydown", e => {
+  if (!M.ui.cmsEd || !e.target.closest?.("#cmsedit")) return;
+  if (acmsToolbarKey(e)) return;
+  if (e.key === "Escape" && !e.defaultPrevented) { e.preventDefault(); ACT.acmsclose(); }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "cmsimg" && e.target.files?.[0]) return acmsItemImage(e.target.files[0]);
+  const k = e.target.dataset?.ce, d = M.ui.cmsEd; if (!k || !d || e.target.tagName !== "SELECT") return;
+  d[k] = e.target.value;
+});
+
 /* ---- 75-directions.js ---- */
 /* ==========================================================================
    Направления: встроенный каталог (из договоров, только просмотр) и
@@ -9686,6 +10936,280 @@ document.addEventListener("change", e => {
   const d = M.ui.dirDraft, k = e.target.dataset?.dir, h = e.target.dataset?.dh;
   if (d && k && e.target.type === "checkbox") { d[k] = e.target.checked; rerender(); $(`#diredit [data-dir="${k}"]`)?.focus(); }
   if (d && h) { const [i, f] = h.split("."); if (d.hotels[i]) d.hotels[i][f] = e.target.type === "checkbox" ? e.target.checked : e.target.value; }
+});
+
+/* ---- 76-cms-site.js ---- */
+/* ==========================================================================
+   Тексты и настройки сайта. Тексты: любая строка сайта (SITE_KEYS — список
+   собирает build.py) заменяется на трёх языках; пустая замена — снова текст
+   по умолчанию. Во вкладке «Тексты сайта» строка — текст и ключ, редактор
+   открывается у одной строки по нажатию; на главной (заголовки героя)
+   редакторы открыты сразу. Настройки: название и описание для поисковиков, логотип,
+   значок вкладки (SEO и бренд), телефон, почта, адрес и соцсети (подвал).
+   ========================================================================== */
+"use strict";
+
+/* Без поиска — первые ACMS_TX_SHOW строк, с поиском — до ACMS_TX_FIND. */
+const ACMS_TX_SHOW = 12, ACMS_TX_FIND = 40;
+/* Подстановки в тексте по умолчанию: {p}, {n} — их заполняет сайт. */
+const acmsPh = key => [...new Set((SITE_STR[key] || []).join(" ").match(/\{\w+\}/g) || [])];
+
+/* ---- строка текста ---- */
+/* Черновик строки — только начатые языки: M.ui.cmsTx[key] = { v:{ язык:текст },
+   base:{ язык:замена в хранилище в момент первой правки } }. Сохраняются только
+   они — замену на другом языке из соседней вкладки не затираем. */
+const acmsTxVal = (key, l) => { const dr = M.ui.cmsTx?.[key]; return dr && l in dr.v ? dr.v[l] : cmsTexts()[key]?.[l] || ""; };
+/* Текст строки на языке админки: замена, иначе текст сайта по умолчанию. */
+const acmsTxNow = key => { const def = SITE_STR[key] || [""], i = LIDX[S.lang] ?? 0; return cmsTexts()[key]?.[S.lang] || def[i] || def[0] || ""; };
+const acmsTxChanged = key => CMS_LANGS.some(l => cmsTexts()[key]?.[l]);
+const acmsTxPill = key => acmsTxChanged(key) ? `<span class="pill st-PAID">${esc(t("cms_tx_changed"))}</span>` : "";
+const acmsTxReset = key => acmsTxChanged(key) ? `<button type="button" class="link" data-act="acmstxclear" data-v="${key}" aria-label="${esc(t("cms_tx_reset"))}: ${esc(acmsTxNow(key))}" ${guard("content.edit")}>${esc(t("cms_tx_reset"))}</button>` : "";
+/* Свёрнутая строка списка: сам текст крупно, ключ — мелко рядом. */
+function acmsTextLine(key){
+  if (M.ui.cmsTxOpen === key) return acmsTextRow(key, true);
+  return `<div class="cms-tx cms-txl" id="tx-${key}"><button type="button" class="cms-txl-b" data-act="acmstxopen" data-v="${key}" aria-expanded="false">
+      <span class="cms-txl-t">${esc(acmsTxNow(key))}</span><code>${esc(key)}</code></button>
+    <span class="cms-txl-e">${acmsTxPill(key)}${acmsTxReset(key)}</span></div>`;
+}
+/* Редактор строки на трёх языках; inList — открыт из списка, можно свернуть.
+   Три поля — группа с названием (ключ и текст), текст по умолчанию — под
+   полем, вне подписи: диктор читает его один раз, как описание. */
+function acmsTextRow(key, inList = false){
+  const def = SITE_STR[key] || ["", "", ""];
+  const val = l => acmsTxVal(key, l), long = def.some(s => s.length > 70), ph = acmsPh(key);
+  const input = (l, i) => long
+    ? `<textarea rows="3" data-cmstx="${key}.${l}" maxlength="${CMS_TEXT_MAX}" lang="${l}" aria-describedby="txd-${key}-${l}">${esc(val(l))}</textarea>`
+    : `<input data-cmstx="${key}.${l}" value="${esc(val(l))}" maxlength="${CMS_TEXT_MAX}" lang="${l}" autocomplete="off" aria-describedby="txd-${key}-${l}">`;
+  const head = inList
+    ? `<div class="cms-tx-h"><button type="button" class="cms-txl-b" data-act="acmstxclose" data-v="${key}" aria-expanded="true"><span class="cms-txl-t">${esc(acmsTxNow(key))}</span><code>${esc(key)}</code></button>${acmsTxPill(key)}</div>`
+    : `<div class="cms-tx-h"><code>${esc(key)}</code>${acmsTxPill(key)}</div>`;
+  return `<div class="cms-tx ${inList ? "is-open" : ""}" id="tx-${key}">${head}
+    <fieldset class="cms-txf"><legend class="sr-only">${esc(key)} — ${esc(acmsTxNow(key))}</legend>
+    <div class="sgrid sgrid-3">${CMS_LANGS.map((l, i) => `<div class="cms-txc"><label class="field"><span>${l.toUpperCase()}</span>${input(l, i)}</label>
+      <small class="cms-def muted" id="txd-${key}-${l}">${esc(t("cms_tx_def"))}: ${esc(def[i])}</small></div>`).join("")}</div></fieldset>
+    ${ph.length ? `<p class="small muted">${esc(tf("cms_tx_ph", { ph:ph.join(", ") }))}</p>` : ""}
+    <div class="err" id="txerr-${key}" hidden></div>
+    <div class="row"><button type="button" class="solid sm" data-act="acmstxsave" data-v="${key}" aria-label="${esc(t("st_save"))}: ${esc(acmsTxNow(key))}" ${guard("content.edit")}>${esc(t("st_save"))}</button>
+      ${acmsTxReset(key)}${inList ? `<button type="button" class="link" data-act="acmstxclose" data-v="${key}">${esc(t("cancel"))}</button>` : ""}</div></div>`;
+}
+/* Главная: заголовок и подзаголовок героя у каждого раздела поиска. */
+function acmsHero(){
+  const ov = cmsTexts();
+  return `<section class="card stack"><div class="stack" style="gap:4px"><h2>${esc(t("cms_hero_h"))}</h2><p class="muted small">${esc(t("cms_hero_d"))}</p></div>
+    ${MODULE_ORDER.map(k => `<details class="cms-hero" data-keep="cmsHero_${k}" ${M.ui["cmsHero_" + k] ? "open" : ""}><summary><span class="task-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b>
+      ${ov["hero_" + k] || ov[`hero_${k}_sub`] ? `<span class="pill st-PAID">${esc(t("cms_tx_changed"))}</span>` : ""}</summary>
+      <div class="stack">${acmsTextRow("hero_" + k)}${acmsTextRow(`hero_${k}_sub`)}</div></details>`).join("")}</section>`;
+}
+function acmsTxKeys(){
+  const q = (M.ui.cmsq || "").trim().toLowerCase(), ov = cmsTexts();
+  return SITE_KEYS.filter(k => (!M.ui.cmsTxOnly || ov[k]) && (!q || k.toLowerCase().includes(q) || SITE_STR[k].some(s => s.toLowerCase().includes(q))
+    || CMS_LANGS.some(l => (ov[k]?.[l] || "").toLowerCase().includes(q))));
+}
+const acmsTxMax = () => (M.ui.cmsq || "").trim() || M.ui.cmsTxOnly ? ACMS_TX_FIND : ACMS_TX_SHOW;
+const acmsTxCount = keys => keys.length > acmsTxMax() ? tf("cms_tx_more", { n:acmsTxMax(), total:keys.length }) : tf("cms_tx_count", { n:keys.length });
+const acmsTxList = keys => keys.length ? keys.slice(0, acmsTxMax()).map(acmsTextLine).join("") : `<p class="muted">${esc(t("cms_tx_none"))}</p>`;
+function acmsTexts(){
+  const keys = acmsTxKeys();
+  return `<section class="card stack"><div class="stack" style="gap:4px"><h2>${esc(t("cms_tab_texts"))}</h2><p class="muted small">${esc(t("cms_tx_d"))}</p></div>
+    <div class="ofind"><label class="search">${IC.search}<input id="cmsq" type="search" value="${esc(M.ui.cmsq || "")}" placeholder="${esc(t("cms_tx_search"))}" aria-label="${esc(t("cms_tx_search"))}"></label>
+      <label class="chk"><input type="checkbox" id="cmsTxOnly" ${M.ui.cmsTxOnly ? "checked" : ""}><span>${esc(t("cms_tx_only"))}</span></label></div>
+    <p class="muted small" id="cmstxcount" aria-live="polite">${esc(acmsTxCount(keys))}</p>
+    <div id="cmstxlist" class="stack">${acmsTxList(keys)}</div></section>`;
+}
+const acmsTxRefresh = () => { const keys = acmsTxKeys(), l = $("#cmstxlist"), c = $("#cmstxcount"); if (l) l.innerHTML = acmsTxList(keys); if (c) c.textContent = acmsTxCount(keys); };
+
+/* Сохранить замену: пустая на всех языках — удаляем; совпала с текстом по
+   умолчанию — это не замена. Не принимаем подстановку, которой нет в тексте
+   по умолчанию (сайт её не заполнит), и < > " — замена только текстом
+   (13-cms.js, cmsTx). Язык, который правили и здесь, и в другой вкладке
+   по-разному, — не затираем: черновик сбрасываем, просим повторить. */
+function acmsTxBad(key, l, v, known){
+  const stray = (v.match(/\{\w+\}/g) || []).find(p => !known.includes(p));
+  return stray ? tf("err_cms_ph", { ph:stray }) : CMS_TX_BAD.test(v) ? t("err_cms_html") : v.length > CMS_TEXT_MAX ? t("err_cms_long") : "";
+}
+function acmsSaveText(key, clear = false){
+  if (denied("content.edit")) return false;
+  const def = SITE_STR[key]; if (!def) return false;
+  const dr = clear ? null : M.ui.cmsTx?.[key], old = cmsFresh().texts[key] || {}, known = def.join(" ");
+  const edited = clear ? CMS_LANGS : CMS_LANGS.filter(l => dr && l in dr.v);
+  const norm = (v, i) => { const s = String(v || "").trim().replace(/'/g, "’"); return s === def[i].replace(/'/g, "’") ? "" : s; };
+  for (const l of clear ? [] : edited) {
+    const bad = acmsTxBad(key, l, String(dr.v[l] || "").trim(), known); if (!bad) continue;
+    const f = $(`[data-cmstx="${key}.${l}"]`); f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", `txerr-${key} txd-${key}-${l}`);
+    acmsSay(`#txerr-${CSS.escape(key)}`, `${l.toUpperCase()}: ${bad}`); acmsFocusBad(f); return false;
+  }
+  const done = () => { if (M.ui.cmsTx) delete M.ui.cmsTx[key]; if (M.ui.cmsTxOpen === key) M.ui.cmsTxOpen = null; rerender(); acmsTxFocus(key); };
+  const val = Object.fromEntries(CMS_LANGS.map((l, i) => [l, !edited.includes(l) ? old[l] || "" : clear ? "" : norm(dr.v[l], i)]));
+  if (!clear && edited.some(l => (old[l] || "") !== dr.base[l] && (old[l] || "") !== val[l])) { done(); toast(t("err_cms_changed")); return false; }
+  let same = false;
+  const ok = acmsCommit("cms_text", s => {
+    const was = s.texts[key] || {}, diff = [];
+    CMS_LANGS.forEach((l, i) => { if ((was[l] || "") === val[l]) return;
+      const [from, to] = acmsPair(was[l] || def[i], val[l] || def[i]); diff.push({ k:"cms_f_text", sub:l.toUpperCase(), from, to }); });
+    if (!diff.length) { same = true; return null; }
+    if (CMS_LANGS.some(l => val[l])) s.texts[key] = val; else delete s.texts[key];
+    return { vars:{ key }, diff };
+  });
+  if (!ok) { if (same) { done(); toast(t("pr_same")); } return false; }
+  done(); toast(t(clear ? "t_cms_tx_reset" : "t_cms_saved"));
+  return true;
+}
+
+/* Фокус после сохранения: на кнопку строки (в списке) или «Сохранить» (на главной). */
+const acmsTxFocus = key => ($(`[data-act="acmstxopen"][data-v="${key}"]`) || $(`[data-act="acmstxsave"][data-v="${key}"]`))?.focus();
+
+/* ---- настройки сайта ----
+   Раздел seo (название, описание, логотип, значок) и contacts (телефон, почта,
+   адрес, соцсети) сохраняются отдельно. Черновик — только поля, которые
+   правили: M.ui.cmsSite = { v:{ ключ:значение }, base:{ ключ:что было в
+   хранилище при первой правке } }, ключи плоские — title.ru, logo,
+   socials.telegram… Остальные поля показываем и сохраняем из хранилища:
+   правка другой вкладки (логотип, название) не откатывается. */
+const ACMS_SITE_PARTS = { seo:["title", "desc", "logo", "favicon"], contacts:["phone", "email", "address", "socials"] };
+const ACMS_SITE_L = ["title", "desc", "address"];
+function acmsSiteFlat(site){
+  const o = {};
+  for (const f of [...ACMS_SITE_PARTS.seo, ...ACMS_SITE_PARTS.contacts]) {
+    if (f === "socials") for (const k of CMS_SOCIALS) o["socials." + k] = site.socials?.[k] || "";
+    else if (ACMS_SITE_L.includes(f)) for (const l of CMS_LANGS) o[`${f}.${l}`] = site[f]?.[l] || "";
+    else o[f] = f === "logo" || f === "favicon" ? site[f] || null : site[f] || "";
+  }
+  return o;
+}
+const acmsSitePart = k => ACMS_SITE_PARTS.seo.includes(k.split(".")[0]) ? "seo" : "contacts";
+const acmsSiteVal = k => { const d = M.ui.cmsSite; return d && k in d.v ? d.v[k] : acmsSiteFlat(cmsSite())[k]; };
+function acmsSiteSet(k, v){
+  const d = M.ui.cmsSite ||= { v:{}, base:{} };
+  if (!(k in d.v)) d.base[k] = acmsSiteFlat(cmsSite())[k];
+  d.v[k] = v;
+}
+function acmsSiteDrop(part){
+  const d = M.ui.cmsSite; if (!d) return;
+  for (const k of Object.keys(d.v)) if (acmsSitePart(k) === part) { delete d.v[k]; delete d.base[k]; }
+}
+function acmsSiteLang(part, f, max, long){
+  const dis = can("content.manage") ? "" : "disabled", v = l => acmsSiteVal(`${f}.${l}`);
+  return `<fieldset class="cms-lf"><legend>${esc(t("cms_f_site_" + f))}</legend><div class="sgrid sgrid-3">${CMS_LANGS.map(l => `<label class="field"><span>${l.toUpperCase()}</span>${long
+    ? `<textarea rows="3" data-cs="${f}.${l}" maxlength="${max}" lang="${l}" ${dis}>${esc(v(l))}</textarea>`
+    : `<input data-cs="${f}.${l}" value="${esc(v(l))}" maxlength="${max}" lang="${l}" autocomplete="off" ${dis}>`}</label>`).join("")}</div></fieldset>`;
+}
+/* Кнопки загрузки и «Убрать» названы вместе с полем: «Логотип: Загрузить» и
+   «Значок вкладки: Загрузить» в списке кнопок диктора различимы. */
+function acmsSiteImg(f){
+  const v = acmsSiteVal(f), manage = can("content.manage"), name = t("cms_f_" + f), act = t(v ? "cms_img_replace" : "cms_img_upload");
+  return `<div class="field"><span>${esc(name)}</span><div class="row cms-img cms-img-${f}">${v ? `<img src="${v}" alt="${esc(t("cms_img_prev"))}">` : `<span class="muted small">${esc(t(f === "logo" ? "cms_logo_none" : "cms_fav_none"))}</span>`}
+    ${manage ? `<label class="ghost sm filebtn">${IC.upload}<span>${esc(act)}</span><input id="cms-${f}" type="file" accept="image/png,image/jpeg,image/webp" aria-label="${esc(name)}: ${esc(act)}"></label>
+      ${v ? `<button type="button" class="link danger" data-act="acmssiteimgx" data-v="${f}" aria-label="${esc(t("cms_img_remove"))}: ${esc(name)}">${esc(t("cms_img_remove"))}</button>` : ""}` : ""}</div>
+    <p class="muted small">${esc(t(f === "logo" ? "cms_logo_hint" : "cms_fav_hint"))}</p></div>`;
+}
+const acmsSiteDirty = part => { const d = M.ui.cmsSite; if (!d) return false; const now = acmsSiteFlat(cmsSite()); return Object.keys(d.v).some(k => acmsSitePart(k) === part && d.v[k] !== now[k]); };
+const acmsSiteBtns = part => `<div class="err" id="cmssiteerr-${part}" hidden></div>
+  <div class="row"><button type="button" class="solid" data-act="acmssitesave" data-v="${part}" ${guard("content.manage")}>${esc(t("st_save"))}</button>
+    ${acmsSiteDirty(part) ? `<button type="button" class="link" data-act="acmssitereset" data-v="${part}">${esc(t("cancel"))}</button>` : ""}</div>`;
+function acmsSeo(){
+  return `<section class="card stack" id="cmsseo"><div class="stack" style="gap:4px"><h2 id="cms-h-seo" tabindex="-1">${esc(t("cms_tab_seo"))}</h2><p class="muted small">${esc(t("cms_seo_d"))}</p></div>
+    ${can("content.manage") ? "" : `<p class="note-live">${IC.lock}<span>${esc(t("cms_manage_only"))}</span></p>`}
+    ${acmsSiteLang("seo", "title", CMS_LEN.siteTitle, false)}${acmsSiteLang("seo", "desc", CMS_LEN.siteDesc, true)}
+    <div class="sgrid sgrid-2 cms-brand">${acmsSiteImg("logo")}${acmsSiteImg("favicon")}</div>
+    ${acmsSiteBtns("seo")}</section>`;
+}
+function acmsContacts(){
+  const dis = can("content.manage") ? "" : "disabled";
+  const one = (f, label, attrs) => `<label class="field"><span>${esc(t(label))}</span><input data-cs="${f}" value="${esc(acmsSiteVal(f))}" ${attrs} ${dis}></label>`;
+  return `<section class="card stack" id="cmscontacts"><div class="stack" style="gap:4px"><h2 id="cms-h-contacts" tabindex="-1">${esc(t("cms_contacts_h"))}</h2><p class="muted small">${esc(t("cms_contacts_d"))}</p></div>
+    ${can("content.manage") ? "" : `<p class="note-live">${IC.lock}<span>${esc(t("cms_manage_only"))}</span></p>`}
+    <div class="sgrid sgrid-2">${one("phone", "phone_label", 'type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="+998 71 200 00 00"')}${one("email", "agency_email", 'type="email" maxlength="80" autocomplete="off" placeholder="info@charteri.uz"')}</div>
+    ${acmsSiteLang("contacts", "address", CMS_LEN.address, false)}
+    <fieldset class="cms-lf"><legend>${esc(t("cms_follow"))}</legend><div class="sgrid sgrid-2">${CMS_SOCIALS.map(k => one("socials." + k, "cms_soc_" + k, `inputmode="url" maxlength="200" autocomplete="off" spellcheck="false" placeholder="${k === "telegram" || k === "instagram" ? "@charteri" : "https://…"}"`)).join("")}</div>
+      <p class="muted small">${esc(t("cms_soc_hint"))}</p></fieldset>
+    ${acmsSiteBtns("contacts")}</section>`;
+}
+/* Соцсеть: @имя в Telegram и Instagram — адрес профиля; остальное — ссылка https. */
+function acmsSocial(k, v){
+  const s = String(v || "").trim(); if (!s) return "";
+  const h = s.replace(/^@/, "");
+  if (k === "telegram" && /^\w{3,32}$/.test(h)) return "https://t.me/" + h;
+  if (k === "instagram" && /^[\w.]{2,30}$/.test(h) && !s.includes("/") && !/\.\w{2,}$/.test(h)) return "https://www.instagram.com/" + h + "/";
+  return cmsWebHref(cmsNormHref(s)) || null;
+}
+/* Раздел для записи: поля черновика поверх хранилища, в виде хранилища. */
+function acmsSiteBuild(part, fail){
+  const V = acmsSiteVal, x = {}, tr = f => Object.fromEntries(CMS_LANGS.map(l => [l, String(V(`${f}.${l}`) || "").trim()]));
+  if (part === "seo") {
+    x.title = tr("title"); x.desc = tr("desc"); x.logo = cmsImg(V("logo")); x.favicon = cmsImg(V("favicon"));
+    for (const l of CMS_LANGS) if (x.title[l].length < 2) return fail("err_cms_site_title", "title." + l);
+    return x;
+  }
+  x.phone = String(V("phone") || "").trim(); x.email = String(V("email") || "").trim(); x.address = tr("address"); x.socials = {};
+  if (x.phone && !cmsPhone(x.phone)) return fail("err_cms_phone", "phone");
+  if (x.email && !cmsEmail(x.email)) return fail("err_email", "email");
+  for (const k of CMS_SOCIALS) { const v = acmsSocial(k, V("socials." + k)); if (v === null) return fail("err_cms_social", "socials." + k); x.socials[k] = v; }
+  return x;
+}
+function acmsSiteDiff(part, a, x){
+  const diff = [];
+  for (const f of ACMS_SITE_PARTS[part]) {
+    const was = a[f], now = x[f];
+    if (f === "logo" || f === "favicon") { if ((was || null) !== (now || null)) diff.push({ k:"cms_f_" + f, from:strRef(was ? "cms_img_yes" : "cms_img_no"), to:strRef(now ? (was ? "cms_img_new" : "cms_img_yes") : "cms_img_no") }); }
+    else if (f === "socials") { for (const k of CMS_SOCIALS) if ((was[k] || "") !== now[k]) diff.push({ k:"cms_soc_" + k, from:was[k] || "", to:now[k] }); }
+    else if (typeof now === "object") { for (const l of CMS_LANGS) if ((was[l] || "") !== now[l]) { const [from, to] = acmsPair(was[l], now[l]); diff.push({ k:"cms_f_site_" + f, sub:l.toUpperCase(), from, to }); } }
+    else if ((was || "") !== now) diff.push({ k:f === "phone" ? "phone_label" : "agency_email", from:was || "", to:now });
+  }
+  return diff;
+}
+function acmsSaveSite(part){
+  if (denied("content.manage")) return false;
+  const errId = "#cmssiteerr-" + part, fail = (key, field) => {
+    const f = $(`[data-cs="${field}"]`); f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", errId.slice(1));
+    acmsSay(errId, t(key)); acmsFocusBad(f); return null; };
+  $$(`#cms${part} [aria-invalid]`).forEach(x => x.removeAttribute("aria-invalid"));
+  const x = acmsSiteBuild(part, fail); if (!x) return false;
+  // Поле правили и здесь, и в другой вкладке, и по-разному — не затираем чужое.
+  const d = M.ui.cmsSite, fresh = cmsFresh().site, now = acmsSiteFlat(fresh), mine = acmsSiteFlat({ ...fresh, ...x });
+  if (d && Object.keys(d.v).some(k => acmsSitePart(k) === part && now[k] !== d.base[k] && now[k] !== mine[k])) {
+    acmsSiteDrop(part); rerender(); toast(t("err_cms_changed")); $(`#cms-h-${part}`)?.focus(); return false; }
+  let same = false;
+  const ok = acmsCommit("cms_site", s => {
+    const diff = acmsSiteDiff(part, s.site, x);
+    if (!diff.length) { same = true; return null; }
+    Object.assign(s.site, x);
+    return { vars:{ what:strRef(part === "seo" ? "cms_tab_seo" : "cms_contacts_h") }, diff };
+  });
+  if (!ok && !same) return false;
+  // Сохранённый раздел — из хранилища; правки другого раздела остаются в черновике.
+  acmsSiteDrop(part);
+  rerender(); toast(t(ok ? "t_cms_saved" : "pr_same")); $(`[data-act="acmssitesave"][data-v="${part}"]`)?.focus();
+  return true;
+}
+/* Логотип — до 480 px с прозрачностью; значок вкладки — квадрат 64 px. */
+async function acmsSiteImage(f, file){
+  try {
+    const url = await acmsImage(file, f === "logo" ? { sides:[480, 320, 240], png:true } : { sides:[64], png:true, square:64 });
+    acmsSiteSet(f, url); rerender(); $(`#cms-${f}`)?.focus();
+  } catch(err) { showErr("#cmssiteerr-seo", t(typeof err === "string" ? err : "err_logo_type")); }
+}
+
+Object.assign(ACT, {
+  acmstxsave:    el => acmsSaveText(el.dataset.v),
+  acmstxclear:   el => acmsSaveText(el.dataset.v, true),
+  acmstxopen:    el => { M.ui.cmsTxOpen = el.dataset.v; acmsTxRefresh(); $(`[data-cmstx="${el.dataset.v}.${S.lang}"]`)?.focus(); },
+  acmstxclose:   el => { const k = el.dataset.v; if (M.ui.cmsTx) delete M.ui.cmsTx[k]; M.ui.cmsTxOpen = null; acmsTxRefresh(); acmsTxFocus(k); },
+  acmssitesave:  el => acmsSaveSite(el.dataset.v),
+  // «Отмена» — только свой раздел; фокус — на его заголовок.
+  acmssitereset: el => { const part = el.dataset.v; acmsSiteDrop(part); rerender(); $(`#cms-h-${part}`)?.focus(); },
+  acmssiteimgx:  el => { acmsSiteSet(el.dataset.v, null); rerender(); $(`#cms-${el.dataset.v}`)?.focus(); }
+});
+document.addEventListener("input", e => {
+  const tx = e.target.dataset?.cmstx, cs = e.target.dataset?.cs;
+  if (tx) { const [key, l] = tx.split("."), dr = (M.ui.cmsTx ||= {})[key] ||= { v:{}, base:{} };
+    if (!(l in dr.v)) dr.base[l] = cmsTexts()[key]?.[l] || "";
+    dr.v[l] = e.target.value; e.target.removeAttribute("aria-invalid"); }
+  if (cs) { acmsSiteSet(cs, e.target.value); e.target.removeAttribute("aria-invalid"); }
+  if (e.target.id === "cmsq") { M.ui.cmsq = e.target.value; acmsTxRefresh(); }
+});
+document.addEventListener("change", e => {
+  if (e.target.id === "cmsTxOnly") { M.ui.cmsTxOnly = e.target.checked; acmsTxRefresh(); }
+  if ((e.target.id === "cms-logo" || e.target.id === "cms-favicon") && e.target.files?.[0]) acmsSiteImage(e.target.id.slice(4), e.target.files[0]);
 });
 
 /* ---- 80-staff.js ---- */
@@ -9881,12 +11405,12 @@ Object.assign(ACT, {
   asetlang:   el => { O.lang = el.dataset.v; adminPrefs(); saveOps(); rerender(); },
   asettheme:  el => { O.theme = el.dataset.v; adminPrefs(); saveOps(); withTransition(rerender, "theme"); },
   asignout:   () => { change(() => { audit("signout", {}); O.session = null; }); stopHeartbeat(); toast(t("signed_out")); go(""); },
-  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки. Сотрудник остаётся в админке. */
+  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки, содержимое сайта. Сотрудник остаётся в админке. */
   areset:     () => {
     if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY]) try { localStorage.removeItem(k); } catch(e) {}
-    PRICES = null; M.ui = {}; applyDirections();
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY, CMS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    PRICES = null; CMS_CACHE = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
     // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.
     O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:FOUNDER_ID, at:Date.now() } }); saveOps(); SITE = null; seedApps();

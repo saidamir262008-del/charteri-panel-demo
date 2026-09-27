@@ -190,12 +190,12 @@ Object.assign(ACT, {
   asetlang:   el => { O.lang = el.dataset.v; adminPrefs(); saveOps(); rerender(); },
   asettheme:  el => { O.theme = el.dataset.v; adminPrefs(); saveOps(); withTransition(rerender, "theme"); },
   asignout:   () => { change(() => { audit("signout", {}); O.session = null; }); stopHeartbeat(); toast(t("signed_out")); go(""); },
-  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки. Сотрудник остаётся в админке. */
+  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки, содержимое сайта. Сотрудник остаётся в админке. */
   areset:     () => {
     if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY]) try { localStorage.removeItem(k); } catch(e) {}
-    PRICES = null; M.ui = {}; applyDirections();
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY, CMS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    PRICES = null; CMS_CACHE = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
     // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.
     O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:FOUNDER_ID, at:Date.now() } }); saveOps(); SITE = null; seedApps();

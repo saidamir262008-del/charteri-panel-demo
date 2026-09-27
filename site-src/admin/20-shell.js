@@ -22,7 +22,7 @@ Object.assign(IC, {
 const ADM_NAV = [
   ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["crm", "an_crm", "funnel", "crm.view"], ["orders", "an_orders", "bag", "orders.view"],
   ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
-  ["pricing", "an_pricing", "tag", "pricing.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
+  ["pricing", "an_pricing", "tag", "pricing.view"], ["cms", "an_cms", "layout", "content.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
   ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };

@@ -170,7 +170,9 @@ window.addEventListener("storage", e => { if (e.key === PRICES_KEY) { PRICES = n
 
 /* ---- язык ---- */
 const LIDX = { ru:0, uz:1, en:2 };
+/* На сайте текст можно заменить в админке (13-cms.js): замена на языке экрана — первой. */
 function t(k){
+  if (APP === "b2c") { const o = cmsTexts()[k]?.[S.lang]; if (o) return o; }
   const a = I18N[k]; if (a) return a[S.lang] ?? a.ru;
   const b = STR[k];  if (b) return b[LIDX[S.lang]] ?? b[0];
   return k;
@@ -275,11 +277,14 @@ function render(scrollTop = true){
 }
 /* Новая страница: заголовок вкладки — по её h1, фокус — на h1, чтобы клавиатура
    и экранный диктор начинали с неё, а не с начала документа. Перерисовка той
-   же страницы (фильтр, степпер) фокус не трогает. */
+   же страницы (фильтр, степпер) фокус не трогает. На сайте название, описание
+   и значок вкладки задаёт админка (13-cms.js), у страницы могут быть свои. */
 const BASE_TITLE = document.title;
 function announcePage(isNav){
-  const h = $("#app h1");
-  document.title = h && currentParts().length ? `${h.textContent.trim()} — ${BASE_TITLE.split(" — ")[0]}` : BASE_TITLE;
+  const h = $("#app h1"), parts = currentParts();
+  const base = (APP === "b2c" && cmsSiteTitle()) || BASE_TITLE, seo = APP === "b2c" ? cmsRouteSeo(parts) : null;
+  document.title = seo?.title || (h && parts.length ? `${h.textContent.trim()} — ${base.split(" — ")[0]}` : base);
+  if (APP === "b2c") cmsApplyHead(seo?.desc);
   if (!isNav || !h || !announcePage.ready) { announcePage.ready = true; return; }
   if ($("#app").contains(document.activeElement)) return;
   h.tabIndex = -1; h.focus({ preventScroll:true });

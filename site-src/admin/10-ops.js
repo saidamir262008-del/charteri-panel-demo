@@ -298,7 +298,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", cms:"content.view", directions:"services.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";

@@ -121,7 +121,8 @@ input:disabled,select:disabled{opacity:.6}
   background:color-mix(in srgb,var(--surface) 76%,transparent);backdrop-filter:blur(18px) saturate(1.4);-webkit-backdrop-filter:blur(18px) saturate(1.4);
   border:1px solid color-mix(in srgb,var(--line) 80%,transparent);box-shadow:0 12px 32px -20px rgba(22,39,92,.45);view-transition-name:nav}
 .nav-in{display:flex;align-items:center;gap:14px;min-height:60px;padding-inline:16px 10px}
-.navmods{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+/* position — чтобы скрытые для глаз подписи (.sr-only) не выходили из полосы прокрутки и не расширяли страницу */
+.navmods{position:relative;display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
 .navmods::-webkit-scrollbar{display:none}
 .navmods button{padding:8px 10px;border-radius:10px;font-weight:600;font-size:14.5px;color:var(--muted);white-space:nowrap}
 .navmods button:hover{background:var(--sunken);color:var(--ink)}
@@ -523,13 +524,109 @@ input:disabled,select:disabled{opacity:.6}
 
 /* ---- подвал ---- */
 #footer{background:#16275C;color:rgba(255,255,255,.78);margin-top:40px}
-.foot-in{display:grid;grid-template-columns:1.4fr 1fr 1.4fr;gap:28px;padding-block:40px}
+/* --fc — сколько колонок после первой: админка добавляет «Информацию» и «Контакты». */
+.foot-in{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(var(--fc,2),minmax(0,1fr));gap:28px;padding-block:40px}
+.foot-in a.footlink{overflow-wrap:anywhere}
+.foot-soc-h{margin-top:8px;color:rgba(255,255,255,.6)}
 .foot-in b{color:#fff}
 .footlink{color:rgba(255,255,255,.78);font-size:14px;text-align:left}
 .footlink:hover{color:#fff}
 .paychips{display:flex;flex-wrap:wrap;gap:6px}
 .paychips span{font-size:12.5px;padding:4px 9px;border-radius:8px;border:1px solid rgba(255,255,255,.22)}
 .foot-note{grid-column:1 / -1;border-top:1px solid rgba(255,255,255,.14);padding-top:18px;color:rgba(255,255,255,.6)}
+
+/* ---- содержимое из админки (71-cms-pages.js) ---- */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.cms-logo{display:block;height:34px;width:auto;max-width:170px;object-fit:contain}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cms-logo{background:#fff;border-radius:9px;padding:3px 8px}}
+:root[data-theme="dark"] .cms-logo{background:#fff;border-radius:9px;padding:3px 8px}
+.foot-logo{align-self:flex-start;display:inline-flex;background:#fff;border-radius:10px;padding:5px 10px}
+.foot-logo img{display:block;height:34px;width:auto;max-width:170px;object-fit:contain}
+/* Ссылки шапки из админки — третьей строкой, мельче разделов */
+.nav-in.has-cms{flex-wrap:wrap;row-gap:0}
+.navcms{position:relative;order:4;flex-basis:100%;min-width:0;display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;
+  border-top:1px solid var(--line);padding:5px 0 6px}
+.navcms::-webkit-scrollbar{display:none}
+.navcms a{position:relative;flex:none;padding:5px 10px;border-radius:9px;font-weight:600;font-size:13.5px;color:var(--muted);white-space:nowrap}
+.navcms a:hover{background:var(--sunken);color:var(--ink)}
+.navcms a[aria-current="page"]{color:var(--navy);background:var(--sky)}
+/* Значок ссылки из админки — перед подписью, в шапке и в подвале */
+.cms-lic{display:inline-flex;vertical-align:-3px;margin-right:6px}
+.cms-lic svg{width:16px;height:16px}
+.navcms.cms-fr{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 36px),transparent)}
+.navcms.cms-fl{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px);mask-image:linear-gradient(90deg,transparent,#000 36px)}
+.navcms.cms-fl.cms-fr{-webkit-mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent);mask-image:linear-gradient(90deg,transparent,#000 36px,#000 calc(100% - 36px),transparent)}
+.cms-bn-sec + .section{padding-top:8px}
+/* start — баннер без текста не растягивается под высокого соседа */
+.cms-bns{display:grid;gap:16px;align-items:start;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr))}
+.cms-bn{container-type:inline-size;border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border);background:var(--surface);color:var(--ink);min-width:0}
+.cms-bn-in{display:grid;grid-template-columns:minmax(0,1fr);height:100%}
+.cms-bn-in.has-media{grid-template-rows:auto 1fr}
+.cms-bn-in.has-media .cms-bn-media{order:-1}
+@container (min-width:720px){
+  .cms-bn-in.has-media{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:none}
+  .cms-bn-in.has-media .cms-bn-media{order:0}
+}
+.cms-bn-body{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding:24px}
+.cms-bn h2{font-size:clamp(20px,2.4vw,26px);overflow-wrap:anywhere}
+.cms-bn p{margin:0;max-width:62ch;color:var(--muted)}
+.cms-bn .solid{margin-top:6px}
+.cms-bn-ic{width:44px;height:44px;border-radius:13px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
+.cms-bn-ic svg{width:24px;height:24px}
+.cms-bn-media{position:relative;min-width:0;background:var(--sunken)}
+.cms-bn-media > img{display:block;width:100%;height:100%;min-height:180px;aspect-ratio:16/9;object-fit:cover}
+.cms-vid{position:relative;width:100%;height:100%;min-height:180px;aspect-ratio:16/9;background:linear-gradient(135deg,var(--hero-a),var(--hero-b))}
+.cms-vid img,.cms-vid iframe{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border:0}
+.cms-play{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#fff;font-weight:600;
+  background:linear-gradient(180deg,transparent 30%,rgba(8,14,34,.55))}
+.cms-play span{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:rgba(8,14,34,.6);box-shadow:0 0 0 2px rgba(255,255,255,.7);
+  transition:transform 160ms var(--ease-out)}
+.cms-play span svg{width:30px;height:30px;margin-left:3px}
+.cms-play:hover span{transform:scale(1.06)}
+.cms-play:active span{transform:scale(.97)}
+/* Кольцо фокуса — вокруг круглой кнопки: снаружи его обрезал бы баннер, а синее терялось бы на синем */
+.cms-play:focus-visible{outline:none}
+.cms-play:focus-visible span{box-shadow:0 0 0 3px #fff,0 0 0 6px #16275C}
+.tone-blue{background:linear-gradient(135deg,var(--hero-a),var(--hero-b));color:#fff}
+.tone-navy{background:#16275C;color:#fff}
+.tone-blue h2,.tone-navy h2{color:#fff}
+.tone-blue p,.tone-navy p{color:rgba(255,255,255,.84)}
+.tone-blue .cms-bn-ic,.tone-navy .cms-bn-ic{background:rgba(255,255,255,.14);color:#fff}
+.tone-blue .solid,.tone-navy .solid{background:#fff;color:#16275C}
+.tone-blue .solid:hover,.tone-navy .solid:hover{background:#E7EFFC}
+/* Синее кольцо фокуса на синем и тёмно-синем фоне не видно — белое, с зазором */
+.tone-blue .solid:focus-visible,.tone-navy .solid:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.tone-sky{background:var(--sky)}
+.tone-mint{background:var(--mint-bg)}
+.tone-mint .cms-bn-ic{background:var(--surface);color:var(--mint)}
+.tone-sand{background:var(--band)}
+.tone-sky .cms-bn-ic,.tone-sand .cms-bn-ic{background:var(--surface)}
+.cms-page{max-width:760px;display:flex;flex-direction:column;gap:12px}
+.cms-page > h1{align-self:flex-start;max-width:100%;font-size:clamp(26px,3.4vw,36px);overflow-wrap:anywhere}
+.cms-page h1:focus-visible{outline:2px solid var(--blue);outline-offset:4px;border-radius:6px}
+.cms-page .backlink{align-self:flex-start;margin-bottom:0}
+.cms-body{display:flex;flex-direction:column;gap:12px;line-height:1.6;overflow-wrap:anywhere}
+.cms-body p,.cms-body ul{margin:0}
+.cms-body ul{padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
+.cms-body h2{font-size:21px;margin-top:10px}
+.cms-body h3{font-size:17px;margin-top:6px}
+.cms-faq-g{display:flex;flex-direction:column}
+.cms-faq-g + .cms-faq-g{margin-top:26px}
+.cms-faq-g > h2{font-size:20px;margin-bottom:6px}
+.cms-qa{border-bottom:1px solid var(--line)}
+.cms-qa summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 4px;font-weight:600;color:var(--navy);border-radius:10px}
+.cms-qa summary::-webkit-details-marker{display:none}
+.cms-qa summary::after{content:"";flex:none;width:10px;height:10px;border-right:2px solid var(--blue);border-bottom:2px solid var(--blue);transform:rotate(45deg) translate(-2px,-2px);transition:transform 200ms var(--ease-out)}
+.cms-qa[open] summary::after{transform:rotate(225deg) translate(-2px,-2px)}
+.cms-qa .cms-body{padding:0 4px 18px}
+.cms-news{display:grid;gap:18px;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr))}
+.cms-nc{position:relative;display:flex;flex-direction:column;background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--card-border)}
+.cms-nc > img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.cms-nc-b{display:flex;flex-direction:column;gap:6px;padding:16px 18px 18px}
+.cms-nc h2{font-size:18px;overflow-wrap:anywhere}
+.cms-nc h2 a::after{content:"";position:absolute;inset:0}
+.cms-nc p{margin:0}
+.cms-hero-img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:var(--r);margin-block:6px}
 
 /* ---- тост и оверлей ---- */
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:60;background:var(--ink);color:var(--paper);border-radius:14px;
@@ -580,11 +677,13 @@ input:disabled,select:disabled{opacity:.6}
   .ho-buy .solid{width:auto;margin-top:0}
   .destgrid{grid-template-columns:repeat(2,1fr)}
   .how,.trust{grid-template-columns:1fr}
-  .foot-in{grid-template-columns:1fr}
+  .foot-in{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .foot-in > :first-child{grid-column:1 / -1}
   .cal{grid-template-columns:repeat(7,minmax(128px,1fr))}
 }
 @media (max-width:600px){
   .container{padding-inline:16px}
+  .foot-in{grid-template-columns:minmax(0,1fr)}
   .hero{padding-block:calc(var(--navh, 104px) + 24px) 36px;--hero-top:calc(var(--navh, 104px) + 24px)}
   /* «Откуда» и «Куда» друг под другом, «поменять» справа между ними —
      как пара полей в мобильном приложении; в строку названия не помещаются. */
