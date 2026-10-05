@@ -166,12 +166,46 @@ function acmsTrash(){
           <button type="button" class="link danger" data-act="acmspurge" data-v="${esc(x.id)}" aria-label="${esc(t("cms_purge"))}: ${esc(name)}" ${guard("content.delete")}>${esc(t("cms_purge"))}</button></span></div>`; }).join("")}</div>`
       : `<p class="muted">${esc(t("cms_trash_empty"))}</p>`}</section>`;
 }
+/* ---- блоки главной ----
+   Поиск с заголовком — всегда первый и всегда виден; блоки под ним (cmsHome)
+   можно скрыть и переставить. Место баннеров скрыто — скрыты все его баннеры.
+   Право — content.manage (это видно всем посетителям). on — какое состояние
+   поставить: по свежим данным оно уже такое — менять нечего. */
+const acmsHbName = k => t("cms_hb_" + k);
+function acmsHbSub(k){
+  if (!k.startsWith("banner_")) return "";
+  const n = cmsItems("banner", { published:true }).filter(b => b.place === k.slice(7)).length;
+  return n ? tf("cms_hb_n", { n }) : t("cms_hb_none");
+}
+function acmsHomeSet(k, fn){
+  if (denied("content.manage")) return false;
+  return acmsCommit("cms_block_order", s => {
+    const i = s.home.findIndex(x => x.k === k); if (i < 0) return null;
+    const list = s.home.map(x => ({ ...x })), r = fn(list, i); if (!r) return null;
+    s.home = list;
+    return { action:r.action, vars:{ what:strRef("cms_hb_" + k) }, diff:r.diff };
+  });
+}
+function acmsHomeBlocks(){
+  const list = cmsHome(), name = k => esc(acmsHbName(k));
+  const mv = (k, d, ic, key, end) => `<button type="button" class="iconbtn sm" data-act="acmshbmove" data-v="${k}" data-d="${d}" aria-label="${esc(t(key))}: ${name(k)}" ${end ? "disabled" : guard("content.manage")}>${IC[ic]}</button>`;
+  const pill = on => `<span class="pill ${on ? "st-CONFIRMED" : "st-NEW"}">${esc(t(on ? "cms_hb_on" : "cms_hb_off"))}</span>`;
+  return `<section class="card stack" aria-labelledby="cms-h-blocks"><div class="stack" style="gap:4px"><h2 id="cms-h-blocks" tabindex="-1">${esc(t("cms_hb_h"))}</h2><p class="muted small">${esc(t("cms_hb_d"))}</p></div>
+    <div class="atable cms-table" id="cmsblocks">
+      <div class="arow"><span class="a-main"><b>${esc(t("cms_hb_hero"))}</b><span class="small muted">${esc(t("cms_hb_hero_d"))}</span></span><span class="a-keep">${pill(true)}</span><span class="a-end"></span></div>
+      ${list.map((x, i) => { const sub = acmsHbSub(x.k), act = x.on ? "cms_hide" : "cms_show";
+        return `<div class="arow ${x.on ? "" : "cms-dim"}" data-hb="${x.k}"><span class="a-main"><b>${name(x.k)}</b>${sub ? `<span class="small muted">${esc(sub)}</span>` : ""}</span>
+        <span class="a-keep">${pill(x.on)}</span>
+        <span class="a-end cms-acts"><span class="cms-ord">${mv(x.k, -1, "up", "cms_up", i === 0)}${mv(x.k, 1, "down", "cms_down", i === list.length - 1)}</span>
+          <button type="button" class="link" data-act="acmshbtoggle" data-v="${x.k}" data-on="${x.on ? "" : "1"}" aria-label="${esc(t(act))}: ${name(x.k)}" ${guard("content.manage")}>${esc(t(act))}</button></span></div>`; }).join("")}</div></section>`;
+}
+
 /* Акции, скидки, тарифы и цены живут в «Услугах и ценах» — не дублируем. */
 const acmsPricingCard = () => `<section class="card cms-pr"><span class="task-ic">${IC.tag}</span><div class="stack cms-pr-t" style="gap:2px"><b>${esc(t("cms_pr_h"))}</b>
   <p class="muted small">${esc(t("cms_pr_d"))}</p></div>${can("pricing.view") ? `<a class="ghost sm" href="#/pricing">${esc(t("an_pricing"))}</a>` : ""}</section>`;
 
 const ACMS_PANELS = {
-  home:  () => acmsHero() + acmsList("banner"),
+  home:  () => acmsHomeBlocks() + acmsHero() + acmsList("banner"),
   pages: () => acmsList("page"),
   menu:  () => acmsList("link") + `<p class="muted small">${esc(t("cms_menu_note"))}</p>` + acmsContacts(),
   faq:   () => acmsList("faq"),
@@ -220,6 +254,21 @@ Object.assign(ACT, {
   acmsdel:     el => { const h = el.closest("section")?.querySelector("h2")?.id; if (acmsTrashIt(el.dataset.v, false)) { toast(t("t_cms_del")); if (h) $("#" + h)?.focus(); } },
   acmsrestore: el => { if (acmsTrashIt(el.dataset.v, true)) { toast(t("t_cms_restore")); $("#cms-h-trash")?.focus(); } },
   acmspurge:   el => { if (acmsPurge(el.dataset.v)) { toast(t("t_cms_purge")); $("#cms-h-trash")?.focus(); } },
+  acmshbmove:  el => {
+    const k = el.dataset.v, d = Number(el.dataset.d);
+    if (!acmsHomeSet(k, (l, i) => { const j = i + d; if (j < 0 || j >= l.length) return null;
+      [l[i], l[j]] = [l[j], l[i]];
+      return { action:"cms_block_order", diff:[{ k:"cms_f_order", from:String(i + 1), to:String(j + 1) }] }; })) return;
+    const b = $(`[data-act="acmshbmove"][data-v="${k}"][data-d="${d}"]`);
+    (b && !b.disabled ? b : $(`[data-act="acmshbmove"][data-v="${k}"][data-d="${-d}"]`))?.focus();
+    announce(t("t_cms_moved"));
+  },
+  acmshbtoggle: el => {
+    const k = el.dataset.v, on = !!el.dataset.on;
+    if (!acmsHomeSet(k, (l, i) => { if (l[i].on === on) return null; l[i].on = on;
+      return { action:on ? "cms_block_show" : "cms_block_hide", diff:[{ k:"col_status", from:strRef(on ? "cms_hb_off" : "cms_hb_on"), to:strRef(on ? "cms_hb_on" : "cms_hb_off") }] }; })) return;
+    toast(t(on ? "t_cms_hb_on" : "t_cms_hb_off")); $(`[data-act="acmshbtoggle"][data-v="${k}"]`)?.focus();
+  },
   acmsmove:    el => {
     const id = el.dataset.v, d = Number(el.dataset.d);
     if (!acmsMove(id, d, !!el.dataset.m)) return;

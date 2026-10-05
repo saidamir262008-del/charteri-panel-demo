@@ -152,7 +152,7 @@ const STR = {
   how_1:["Выберите","Tanlang","Choose"],
   how_1_d:["Рейс, тур, отель или борт — цены из тех же систем, с которыми работают агентства.","Reys, tur, mehmonxona yoki samolyot — narxlar agentliklar ishlaydigan tizimlardan.","A flight, tour, hotel or aircraft — prices from the same systems agencies use."],
   how_2:["Оплатите","To‘lang","Pay"],
-  how_2_d:["Payme, Click, Uzum, Uzcard, Humo или Visa и Mastercard. Цена проверяется перед списанием.","Payme, Click, Uzum, Uzcard, Humo yoki Visa va Mastercard. Narx yechishdan oldin tekshiriladi.","Payme, Click, Uzum, Uzcard, Humo, or Visa and Mastercard. The price is checked before you’re charged."],
+  how_2_d:["{methods}. Цена проверяется перед списанием.","{methods}. Narx yechishdan oldin tekshiriladi.","{methods}. The price is checked before you’re charged."],
   how_3:["Летите","Uching","Fly"],
   how_3_d:["Билет или ваучер с QR-кодом — в «Моих заказах» и на телефоне, открывается без интернета.","QR-kodli chipta yoki vaucher — «Buyurtmalarim»da va telefonda, internetsiz ochiladi.","A ticket or voucher with a QR code in My orders and on your phone, opens offline."],
   how_title:["Как это работает","Bu qanday ishlaydi","How it works"],
@@ -279,8 +279,13 @@ const STR = {
   trip_kind:["Тип рейса","Reys turi","Trip type"],
   trust_1:["Цена проверяется перед оплатой","Narx to‘lovdan oldin tekshiriladi","The price is checked before you pay"],
   trust_1_d:["Если поставщик изменил цену, вы увидите старую и новую сумму и решите сами","Agar ta’minotchi narxni o‘zgartirsa, eski va yangi summani ko‘rib, o‘zingiz qaror qilasiz","If the supplier changes the price, you see the old and new amounts and decide"],
-  trust_2:["Три языка","Uch til","Three languages"],
-  trust_2_d:["Сайт, документы и поддержка — на узбекском, русском и английском","Sayt, hujjatlar va yordam — o‘zbek, rus va ingliz tillarida","Site, documents and support in Uzbek, Russian and English"],
+  trust_2:["На вашем языке","O‘z tilingizda","In your language"],
+  trust_2_d:["Сайт, документы и поддержка — на {langs}","Sayt, hujjatlar va yordam — {langs}","Site, documents and support in {langs}"],
+  lang_in_uz:["узбекском","o‘zbek","Uzbek"], lang_in_ru:["русском","rus","Russian"], lang_in_en:["английском","ingliz","English"],
+  list_and:["и","va","and"],
+  // В узбекском после списка языков — «tillarida», после одного — «tilida».
+  lang_in_one:["","tilida",""],
+  lang_in_many:["","tillarida",""],
   trust_3:["Документ без интернета","Internetsiz hujjat","Documents work offline"],
   trust_3_d:["Билет и ваучер с QR-кодом открываются в аэропорту даже без роуминга","QR-kodli chipta va vaucher aeroportda rouminsiz ham ochiladi","Tickets and vouchers with QR codes open at the airport even without roaming"],
   type_FLIGHT:["Авиабилеты","Aviachiptalar","Flights"],
@@ -331,7 +336,16 @@ const STR = {
   cms_soc_telegram:["Telegram","Telegram","Telegram"],
   cms_soc_instagram:["Instagram","Instagram","Instagram"],
   cms_soc_facebook:["Facebook","Facebook","Facebook"],
-  cms_soc_youtube:["YouTube","YouTube","YouTube"]
+  cms_soc_youtube:["YouTube","YouTube","YouTube"],
+
+  /* ---- системные настройки из админки (14-system.js) ---- */
+  maint_h:["Идут технические работы","Texnik ishlar olib borilmoqda","Maintenance in progress"],
+  maint_d:["Мы обновляем систему. Бронирование и оплата ненадолго недоступны — скоро всё заработает.","Tizimni yangilayapmiz. Bron qilish va to‘lov qisqa vaqtga ishlamaydi — tez orada hammasi ishlaydi.","We’re updating the system. Booking and payment are briefly unavailable — we’ll be back soon."],
+  maint_since:["Работы начались: {time}","Ishlar boshlandi: {time}","Started: {time}"],
+  pay_off:["Этот способ оплаты сейчас отключён — выберите другой","Bu to‘lov usuli hozir o‘chirilgan — boshqasini tanlang","This payment method is switched off — choose another"],
+  rate_moved:["Курс доллара изменился — проверьте новую сумму","Dollar kursi o‘zgardi — yangi summani tekshiring","The dollar rate has changed — check the new amount"],
+  rate_moved_redo:["Курс доллара изменился — выберите предложение заново","Dollar kursi o‘zgardi — taklifni qaytadan tanlang","The dollar rate has changed — choose the offer again"],
+  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */

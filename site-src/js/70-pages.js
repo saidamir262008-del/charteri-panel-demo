@@ -19,6 +19,32 @@ function destCard(c, i){
       <button type="button" class="dest-row" data-act="tgo" data-v="${c}"><span>${IC.tours}${esc(t("mod_tours"))} · ${esc(pl(7, "night"))}</span><b>${priceFrom(fmt(p.tour))}</b></button>
     </div></article>`;
 }
+/* Подстановки в тексты главной: только включённые в «Системе» способы оплаты и языки. */
+const listAnd = xs => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} ${t("list_and")} ${xs.at(-1)}` : xs.join("");
+function homeVars(){
+  const l = langsOn(LANG_FULL).map(([k]) => t("lang_in_" + k));
+  return { methods:payList().map(m => m[1]).join(", "), langs:[listAnd(l), t(l.length > 1 ? "lang_in_many" : "lang_in_one")].filter(Boolean).join(" ") };
+}
+/* Блоки главной под поиском — в порядке и с видимостью из админки (cmsHome,
+   13-cms.js); поиск с заголовком всегда первый. */
+const HOME_BLOCKS = {
+  banner_top: () => cmsBanners("top"),
+  board:      () => departureBoard(),
+  dest:       () => `<section class="container section">
+        <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
+        <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>`,
+  banner_mid: () => cmsBanners("mid"),
+  services:   () => `<section class="band"><div class="container section">
+        <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
+        <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
+          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>`,
+  how:        () => `<section class="container section">
+        <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
+        <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(tf("how_" + i + "_d", homeVars()))}</p></li>`).join("")}</ol></section>`,
+  banner_end: () => cmsBanners("end"),
+  trust:      () => `<section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
+        `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(tf(k + "_d", homeVars()))}</p></div></div>`).join("")}</div></section>`
+};
 PAGES[""] = {
   render(){
     // «#/?m=tours» (кнопка баннера из админки) — главная с поиском этого раздела;
@@ -39,19 +65,7 @@ PAGES[""] = {
           <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
           <div class="${swapped && !REDUCED ? "swap-in" : ""}">${modForm(mod)}</div>
         </div></div></div></section>
-      ${cmsBanners("top")}${departureBoard()}
-      <section class="container section">
-        <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
-        <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>
-      ${cmsBanners("mid")}<section class="band"><div class="container section">
-        <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
-        <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
-          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>
-      <section class="container section">
-        <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
-        <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(t("how_" + i + "_d"))}</p></li>`).join("")}</ol></section>
-      ${cmsBanners("end")}<section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
-        `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(t(k + "_d"))}</p></div></div>`).join("")}</div></section>`;
+      ${cmsHome().filter(x => x.on).map(x => HOME_BLOCKS[x.k]()).join("")}`;
   },
   after(){ centerActive($(".modtab[aria-selected=\"true\"]")); armBoard(); dockMap(); }
 };
@@ -69,9 +83,9 @@ const TYPE_ICON = { FLIGHT:IC.flights, TOUR:IC.tours, HOTEL:IC.hotels, JET:IC.je
 function orderCard(o, i, rc = ""){
   const st = effStatus(o);
   const price = o.total ? fmt(o.total) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`;
-  return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}" data-flip="${o.id}">
+  return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${esc(o.id)}" data-flip="${esc(o.id)}">
     ${hasPhoto(orderPhotoKey(o)) ? `<span class="oc-ic has-ph">${photo(orderPhotoKey(o), { w:140, sizes:"64px", deco:true })}<i>${TYPE_ICON[o.type]}</i></span>` : `<span class="oc-ic">${TYPE_ICON[o.type]}</span>`}
-    <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${o.no}</span></span>
+    <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${esc(o.no)}</span></span>
     <span class="oc-side">${pill(st)}<b class="mono">${price}</b></span></a>`;
 }
 PAGES.orders = {
@@ -98,7 +112,7 @@ PAGES["orders/:id"] = {
     if (charter && st === "NEW") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${TYPE_ICON[o.type]}</span><h3>${esc(t("mgr_title"))}</h3>
         <p class="muted">${esc(t("mgr_body"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
     else if (charter && st === "PENDING") main = `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(t("price_ready_d"))}</p>
-        ${checkLines(orderLines(o), o.total)}<h3 style="margin-top:6px">${esc(t("pay_method"))}</h3>${payMethods("opm", M.ui.opm || "payme")}
+        ${checkLines(orderLines(o), o.total)}<h3 style="margin-top:6px">${esc(t("pay_method"))}</h3>${payMethods("opm", payOn(M.ui.opm) ? M.ui.opm : firstPay())}
         <button type="button" class="cta" data-act="opay" data-v="${o.id}">${esc(t("pay_now"))} · ${fmt(o.total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></div>`;
     else if (charter && st === "PAID") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${IC.shield}</span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body"))}</p></div>`;
@@ -149,10 +163,12 @@ Object.assign(ACT, {
   opay:     el => {
     const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING") return;
     if (phoneBlocked(o0.contact?.phone)) return toast(t("err_blocked"));
-    const method = M.ui.opm || "payme";
+    const method = payOn(M.ui.opm) ? M.ui.opm : firstPay();
     overlay(t("processing"));
     setTimeout(() => {
       overlay(""); refresh();
+      if (sysMaint()) return render(false);
+      if (!payOn(method)) { rerender(); return toast(t("pay_off")); }
       const o = S.orders.find(x => x.id === id);
       if (!o || o.status !== "PENDING") { rerender(); return toast(t("order_changed")); }
       Object.assign(o, { status:"PAID", paidAt:Date.now(), method }); hist(o, "PAID"); save(); rerender();
@@ -209,7 +225,8 @@ PAGES.login = {
 function doVerify(){
   const v = ($("#lotp")?.value || "").trim();
   if (!/^\d{4}$/.test(v)) return showErr("#lerr", t("err_code"));
-  S.user = { phone:M.ui.loginPhone }; save(); M.ui.loginStep = "phone";
+  // at — когда вошёл: админка считает клиента сайта новым по первому появлению, а не по сегодняшнему дню.
+  S.user = { phone:M.ui.loginPhone, at:S.user?.phone === M.ui.loginPhone && S.user.at ? S.user.at : Date.now() }; save(); M.ui.loginStep = "phone";
   toast(t("signed_in")); go(M.returnTo || "orders"); M.returnTo = null;
 }
 Object.assign(ACT, {
@@ -230,8 +247,8 @@ PAGES.account = {
         <a class="solid" style="max-width:160px" href="#/login">${esc(t("sign_in"))}</a></div>`;
     return `<div class="container section narrow">${pageHead(t("tab_profile"))}<div class="stack">${who}
       <div class="card stack"><h3>${esc(t("settings"))}</h3>
-        <div class="setrow"><span>${esc(t("language"))}</span>${seg("setlang", [["uz","O‘zbekcha"],["ru","Русский"],["en","English"]], S.lang)}</div>
-        <div class="setrow"><span>${esc(t("currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>
+        ${langSeg("setlang") ? `<div class="setrow"><span>${esc(t("language"))}</span>${langSeg("setlang")}</div>` : ""}
+        ${sysCfg().cur.usd ? `<div class="setrow"><span>${esc(t("currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
         <div class="setrow"><span>${esc(t("appearance"))}</span>${seg("settheme", [["system", t("theme_system")],["light", t("theme_light")],["dark", t("theme_dark")]], S.theme)}</div></div>
       <div class="card stack"><h3>${esc(t("saved_travellers"))}</h3>
         ${S.travellers.length ? S.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b>
@@ -268,8 +285,8 @@ function renderNav(key){
     <a class="logo" href="#/" aria-label="${esc((cmsSiteTitle() || "Charteri").split(" — ")[0])}">${cmsLogo()}</a>
     <nav class="navmods" aria-label="${esc(t("all_services"))}">${MODULE_ORDER.map(k => `<button type="button" data-act="mod" data-v="${k}" aria-current="${active === k}">${esc(t(MODULES[k].label))}</button>`).join("")}</nav>
     <div class="navright">
-      <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
-      <div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>
+      ${langSelect()}
+      ${sysCfg().cur.usd ? `<div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
       <a class="navlink" href="#/orders" aria-current="${key.startsWith("orders")}">${IC.bag}<span>${esc(t("my_orders"))}</span>${live ? `<i class="badge">${live}</i>` : ""}</a>
       <a class="navlink" href="#/${S.user ? "account" : "login"}" aria-current="${key === "account" || key === "login"}">${IC.user}<span>${esc(S.user ? t("tab_profile") : t("sign_in"))}</span></a>
     </div>${cmsNav}</div>`;
@@ -280,6 +297,6 @@ function renderNav(key){
   $("#footer").innerHTML = `<div class="container foot-in" style="--fc:${2 + extra.length}">
     <div class="stack" style="gap:8px">${cmsFootLogo()}<p class="small">${esc(t("tagline"))}</p></div>
     <div class="stack" style="gap:6px"><b>${esc(t("all_services"))}</b>${MODULE_ORDER.map(k => `<button type="button" class="footlink" data-act="mod" data-v="${k}">${esc(t(MODULES[k].label))}</button>`).join("")}</div>
-    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${PAY_METHODS.map(m => `<span>${m[1]}</span>`).join("")}</div></div>
+    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${payList().map(m => `<span>${m[1]}</span>`).join("")}</div></div>
     <p class="foot-note small">${esc(t("demo_footer"))}<br>${esc(t("credits"))}</p></div>`;
 }

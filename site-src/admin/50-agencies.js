@@ -22,7 +22,7 @@ PAGES.agencies = {
       <div class="card stack" style="margin-top:16px">${tab === "list" ? `<div class="atable" style="--cols:${AG_COLS}">
         <div class="arow ahead" aria-hidden="true"><span>${esc(t("col_agency"))}</span><span>${esc(t("col_status"))}</span><span class="a-num">${esc(t("balance_now"))}</span>
           <span class="a-num">${esc(t("col_orders30"))}</span><span class="a-num">${esc(t("col_sales30"))}</span><span class="a-end">${esc(t("col_since"))}</span></div>
-        ${list.map((a, i) => { const tv = turnover30(a); return `<a class="arow" style="--i:${i}" href="#/agencies/${a.id}">
+        ${list.map((a, i) => { const tv = turnover30(a); return `<a class="arow" style="--i:${i}" href="#/agencies/${esc(a.id)}">
           <span class="a-main a-with-mark"><span class="bmark-wrap" style="${brandStyle(a.brand)}">${brandMark("", a.brand)}</span><span class="stack" style="gap:1px;min-width:0"><b>${esc(a.name)}</b>
             <span class="muted small">${a.live ? esc(t("ag_live")) : `${esc(t("req_inn"))} <span class="mono">${esc(a.inn)}</span>`}</span></span></span>
           <span>${agPill(a)}</span><span class="a-num a-keep mono ${a.st.balance < 5_000_000 ? "warn-t" : ""}">${fmtUZS(a.st.balance)}</span>

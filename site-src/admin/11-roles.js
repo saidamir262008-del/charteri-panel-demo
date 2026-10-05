@@ -21,7 +21,7 @@ const PERM_MODS = {
   staff:    ["view", "create", "edit"],
   roles:    ["view", "create", "edit", "delete", "approve"],
   audit:    ["view", "export"],
-  settings: ["view", "manage"]
+  settings: ["view", "edit", "approve", "export", "manage"]
 };
 const ALL_PERMS = () => Object.fromEntries(Object.entries(PERM_MODS).map(([m, a]) => [m, [...a]]));
 
@@ -29,7 +29,7 @@ const ALL_PERMS = () => Object.fromEntries(Object.entries(PERM_MODS).map(([m, a]
 const SYS_ORDER = ["founder", "owner", "sysadmin", "finance", "b2b", "b2c", "sales", "ops", "content", "support", "viewer"];
 const SYS_ROLES = {
   owner:    { ...ALL_PERMS(), roles:["view", "approve"] },
-  sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "manage"] },
+  sysadmin: { services:["view", "create", "edit"], staff:["view", "create", "edit"], roles:["view"], audit:["view", "export"], settings:["view", "edit", "manage"] },
   finance:  { orders:["view"], b2b:["view"], finance:["view", "approve", "refund", "manage", "export"], pricing:["view"], audit:["view"] },
   b2b:      { orders:["view", "edit", "approve", "cancel"], b2b:["view", "create", "edit", "approve", "manage"], finance:["view"], pricing:["view"], crm:["view", "create", "edit", "export"] },
   b2c:      { orders:["view", "edit", "approve", "cancel"], b2c:["view", "edit", "manage", "export"], pricing:["view"], crm:["view", "create", "edit", "export"], content:["view"] },
@@ -42,10 +42,15 @@ const SYS_ROLES = {
 /* Права, добавленные в новых версиях: у системных ролей из сохранённой админки
    их ещё нет — дописываются по умолчанию один раз (O.permsV). Свои роли
    основатель настраивает сам. */
-const PERMS_V = 3;
+const PERMS_V = 4;
 const PERMS_ADDED = { 2:["b2c.manage", "b2c.export", "crm.view", "crm.create", "crm.edit", "crm.delete", "crm.export", "crm.manage"],
-  3:["content.view", "content.create", "content.edit", "content.delete", "content.manage"] };
-const PERMS_NEW_MODS = { 2:["crm"], 3:["content"] };
+  3:["content.view", "content.create", "content.edit", "content.delete", "content.manage"],
+  4:["settings.edit", "settings.approve", "settings.export"] };
+const PERMS_NEW_MODS = { 2:["crm"], 3:["content"], 4:[] };
+/* Действие, по которому видно, что раздел у роли «остался» (по умолчанию view).
+   В «Системе» прежнее всемогущее право — manage: правка, подтверждение и копия
+   достаются только тем, у кого оно было; роль «только просмотр» такой и остаётся. */
+const PERMS_GATE = { 4:{ settings:"manage" } };
 /* Основатель и владелец: их назначает и меняет только основатель. */
 const TOP_ROLES = ["founder", "owner"];
 /* Роли прошлой версии админки → роли из ТЗ. */
@@ -123,7 +128,7 @@ function migrateRoles(o){
     // Новое действие добавляем, только если раздел у роли остался: раздел,
     // который основатель у роли снял, не возвращаем. Новый раздел — целиком.
     for (const p of PERMS_ADDED[v] || []) { const [m, a] = p.split("."), fresh = PERMS_NEW_MODS[v]?.includes(m);
-      if (def[m]?.includes(a) && (fresh || next[m]?.includes("view"))) next[m] = [...new Set([...(next[m] || []), "view", a])]; }
+      if (def[m]?.includes(a) && (fresh || next[m]?.includes(PERMS_GATE[v]?.[m] || "view"))) next[m] = [...new Set([...(next[m] || []), "view", a])]; }
     r.perms = cleanPerms(next); o._migrated = true;
   }
   o.permsV = PERMS_V;

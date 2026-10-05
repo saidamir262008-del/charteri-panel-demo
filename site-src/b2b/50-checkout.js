@@ -14,7 +14,7 @@ function startCheckout(spec){
   const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   const cl = S.travellers.find(c => c.id === M.ui.forClient), travellers = spec.travellers.types.map(blankTraveller);
   if (cl) Object.assign(travellers[0], clientFill(cl));
-  M.checkout = { ...spec, method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
+  M.checkout = { ...spec, rate:sysRate(), method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
     contact:{ phone:cl?.phone || "", email:cl?.email || "" }, clientId:cl?.id || null };
   go("checkout");
 }
@@ -79,6 +79,7 @@ Object.assign(ACT, {
   },
   cpay: () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (rateMoved(c)) return;
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
     const due = withFee(c.total);
@@ -105,6 +106,7 @@ Object.assign(ACT, {
       if (!agencyActive()) { rerender(); return showErr("#cerr", t("agency_blocked_d")); }
       if (cantBuy(c.type, c.total)) { M.checkout = null; toast(t(cantBuy(c.type, c.total))); return go(SEARCH_PATH); }
       if (due.uzs > available()) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
+      if (rateMoved(c)) return;
       createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId, feeBps,
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone }, details:c.details },
         id => { M.checkout = null; M.ui.forClient = null; go(`done/${id}`); });

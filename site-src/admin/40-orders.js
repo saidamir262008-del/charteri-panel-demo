@@ -23,9 +23,9 @@ const ORDER_COLS = "40px minmax(0,2.2fr) minmax(0,1.3fr) minmax(0,1.3fr) minmax(
 const ORDER_COLS_COMPACT = "40px minmax(0,2fr) minmax(0,1.2fr) minmax(130px,1.2fr) minmax(128px,auto)";
 function admOrderRow(r, i, rc = "", compact = false){
   const o = r.o, st = effStatus(o);
-  return `<a class="arow ${rc} ${st === "COMPLETED" || o.status === "REFUNDED" ? "past" : ""}" style="--i:${i}" href="#/orders/${r.src}/${o.id}" data-flip="${r.src}:${o.id}">
+  return `<a class="arow ${rc} ${st === "COMPLETED" || o.status === "REFUNDED" ? "past" : ""}" style="--i:${i}" href="#/orders/${esc(r.src)}/${esc(o.id)}" data-flip="${esc(r.src)}:${esc(o.id)}">
     <span class="or-ic">${TYPE_ICON[o.type]}</span>
-    <span class="a-main"><b>${esc(orderTitle(o))}</b><span class="mono">${o.no}${compact ? ` · ${esc(fdate(o.start))}` : ""}</span></span>
+    <span class="a-main"><b>${esc(orderTitle(o))}</b><span class="mono">${esc(o.no)}${compact ? ` · ${esc(fdate(o.start))}` : ""}</span></span>
     ${compact ? "" : `<span class="a-cell">${r.a ? esc(r.a.name) : `<span class="src-site">${esc(t("src_site"))}</span>`}</span>`}
     <span class="a-cell">${esc(orderClient(r))}</span>
     ${compact ? "" : `<span class="a-cell muted">${esc(fdate(o.start))}</span>`}

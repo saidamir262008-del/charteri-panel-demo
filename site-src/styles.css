@@ -11,21 +11,21 @@
   --shadow:0 1px 2px rgba(22,39,92,.05),0 14px 34px -20px rgba(22,39,92,.30);
   --card-border:transparent; --r:18px;
   --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
-  --lift-shadow:0 22px 44px -24px rgba(22,39,92,.45); --core-hi:rgba(255,255,255,.7);
+  --lift-shadow:0 22px 44px -24px rgba(22,39,92,.45); --core-hi:rgba(255,255,255,.7); --seg-on:#FFFFFF; --seg-ring:transparent;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06); --seg-on:#343D50; --seg-ring:#4A5670;
 }}
 :root[data-theme="dark"]{
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06); --seg-on:#343D50; --seg-ring:#4A5670;
 }
 [hidden]{display:none!important}
 *{box-sizing:border-box}
@@ -87,7 +87,7 @@ input:disabled,select:disabled{opacity:.6}
 .chk input{width:18px;height:18px;min-height:0;accent-color:var(--blue);flex:none;margin:0}
 .chk .stars svg{width:14px;height:14px}
 .seg{position:relative;display:flex;background:var(--sunken);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
-.seg .ind{position:absolute;left:0;top:0;border-radius:9px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.1);pointer-events:none;transform-origin:0 0;opacity:0}
+.seg .ind{position:absolute;left:0;top:0;border-radius:9px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.1),inset 0 0 0 1px var(--seg-ring);pointer-events:none;transform-origin:0 0;opacity:0}
 .seg button{flex:1;min-height:36px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);text-align:center;white-space:nowrap;padding-inline:10px}
 .seg button{position:relative;z-index:1;transition:color 200ms ease}
 .seg button[aria-pressed="true"]{color:var(--navy)}
@@ -610,6 +610,10 @@ input:disabled,select:disabled{opacity:.6}
 .cms-body ul{padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
 .cms-body h2{font-size:21px;margin-top:10px}
 .cms-body h3{font-size:17px;margin-top:6px}
+/* Ссылка в тексте страницы видна без наведения; внешняя — со стрелкой (диктору её не читаем). */
+.cms-body a{color:var(--blue);font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.cms-body a:hover{color:var(--blue-hi);text-decoration-thickness:2px}
+.cms-body a[target="_blank"]::after{content:"\2197";content:"\2197" / "";margin-left:2px;font-size:.85em}
 .cms-faq-g{display:flex;flex-direction:column}
 .cms-faq-g + .cms-faq-g{margin-top:26px}
 .cms-faq-g > h2{font-size:20px;margin-bottom:6px}
@@ -925,3 +929,12 @@ input:disabled,select:disabled{opacity:.6}
 .promo-ok{display:flex;align-items:center;gap:8px;margin:0;font-size:14px;color:var(--mint-ink,var(--mint))}
 .promo-ok svg{width:18px;height:18px;flex:none}
 .promo-ok .link{margin-left:auto}
+
+/* ---- технические работы (14-system.js): только заглушка, без шапки и подвала ---- */
+body.is-maint #nav,body.is-maint #top,body.is-maint #footer{display:none}
+.maint{min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+.maint-card{max-width:520px;width:100%;text-align:center;align-items:center;gap:14px;padding:32px 24px}
+.maint-card h1{font-size:clamp(24px,4vw,30px);margin:0}
+.maint-card p{margin:0;max-width:44ch}
+.maint-ic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
+.maint-ic svg{width:28px;height:28px}

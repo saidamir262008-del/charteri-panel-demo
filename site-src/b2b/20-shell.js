@@ -47,7 +47,7 @@ function renderNav(key){
       <a class="balchip" href="#/balance" aria-label="${esc(t("balance_now"))}"><span class="balchip-l">${esc(t("balance_now"))}</span>
         <b class="mono">${fmtUZS(S.balance)}</b></a>
       <a class="solid sm topup-btn" href="#/balance?topup">${IC.plus}<span>${esc(t("topup"))}</span></a>
-      <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
+      ${langSelect()}
       <div class="bellwrap">
         <button type="button" class="iconbtn" data-act="bell" aria-expanded="${!!M.ui.bell}" aria-controls="bellpanel" aria-label="${esc(t("notifications"))}">${IC.bell}${unread() ? `<i class="badge">${unread()}</i>` : ""}</button>
         ${M.ui.bell ? bellPanel() : ""}

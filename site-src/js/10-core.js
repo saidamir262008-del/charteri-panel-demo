@@ -92,6 +92,12 @@ let PRICES = null;
 function prices(){
   if (PRICES) return PRICES;
   let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
+  return (PRICES = pricesClean(saved));
+}
+/* Сохранённые цены → проверенные: каждое поле отдельно, неверное — по умолчанию.
+   Отдельно от prices(): так же читается и цена из резервной копии. */
+function pricesClean(saved){
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
   const ok = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi, on = v => typeof v === "boolean" ? v : true;
   const svc = {};
   for (const k of SVC_TYPES) { const x = saved.svc?.[k] || {};
@@ -100,10 +106,9 @@ function prices(){
   svc.TRANSFER = { on:on(saved.svc?.TRANSFER?.on), usd:ok(saved.svc?.TRANSFER?.usd, 0, 1000) ? saved.svc.TRANSFER.usd : PRICE_DEFAULTS.transferUsd };
   svc.INSURANCE = { on:on(saved.svc?.INSURANCE?.on), usd:ok(saved.svc?.INSURANCE?.usd, 0, 1000) ? saved.svc.INSURANCE.usd : PRICE_DEFAULTS.insuranceUsd };
   const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
-  PRICES = { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
+  return { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
     svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
     promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
-  return PRICES;
 }
 /* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
    агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
@@ -122,8 +127,8 @@ const svcOn = type => prices().svc[type]?.on !== false;
 const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
 /* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
 const modForm = mod => svcOn(mod.type) ? mod.form() : svcOffNote();
-/* Нельзя купить: услуга выключена или итог не положительный. */
-const cantBuy = (type, total) => !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
+/* Нельзя купить: идут технические работы (14-system.js), услуга выключена или итог не положительный. */
+const cantBuy = (type, total) => sysMaint() ? "maint_h" : !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
 
 /* ---- промокоды и акции (только сайт; авиабилеты, туры, отели) ----
    Промокод вводят; акция (auto) применяется сама. Скидка одна на заказ —
@@ -201,8 +206,10 @@ function fdate(s, o={ day:"numeric", month:"short" }){
 }
 const fdateLong = s => fdate(s, { weekday:"short", day:"numeric", month:"long" });
 const fdateY    = s => fdate(s, { day:"numeric", month:"long", year:"numeric" });
-const fdt = ms => { const d = new Date(ms), hm = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
-  return S.lang === "uz" ? `${uzDate(d, {})}, ${hm}` : d.toLocaleString(LOC[S.lang], { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }); };
+/* Время события — в часовом поясе компании из админки (14-system.js). */
+const fdt = ms => { if (tzParts(ms).bad) return "—";
+  if (S.lang !== "uz") return new Date(ms).toLocaleString(LOC[S.lang], { timeZone:sysTz(), day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+  const p = tzParts(ms); return `${p.d}-${UZ_MS[p.m - 1]}, ${p.h}:${p.mi}`; };
 const dur = m => Math.floor(m/60) + t("h") + " " + String(Math.round(m%60)).padStart(2,"0") + t("m");
 const AP = iata => AIRPORTS.find(a => a.iata === iata);
 const cityName = iata => AP(iata)?.city[S.lang] ?? iata;
@@ -210,13 +217,16 @@ const countryName = iata => AP(iata)?.country[S.lang] ?? "";
 
 /* ---- деньги ----
    Сумма — пара {usd, uzs}. Сумы считаются из тех же единичных цен, что в
-   приложении (цена в USD × 12 650, с округлением до тысячи), и складываются
-   попарно, а не пересчитываются из итога — иначе итог разошёлся бы с суммой
-   строк на тысячу-другую сумов. */
+   приложении (цена в USD × курс из админки (14-system.js, по умолчанию
+   USD_TO_UZS), с округлением до тысячи), и складываются попарно, а не
+   пересчитываются из итога — иначе итог разошёлся бы с суммой строк на
+   тысячу-другую сумов. Сумы в сохранённых заказах не пересчитываются. */
 const NB = " ";                                    // брендбук: узкий неразрывный пробел
 const grp = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NB);
-const toUzs = usd => Math.round(usd * USD_TO_UZS / 1000) * 1000;
-const amt  = usd => ({ usd: Math.round(usd), uzs: toUzs(Math.round(usd)) });
+const toUzsAt = (usd, rate) => Math.round(usd * rate / 1000) * 1000;
+const toUzs = usd => toUzsAt(usd, sysRate());
+/* rate — курс, по которому считался сохранённый заказ (снимок в заказе); без него — текущий. */
+const amt  = (usd, rate = sysRate()) => ({ usd: Math.round(usd), uzs: toUzsAt(Math.round(usd), rate) });
 const addA = (...xs) => xs.reduce((s, x) => ({ usd: s.usd + x.usd, uzs: s.uzs + x.uzs }), { usd:0, uzs:0 });
 const mulA = (a, n) => ({ usd: a.usd * n, uzs: a.uzs * n });
 const pctA = (a, k) => ({ usd: Math.round(a.usd * k), uzs: Math.round(a.uzs * k / 1000) * 1000 });
@@ -254,7 +264,11 @@ function go(path){ const h = "#/" + path; if (location.hash === h) render(true);
 /* routeGuard — необязательный хук приложения: вернуть ключ страницы, на которую
    нужно попасть вместо запрошенной (кабинет агентства без входа — на вход). */
 function render(scrollTop = true){
-  applyTheme();
+  sysCoerce(); applyTheme();
+  // Технические работы (14-system.js): сайт и кабинет показывают только заглушку.
+  const mt = sysMaint(); document.body.classList.toggle("is-maint", !!mt);
+  // Меню кабинета было открыто: заглушка его не рисует — закрываем, иначе затемнение и ловушка Tab остались бы поверх.
+  if (mt) { document.body.classList.remove("nav-open"); if (typeof syncDrawer === "function") syncDrawer(); return maintRender(mt, scrollTop); }
   const m = matchRoute(currentParts()), guard = typeof routeGuard === "function" ? routeGuard(m.key) : null;
   // "" — тоже перенаправление (на главную); «не перенаправлять» — только null.
   const { key, params } = guard != null ? { key:guard, params:{} } : m;

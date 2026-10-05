@@ -32,7 +32,11 @@ function announce(msg){ const e = $("#adm-live"); if (!e) return; e.textContent 
 function loadOps(){ const r = readJSON(OPS_KEY, null); return r && r.v === 1 && Array.isArray(r.agencies) && Array.isArray(r.staff) ? migrateCrm(migrateRoles(migrateStaff(r))) : null; }
 function saveOps(){ delete O._migrated; O.rev = (O.rev || 0) + 1; writeJSON(OPS_KEY, O); }
 function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 && Array.isArray(r.orders) ? r : null; }
-const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a : []; };
+/* Сайт в этом браузере ещё не открывали — его демо-данные создаёт админка (как кабинет):
+   иначе обзор показал бы продажи сайта нулём, а клиентов сайта — уже с заказами. */
+function seedSite(){ const r = siteFresh({ lang:sysCfg().langs.def, cur:sysCfg().cur.def, theme:"system" }); r.rev = 1; writeJSON(SITE_KEY, r); return loadSite(); }
+/* Заявки пишет форма кабинета, а копия может вернуть что угодно: без объекта с id строку не берём. */
+const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a.filter(x => x && typeof x === "object" && typeof x.id === "string") : []; };
 
 /* ---- журнал ----
    Запись: кто (и в какой роли на тот момент), что, когда, откуда (IP,
@@ -47,6 +51,7 @@ function audit(action, vars = {}, extra = {}){
 /* Значение без языка → текст на языке экрана. Служебные значения — объекты
    с меткой: {role}, {t} (строка интерфейса), {acts} (действия), {uzs} (сумма,
    sign — со знаком «+»), {pct} (проценты в сотых), {ruleFrom} (порог правила),
+   {chs} (каналы уведомления), {mins} (минуты, 0 — «не закрывать»),
    {ru,uz,en} — название на трёх языках. Строка — всегда то, что ввёл человек:
    её никогда не разбираем, поэтому причина «t: ...» остаётся текстом. */
 const loc = v => v && typeof v === "object" ? v[S.lang] || v.ru || "" : v ?? "";
@@ -62,6 +67,8 @@ function auditVal(v){
   if ("ruleFrom" in v) return tf("rule_from", { amount:fmtUZS(v.ruleFrom) });
   if ("svcs" in v) return v.svcs.length ? v.svcs.map(k => t("type_" + k)).join(", ") : t("pm_all_svc");
   if ("dest" in v) return v.dest.heli ? heliName(v.dest.code) : cityName(v.dest.code);
+  if ("chs" in v) return v.chs.length ? v.chs.map(c => t("sys_ch_" + c)).join(", ") : t("sys_notify_none");
+  if ("mins" in v) return v.mins ? pl(v.mins, "minute") : t("sys_idle_off");
   return loc(v);
 }
 /* Записи прошлой версии хранили роль строкой "role:operator". */
@@ -298,7 +305,7 @@ window.addEventListener("storage", e => {
 
 /* ---- вход и маршруты ---- */
 const ADMIN_ROUTES = { "":null, tasks:"tasks", approvals:"approvals", orders:"orders.view", "orders/:src/:id":"orders.view", agencies:"b2b.view", "agencies/:id":"b2b.view",
-  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", cms:"content.view", directions:"services.view", integrations:"settings.view",
+  customers:"clients", "customers/:phone":"clients", crm:"crm.view", "crm/:id":"crm.view", finance:"finance.view", "finance/tx/:id":"finance.view", pricing:"pricing.view", cms:"content.view", directions:"services.view", system:"settings.view", integrations:"settings.view",
   staff:"staff.view", roles:"roles.view", audit:"audit.view", settings:null, denied:null };
 function routeGuard(key){
   if (!me()) return key === "auth" ? null : "auth";

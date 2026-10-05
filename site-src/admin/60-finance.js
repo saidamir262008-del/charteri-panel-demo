@@ -34,13 +34,14 @@ function finLedger(){
 /* Доход — сбор оплаченных заказов агентств: по услугам и по агентствам,
    за текущий месяц и за всё время. Продажи — стоимость услуг без сбора. */
 function revenue(){
-  const month = TODAY.slice(0, 7), rows = { month:{}, all:{} }, byAg = [];
+  // Месяц — по часовому поясу компании, как в обзоре: один заказ не попадает в разные месяцы.
+  const month = tzToday().slice(0, 7), rows = { month:{}, all:{} }, byAg = [];
   for (const a of agencies()) {
     let agFee = 0, agSales = 0;
     for (const o of a.st.orders) {
       if (!o.paidAt || !o.total) continue;
       const fee = o.fee?.uzs || 0, sales = o.total.uzs;
-      for (const [p, ok] of [["all", true], ["month", ymd(new Date(o.paidAt)).startsWith(month)]]) {
+      for (const [p, ok] of [["all", true], ["month", tzYmd(o.paidAt).startsWith(month)]]) {
         if (!ok) continue; const r = rows[p][o.type] ||= { n:0, sales:0, fee:0 }; r.n++; r.sales += sales; r.fee += fee;
       }
       agFee += fee; agSales += sales;
@@ -96,7 +97,7 @@ Object.assign(ACT, {
   /* CSV с BOM и «;» — так Excel в русской локали открывает его без мастера импорта. */
   fcsv: () => {
     if (denied("finance.export")) return;
-    const tab = M.ui.ftab || "topups", when = ms => new Date(ms).toLocaleString(LOC[S.lang]);
+    const tab = M.ui.ftab || "topups", when = fdtFull;
     let rows;
     if (tab === "ledger") rows = [[t("col_date"), t("col_agency"), t("col_operation"), t("col_amount"), t("col_after")], ...ledgerAll().map(({ l, a }) => [when(l.at), a.name, ledgerLabel(l, a.st), l.amount, l.after])];
     else if (tab === "refunds") rows = [[t("col_date"), t("booking_ref"), t("col_service"), t("col_source"), t("col_penalty"), t("col_refund"), t("col_status")],

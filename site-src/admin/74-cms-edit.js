@@ -149,6 +149,13 @@ function acmsRead(d){
   }
   return { x, errs };
 }
+/* Каждое «[текст](» должно быть ссылкой, которую сайт откроет (CMS_LINK_RE и
+   cmsSafeHref): «[x](javascript:…)» или адрес с пробелом сайт показал бы разметкой. */
+const ACMS_LINK_AT = new RegExp(CMS_LINK_RE.source, "y");
+function acmsBadLink(s){
+  for (const m of s.matchAll(/\[[^\[\]\n]{1,200}\]\(/g)) { ACMS_LINK_AT.lastIndex = m.index; const r = ACMS_LINK_AT.exec(s); if (!r || !cmsSafeHref(r[2])) return true; }
+  return false;
+}
 /* Ошибки элемента [{ key, field }] (пусто — всё верно). strict — для публикации:
    все три языка у обязательных полей, у необязательных — все или ни одного. */
 function acmsIssue(type, x, strict, id){
@@ -159,6 +166,9 @@ function acmsIssue(type, x, strict, id){
     if (req && !v.ru) bad("err_cms_req", `${f}.ru`);
     if (strict && (req || some)) CMS_LANGS.filter(z => !v[z] && !(z === "ru" && req)).forEach(l => bad("err_cms_lang", `${f}.${l}`));
   }
+  // Ссылка [текст](адрес), которую сайт не откроет, осталась бы на сайте разметкой.
+  for (const [f, kind] of ACMS_FIELDS[type]) if (kind === "lt" && ACMS_BODY_HINT.has(f) && type !== "banner")
+    for (const l of CMS_LANGS) if (acmsBadLink(String(x[f]?.[l] || ""))) bad("err_cms_body_link", `${f}.${l}`);
   if (type === "banner" && strict) {
     if (CMS_LANGS.some(l => x.btn?.[l]) && !x.href) bad("err_cms_btn_href", "href");
     if (x.href && !x.btn?.ru) bad("err_cms_href_btn", "btn.ru");

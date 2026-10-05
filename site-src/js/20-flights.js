@@ -287,11 +287,14 @@ function startFlightCheckout(){
     /* Перепроверка цены: рейс берётся заново по текущей наценке (её могли
        сменить в админке после выбора). Демонстрация «Цена изменилась» на рейсах
        в Анталию — чтобы экран можно было показать по заказу, а не случайно. */
-    priceChange: () => {
+    /* Сумы сверяются тоже: курс могли сменить в админке после выбора рейса.
+       force — вернуть пересчёт всегда (курс сменился при открытом оформлении). */
+    priceChange: (force = false) => {
       const fresh = x => x && (generateOffers({ from:x.from, to:x.to, date:x.date, cabin:x.cabin }).find(y => y.id === x.id) || x);
       let newOut = fresh(out); const newBack = fresh(back);
       if (out.to === "AYT") { const usd = Math.round(newOut.priceUSD * 1.045); newOut = { ...newOut, priceUSD:usd, priceUZS:toUzs(usd) }; }
-      if (newOut.priceUSD === out.priceUSD && (!back || newBack.priceUSD === back.priceUSD)) return null;
+      const same = (a, b) => a.priceUSD === b.priceUSD && a.priceUZS === b.priceUZS;
+      if (!force && same(newOut, out) && (!back || same(newBack, back))) return null;
       const r = flightLines(newOut, newBack, f);
       return { total:r.total, lines:r.lines, details:flightDetailsOf(newOut, newBack, f) };
     }

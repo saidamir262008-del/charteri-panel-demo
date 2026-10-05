@@ -70,15 +70,16 @@ function cmsLogo(){
 /* В подвале логотип — на светлой плашке: подвал тёмный в любой теме. */
 const cmsFootLogo = () => cmsSite().logo ? `<span class="foot-logo"><img src="${cmsSite().logo}" alt="${esc(cmsSiteName())}"></span>` : `<span class="wordmark">CHARTERI<b>.UZ</b></span>`;
 /* Колонки подвала из админки: «Информация» (страницы, ссылки, FAQ, новости)
-   и «Контакты» (телефон, почта, адрес, соцсети) — только если есть что показать. */
+   и «Контакты» (телефон, почта, адрес, соцсети) — только если есть что показать
+   и контакты или соцсети не выключены в админке (site.foot). */
 function cmsFootCols(){
   const s = cmsSite(), cols = [], link = (href, label) => cmsA(href, esc(label), "footlink");
   const info = [...cmsMenu("footer").map(x => cmsA(x.href, cmsMenuLabel(x), "footlink")),
     ...(cmsItems("faq", { published:true }).length ? [link("#/faq", t("cms_faq"))] : []),
     ...(cmsItems("news", { published:true }).length ? [link("#/news", t("cms_news"))] : [])];
   if (info.length) cols.push(`<div class="stack" style="gap:6px"><b>${esc(t("cms_info"))}</b>${info.join("")}</div>`);
-  const soc = CMS_SOCIALS.filter(k => s.socials[k]).map(k => link(s.socials[k], t("cms_soc_" + k)));
-  const con = [s.phone ? link("tel:" + s.phone.replace(/[^\d+]/g, ""), s.phone) : "", s.email ? link("mailto:" + s.email, s.email) : "",
+  const soc = s.foot.socials ? CMS_SOCIALS.filter(k => s.socials[k]).map(k => link(s.socials[k], t("cms_soc_" + k))) : [];
+  const con = !s.foot.contacts ? [] : [s.phone ? link("tel:" + s.phone.replace(/[^\d+]/g, ""), s.phone) : "", s.email ? link("mailto:" + s.email, s.email) : "",
     cmsText(s.address) ? `<span class="small">${esc(cmsText(s.address))}</span>` : ""].filter(Boolean);
   if (con.length || soc.length) cols.push(`<div class="stack" style="gap:6px"><b>${esc(t("cms_contacts"))}</b>${con.join("")}
     ${soc.length ? `<span class="foot-soc-h small">${esc(t("cms_follow"))}</span>${soc.join("")}` : ""}</div>`);

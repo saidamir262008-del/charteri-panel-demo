@@ -48,7 +48,7 @@ function tripMap(trips, sel){
 }
 
 function balanceCard(){
-  const month = TODAY.slice(0, 7), paidThisMonth = S.orders.filter(o => o.paidAt && ymd(new Date(o.paidAt)).startsWith(month) && o.total);
+  const month = tzToday().slice(0, 7), paidThisMonth = S.orders.filter(o => o.paidAt && tzYmd(o.paidAt).startsWith(month) && o.total);
   const waiting = S.topups.filter(p => p.status === "pending"), waitSum = waiting.reduce((s, p) => s + p.amount, 0);
   const low = S.balance < 5_000_000;
   return `<aside class="balcard ${low ? "is-low" : ""}">

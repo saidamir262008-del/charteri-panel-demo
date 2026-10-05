@@ -15,14 +15,15 @@ Object.assign(IC, {
   person: svg('<circle cx="12" cy="8" r="3.6"/><path d="M5 20c1.3-3.4 3.9-5.1 7-5.1s5.7 1.7 7 5.1"/>'),
   stamp:  svg('<circle cx="12" cy="12" r="8.5"/><path d="M8.3 12.4l2.5 2.5 4.9-5.1"/>'),
   key:    svg('<circle cx="8" cy="15" r="4"/><path d="M10.9 12.1L20 3M16.5 6.5l3 3M14 9l2 2"/>'),
-  funnel: svg('<path d="M3 5h18l-7 8v5l-4 2v-7z"/>')
+  funnel: svg('<path d="M3 5h18l-7 8v5l-4 2v-7z"/>'),
+  sliders:svg('<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>')
 });
 
 /* Разделы: ключ маршрута, строка, значок, право на просмотр (null — всем). */
 const ADM_NAV = [
   ["", "an_dash", "home", null], ["tasks", "an_tasks", "inbox", "tasks"], ["approvals", "an_approvals", "stamp", "approvals"], ["crm", "an_crm", "funnel", "crm.view"], ["orders", "an_orders", "bag", "orders.view"],
   ["agencies", "an_agencies", "users", "b2b.view"], ["customers", "an_customers", "person", "b2c.view"], ["finance", "an_finance", "wallet", "finance.view"],
-  ["pricing", "an_pricing", "tag", "pricing.view"], ["cms", "an_cms", "layout", "content.view"], ["directions", "an_directions", "globe", "services.view"], ["integrations", "an_integrations", "plug", "settings.view"],
+  ["pricing", "an_pricing", "tag", "pricing.view"], ["cms", "an_cms", "layout", "content.view"], ["directions", "an_directions", "globe", "services.view"], ["system", "an_system", "sliders", "settings.view"], ["integrations", "an_integrations", "plug", "settings.view"],
   ["staff", "an_staff", "badge", "staff.view"], ["roles", "an_roles", "key", "roles.view"], ["audit", "an_audit", "list", "audit.view"], ["settings", "an_settings", "gear", null]
 ];
 const admSection = key => { const head = key.split("/")[0]; return ADM_NAV.some(([k]) => k === head) ? head : ""; };
@@ -50,7 +51,8 @@ function renderNav(key){
       <label class="whosel"><span class="sr-only">${esc(t("switch_staff"))}</span>
         <select id="whoSel" class="minisel" aria-label="${esc(t("switch_staff"))}">${activeStaff().map(s => `<option value="${s.id}" ${s.id === u.id ? "selected" : ""}>${esc(s.name.split(" ")[0])} · ${esc(roleName(s.role))}</option>`).join("")}</select></label>
       <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
-    </div></div>`;
+    </div></div>${sysCfg().maint.on ? `<div class="blockbar maint-bar" role="status">${IC.clock}<span>${esc(t("sys_maint_bar"))}</span>${
+      can("settings.view") ? `<a class="link" href="#/system">${esc(t("an_system"))}</a>` : ""}</div>` : ""}`;
   $("#footer").innerHTML = `<div class="foot-in"><p class="small">${esc(t("adm_foot"))}</p><p class="small">${esc(t("credits"))}</p></div>`;
   syncDrawer();
 }
@@ -59,7 +61,7 @@ let whoTimer = 0;
 function switchStaff(id){
   const s = activeStaff().find(x => x.id === id); if (!s || s.id === O.session?.staffId) return;
   // Другой сотрудник — другая сессия: черновики и фильтры прежнего не переносим.
-  M.ui = {}; O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); saveOps();
+  M.ui = {}; O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); saveOps(); idleTouch(true);
   toast(tf("switched", { name:s.name, role:roleName(s.role) })); render(true);
   $("#whoSel")?.focus({ preventScroll:true });
 }

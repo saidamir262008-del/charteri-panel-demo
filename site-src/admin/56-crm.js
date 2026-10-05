@@ -289,7 +289,7 @@ Object.assign(ACT, {
     if (denied("crm.export")) return;
     csvDownload([[ "№", t("crm_name"), t("phone_label"), t("agency_email"), t("crm_country"), t("crm_source"), t("crm_service"), t("crm_dest"), t("crm_budget"), t("crm_stage"), t("crm_manager"), t("crm_created")],
       ...leadRows().map(l => [l.no, l.name, l.phone, l.email, l.country, t("src_" + l.source), l.service ? t("type_" + l.service) : "", leadDest(l), l.budget ?? "", t("ls_" + l.status),
-        l.manager ? staffName(l.manager) : "", new Date(l.createdAt).toLocaleString(LOC[S.lang])])], "leads");
+        l.manager ? staffName(l.manager) : "", fdtFull(l.createdAt)])], "leads");
     change(() => audit("export", { what:strRef("crm_leads") }, { module:"crm" }));
   },
   ccsv: () => {

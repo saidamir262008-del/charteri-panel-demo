@@ -7,13 +7,21 @@
 "use strict";
 
 const DOC_CH = ["email", "sms", "telegram"];
+/* Каналы, включённые в «Системе» (14-system.js): выключенный не предлагается. */
+const docChs = () => DOC_CH.filter(c => sysCfg().ch[c].on);
+const docCh = o => { const l = docChs(), x = inp("dch:" + o.id); return l.includes(x) ? x : o.contact?.email && l.includes("email") ? "email" : l.includes("sms") ? "sms" : l[0] || ""; };
 const docTo = (r, ch) => ch === "email" ? r.o.contact?.email || (r.a ? r.a.email : "") || "" : r.o.contact?.phone || "";
 function docActions(r){
-  const o = r.o, ch = DOC_CH.includes(inp("dch:" + o.id)) ? inp("dch:" + o.id) : o.contact?.email ? "email" : "sms";
+  // Выбранный канал выключили в «Системе»: на экране — другой канал, и адрес к нему свой. Старые выбор и
+  // адрес сбрасываем здесь, чтобы «Отправить» ушло тем, что видно (сравни sendDoc).
+  const picked = inp("dch:" + r.o.id);
+  if (picked && !docChs().includes(picked) && M.ui.inp) { delete M.ui.inp["dch:" + r.o.id]; delete M.ui.inp["dto:" + r.o.id]; }
+  const o = r.o, ch = docCh(o), chs = docChs();
   return `<section class="card stack doc-send doc-actions" aria-labelledby="doc-h-${o.id}"><div class="card-h"><h2 id="doc-h-${o.id}">${esc(t("doc_h"))}</h2>
       <button type="button" class="ghost sm" data-act="adprint">${IC.print}<span>${esc(t("doc_print"))}</span></button></div>
-    ${can("orders.edit") ? `<div class="send-row">
-      <select class="minisel" data-inp="dch:${o.id}" aria-label="${esc(t("doc_channel"))}">${DOC_CH.map(c => `<option value="${c}" ${ch === c ? "selected" : ""}>${esc(t("doc_ch_" + c))}</option>`).join("")}</select>
+    ${can("orders.edit") && !chs.length ? `<p class="muted small">${esc(t("sys_ch_all_off"))}</p>` : ""}
+    ${can("orders.edit") && chs.length ? `<div class="send-row">
+      <select class="minisel" data-inp="dch:${o.id}" aria-label="${esc(t("doc_channel"))}">${chs.map(c => `<option value="${c}" ${ch === c ? "selected" : ""}>${esc(t("doc_ch_" + c))}</option>`).join("")}</select>
       ${inpField("dto:" + o.id, { value:docTo(r, ch), label:t("doc_to"), extra:'maxlength="80" autocomplete="off"' })}
       <button type="button" class="solid sm" data-act="adsend" data-src="${r.src}" data-v="${o.id}">${esc(t("doc_send"))}</button></div>
       <div class="err" id="dserr-${o.id}" hidden></div>
@@ -22,7 +30,10 @@ function docActions(r){
 }
 function sendDoc(r){
   if (denied("orders.edit")) return;
-  const o = r.o, ch = DOC_CH.includes(inp("dch:" + o.id)) ? inp("dch:" + o.id) : o.contact?.email ? "email" : "sms", to = String(inp("dto:" + o.id, docTo(r, ch))).trim();
+  const o = r.o, ch = docCh(o), to = String(inp("dto:" + o.id, docTo(r, ch))).trim();
+  // Выбранный канал выключили в «Системе», пока заказ был открыт: адрес был для него — сбрасываем оба.
+  const picked = inp("dch:" + o.id);
+  if (!ch || (picked && !docChs().includes(picked))) { if (M.ui.inp) { delete M.ui.inp["dch:" + o.id]; delete M.ui.inp["dto:" + o.id]; } rerender(); return toast(t("sys_ch_off")); }
   const ok = !!to && (ch === "email" ? validEmail(to) : ch === "sms" ? validPhone(to) : validPhone(to) || /^@[A-Za-z0-9_]{4,32}$/.test(to));
   const fld = $(`[data-inp="${CSS.escape("dto:" + o.id)}"]`);
   if (!ok) { fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "dserr-" + o.id); showErr("#dserr-" + o.id, t("err_doc_to_" + ch)); fld?.focus(); return; }

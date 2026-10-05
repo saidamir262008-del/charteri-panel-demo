@@ -4,7 +4,9 @@
    по умолчанию. Во вкладке «Тексты сайта» строка — текст и ключ, редактор
    открывается у одной строки по нажатию; на главной (заголовки героя)
    редакторы открыты сразу. Настройки: название и описание для поисковиков, логотип,
-   значок вкладки (SEO и бренд), телефон, почта, адрес и соцсети (подвал).
+   значок вкладки (SEO и бренд), телефон, почта, адрес и соцсети (подвал) и
+   показывать ли контакты и соцсети в подвале. У текстов и полей настроек —
+   история версий (77-cms-hist.js).
    ========================================================================== */
 "use strict";
 
@@ -49,7 +51,8 @@ function acmsTextRow(key, inList = false){
     ${ph.length ? `<p class="small muted">${esc(tf("cms_tx_ph", { ph:ph.join(", ") }))}</p>` : ""}
     <div class="err" id="txerr-${key}" hidden></div>
     <div class="row"><button type="button" class="solid sm" data-act="acmstxsave" data-v="${key}" aria-label="${esc(t("st_save"))}: ${esc(acmsTxNow(key))}" ${guard("content.edit")}>${esc(t("st_save"))}</button>
-      ${acmsTxReset(key)}${inList ? `<button type="button" class="link" data-act="acmstxclose" data-v="${key}">${esc(t("cancel"))}</button>` : ""}</div></div>`;
+      ${acmsTxReset(key)}${acmsHistBtn("texts", key, key)}${inList ? `<button type="button" class="link" data-act="acmstxclose" data-v="${key}">${esc(t("cancel"))}</button>` : ""}</div>
+    ${acmsHistPanel("texts", key, key)}</div>`;
 }
 /* Главная: заголовок и подзаголовок героя у каждого раздела поиска. */
 function acmsHero(){
@@ -86,6 +89,13 @@ function acmsTxBad(key, l, v, known){
   const stray = (v.match(/\{\w+\}/g) || []).find(p => !known.includes(p));
   return stray ? tf("err_cms_ph", { ph:stray }) : CMS_TX_BAD.test(v) ? t("err_cms_html") : v.length > CMS_TEXT_MAX ? t("err_cms_long") : "";
 }
+/* Замена строки на трёх языках (пустой язык — текст по умолчанию) и её «было → стало». */
+const acmsTxOf = v => Object.fromEntries(CMS_LANGS.map(l => [l, v?.[l] || ""]));
+const acmsTxDiff = (def, was, now) => CMS_LANGS.flatMap((l, i) => {
+  if (was[l] === now[l]) return [];
+  const [from, to] = acmsPair(was[l] || def[i], now[l] || def[i]);
+  return [{ k:"cms_f_text", sub:l.toUpperCase(), from, to }];
+});
 function acmsSaveText(key, clear = false){
   if (denied("content.edit")) return false;
   const def = SITE_STR[key]; if (!def) return false;
@@ -102,11 +112,10 @@ function acmsSaveText(key, clear = false){
   if (!clear && edited.some(l => (old[l] || "") !== dr.base[l] && (old[l] || "") !== val[l])) { done(); toast(t("err_cms_changed")); return false; }
   let same = false;
   const ok = acmsCommit("cms_text", s => {
-    const was = s.texts[key] || {}, diff = [];
-    CMS_LANGS.forEach((l, i) => { if ((was[l] || "") === val[l]) return;
-      const [from, to] = acmsPair(was[l] || def[i], val[l] || def[i]); diff.push({ k:"cms_f_text", sub:l.toUpperCase(), from, to }); });
+    const was = acmsTxOf(s.texts[key]), diff = acmsTxDiff(def, was, val);
     if (!diff.length) { same = true; return null; }
     if (CMS_LANGS.some(l => val[l])) s.texts[key] = val; else delete s.texts[key];
+    acmsHistRec(s, "texts", key, was, acmsTxOf(val));
     return { vars:{ key }, diff };
   });
   if (!ok) { if (same) { done(); toast(t("pr_same")); } return false; }
@@ -122,14 +131,17 @@ const acmsTxFocus = key => ($(`[data-act="acmstxopen"][data-v="${key}"]`) || $(`
    адрес, соцсети) сохраняются отдельно. Черновик — только поля, которые
    правили: M.ui.cmsSite = { v:{ ключ:значение }, base:{ ключ:что было в
    хранилище при первой правке } }, ключи плоские — title.ru, logo,
-   socials.telegram… Остальные поля показываем и сохраняем из хранилища:
-   правка другой вкладки (логотип, название) не откатывается. */
-const ACMS_SITE_PARTS = { seo:["title", "desc", "logo", "favicon"], contacts:["phone", "email", "address", "socials"] };
+   socials.telegram, foot.contacts… Остальные поля показываем и сохраняем из
+   хранилища: правка другой вкладки (логотип, название) не откатывается.
+   foot — не поле с историей: это переключатели «показывать в подвале». */
+const ACMS_SITE_PARTS = { seo:["title", "desc", "logo", "favicon"], contacts:["phone", "email", "address", "socials", "foot"] };
+const ACMS_FOOT = ["contacts", "socials"];
 const ACMS_SITE_L = ["title", "desc", "address"];
 function acmsSiteFlat(site){
   const o = {};
   for (const f of [...ACMS_SITE_PARTS.seo, ...ACMS_SITE_PARTS.contacts]) {
     if (f === "socials") for (const k of CMS_SOCIALS) o["socials." + k] = site.socials?.[k] || "";
+    else if (f === "foot") for (const k of ACMS_FOOT) o["foot." + k] = site.foot?.[k] !== false;
     else if (ACMS_SITE_L.includes(f)) for (const l of CMS_LANGS) o[`${f}.${l}`] = site[f]?.[l] || "";
     else o[f] = f === "logo" || f === "favicon" ? site[f] || null : site[f] || "";
   }
@@ -150,7 +162,8 @@ function acmsSiteLang(part, f, max, long){
   const dis = can("content.manage") ? "" : "disabled", v = l => acmsSiteVal(`${f}.${l}`);
   return `<fieldset class="cms-lf"><legend>${esc(t("cms_f_site_" + f))}</legend><div class="sgrid sgrid-3">${CMS_LANGS.map(l => `<label class="field"><span>${l.toUpperCase()}</span>${long
     ? `<textarea rows="3" data-cs="${f}.${l}" maxlength="${max}" lang="${l}" ${dis}>${esc(v(l))}</textarea>`
-    : `<input data-cs="${f}.${l}" value="${esc(v(l))}" maxlength="${max}" lang="${l}" autocomplete="off" ${dis}>`}</label>`).join("")}</div></fieldset>`;
+    : `<input data-cs="${f}.${l}" value="${esc(v(l))}" maxlength="${max}" lang="${l}" autocomplete="off" ${dis}>`}</label>`).join("")}</div>
+    ${acmsHistBtn("site", f, t("cms_f_site_" + f))}${acmsHistPanel("site", f, t("cms_f_site_" + f))}</fieldset>`;
 }
 /* Кнопки загрузки и «Убрать» названы вместе с полем: «Логотип: Загрузить» и
    «Значок вкладки: Загрузить» в списке кнопок диктора различимы. */
@@ -159,7 +172,7 @@ function acmsSiteImg(f){
   return `<div class="field"><span>${esc(name)}</span><div class="row cms-img cms-img-${f}">${v ? `<img src="${v}" alt="${esc(t("cms_img_prev"))}">` : `<span class="muted small">${esc(t(f === "logo" ? "cms_logo_none" : "cms_fav_none"))}</span>`}
     ${manage ? `<label class="ghost sm filebtn">${IC.upload}<span>${esc(act)}</span><input id="cms-${f}" type="file" accept="image/png,image/jpeg,image/webp" aria-label="${esc(name)}: ${esc(act)}"></label>
       ${v ? `<button type="button" class="link danger" data-act="acmssiteimgx" data-v="${f}" aria-label="${esc(t("cms_img_remove"))}: ${esc(name)}">${esc(t("cms_img_remove"))}</button>` : ""}` : ""}</div>
-    <p class="muted small">${esc(t(f === "logo" ? "cms_logo_hint" : "cms_fav_hint"))}</p></div>`;
+    <p class="muted small">${esc(t(f === "logo" ? "cms_logo_hint" : "cms_fav_hint"))}</p>${acmsHistBtn("site", f, name)}${acmsHistPanel("site", f, name)}</div>`;
 }
 const acmsSiteDirty = part => { const d = M.ui.cmsSite; if (!d) return false; const now = acmsSiteFlat(cmsSite()); return Object.keys(d.v).some(k => acmsSitePart(k) === part && d.v[k] !== now[k]); };
 const acmsSiteBtns = part => `<div class="err" id="cmssiteerr-${part}" hidden></div>
@@ -175,12 +188,15 @@ function acmsSeo(){
 function acmsContacts(){
   const dis = can("content.manage") ? "" : "disabled";
   const one = (f, label, attrs) => `<label class="field"><span>${esc(t(label))}</span><input data-cs="${f}" value="${esc(acmsSiteVal(f))}" ${attrs} ${dis}></label>`;
+  const hist = (f, label) => `<div class="cms-txc">${one(f, label, f === "phone" ? 'type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="+998 71 200 00 00"' : 'type="email" maxlength="80" autocomplete="off" placeholder="info@charteri.uz"')}
+    ${acmsHistBtn("site", f, t(label))}${acmsHistPanel("site", f, t(label))}</div>`;
+  const foot = k => `<label class="chk cms-foot"><input type="checkbox" data-cs="foot.${k}" ${acmsSiteVal("foot." + k) ? "checked" : ""} ${dis}><span>${esc(t("cms_foot_show_" + k))}</span></label>`;
   return `<section class="card stack" id="cmscontacts"><div class="stack" style="gap:4px"><h2 id="cms-h-contacts" tabindex="-1">${esc(t("cms_contacts_h"))}</h2><p class="muted small">${esc(t("cms_contacts_d"))}</p></div>
     ${can("content.manage") ? "" : `<p class="note-live">${IC.lock}<span>${esc(t("cms_manage_only"))}</span></p>`}
-    <div class="sgrid sgrid-2">${one("phone", "phone_label", 'type="tel" inputmode="tel" maxlength="20" autocomplete="off" placeholder="+998 71 200 00 00"')}${one("email", "agency_email", 'type="email" maxlength="80" autocomplete="off" placeholder="info@charteri.uz"')}</div>
-    ${acmsSiteLang("contacts", "address", CMS_LEN.address, false)}
+    <div class="sgrid sgrid-2">${hist("phone", "phone_label")}${hist("email", "agency_email")}</div>
+    ${acmsSiteLang("contacts", "address", CMS_LEN.address, false)}${foot("contacts")}
     <fieldset class="cms-lf"><legend>${esc(t("cms_follow"))}</legend><div class="sgrid sgrid-2">${CMS_SOCIALS.map(k => one("socials." + k, "cms_soc_" + k, `inputmode="url" maxlength="200" autocomplete="off" spellcheck="false" placeholder="${k === "telegram" || k === "instagram" ? "@charteri" : "https://…"}"`)).join("")}</div>
-      <p class="muted small">${esc(t("cms_soc_hint"))}</p></fieldset>
+      <p class="muted small">${esc(t("cms_soc_hint"))}</p>${acmsHistBtn("site", "socials", t("cms_follow"))}${acmsHistPanel("site", "socials", t("cms_follow"))}${foot("socials")}</fieldset>
     ${acmsSiteBtns("contacts")}</section>`;
 }
 /* Соцсеть: @имя в Telegram и Instagram — адрес профиля; остальное — ссылка https. */
@@ -203,13 +219,16 @@ function acmsSiteBuild(part, fail){
   if (x.phone && !cmsPhone(x.phone)) return fail("err_cms_phone", "phone");
   if (x.email && !cmsEmail(x.email)) return fail("err_email", "email");
   for (const k of CMS_SOCIALS) { const v = acmsSocial(k, V("socials." + k)); if (v === null) return fail("err_cms_social", "socials." + k); x.socials[k] = v; }
+  x.foot = Object.fromEntries(ACMS_FOOT.map(k => [k, !!V("foot." + k)]));
   return x;
 }
-function acmsSiteDiff(part, a, x){
-  const diff = [];
-  for (const f of ACMS_SITE_PARTS[part]) {
+/* «Было → стало» полей fields: a — в хранилище, x — новые значения. */
+function acmsSiteDiff(fields, a, x){
+  const diff = [], onoff = v => strRef(v ? "cms_foot_on" : "cms_foot_off");
+  for (const f of fields) {
     const was = a[f], now = x[f];
-    if (f === "logo" || f === "favicon") { if ((was || null) !== (now || null)) diff.push({ k:"cms_f_" + f, from:strRef(was ? "cms_img_yes" : "cms_img_no"), to:strRef(now ? (was ? "cms_img_new" : "cms_img_yes") : "cms_img_no") }); }
+    if (f === "foot") { for (const k of ACMS_FOOT) if (was[k] !== now[k]) diff.push({ k:"cms_foot_" + k, from:onoff(was[k]), to:onoff(now[k]) }); }
+    else if (f === "logo" || f === "favicon") { if ((was || null) !== (now || null)) diff.push({ k:"cms_f_" + f, from:strRef(was ? "cms_img_yes" : "cms_img_no"), to:strRef(now ? (was ? "cms_img_new" : "cms_img_yes") : "cms_img_no") }); }
     else if (f === "socials") { for (const k of CMS_SOCIALS) if ((was[k] || "") !== now[k]) diff.push({ k:"cms_soc_" + k, from:was[k] || "", to:now[k] }); }
     else if (typeof now === "object") { for (const l of CMS_LANGS) if ((was[l] || "") !== now[l]) { const [from, to] = acmsPair(was[l], now[l]); diff.push({ k:"cms_f_site_" + f, sub:l.toUpperCase(), from, to }); } }
     else if ((was || "") !== now) diff.push({ k:f === "phone" ? "phone_label" : "agency_email", from:was || "", to:now });
@@ -229,8 +248,9 @@ function acmsSaveSite(part){
     acmsSiteDrop(part); rerender(); toast(t("err_cms_changed")); $(`#cms-h-${part}`)?.focus(); return false; }
   let same = false;
   const ok = acmsCommit("cms_site", s => {
-    const diff = acmsSiteDiff(part, s.site, x);
+    const diff = acmsSiteDiff(ACMS_SITE_PARTS[part], s.site, x);
     if (!diff.length) { same = true; return null; }
+    for (const f of ACMS_SITE_PARTS[part]) if (CMS_SITE_F.includes(f)) acmsHistRec(s, "site", f, s.site[f], x[f]);
     Object.assign(s.site, x);
     return { vars:{ what:strRef(part === "seo" ? "cms_tab_seo" : "cms_contacts_h") }, diff };
   });
@@ -263,7 +283,7 @@ document.addEventListener("input", e => {
   if (tx) { const [key, l] = tx.split("."), dr = (M.ui.cmsTx ||= {})[key] ||= { v:{}, base:{} };
     if (!(l in dr.v)) dr.base[l] = cmsTexts()[key]?.[l] || "";
     dr.v[l] = e.target.value; e.target.removeAttribute("aria-invalid"); }
-  if (cs) { acmsSiteSet(cs, e.target.value); e.target.removeAttribute("aria-invalid"); }
+  if (cs) { acmsSiteSet(cs, e.target.type === "checkbox" ? e.target.checked : e.target.value); e.target.removeAttribute("aria-invalid"); }
   if (e.target.id === "cmsq") { M.ui.cmsq = e.target.value; acmsTxRefresh(); }
 });
 document.addEventListener("change", e => {

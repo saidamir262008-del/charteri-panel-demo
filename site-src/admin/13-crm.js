@@ -27,7 +27,10 @@ function migrateCrm(o){
   const c = o.crm && typeof o.crm === "object" ? o.crm : null;
   o.crm = {
     seq:Number.isInteger(c?.seq) ? c.seq : 0,
-    leads:Array.isArray(c?.leads) ? c.leads.filter(l => l && typeof l.id === "string" && LEAD_STAGES.includes(l.status)) : [],
+    // links — у каждого лида массив: без него синхронизация CRM падает при запуске админки.
+    leads:Array.isArray(c?.leads) ? c.leads.filter(l => l && typeof l.id === "string" && LEAD_STAGES.includes(l.status))
+      .map(l => Array.isArray(l.links) && l.links.every(x => x && typeof x.src === "string" && typeof x.id === "string") ? l
+        : { ...l, links:(Array.isArray(l.links) ? l.links : []).filter(x => x && typeof x.src === "string" && typeof x.id === "string") }) : [],
     clients:c?.clients && typeof c.clients === "object" && !Array.isArray(c.clients) ? c.clients : {},
     notes:Array.isArray(c?.notes) ? c.notes.filter(n => n && n.text && NOTE_KINDS.includes(n.kind)) : [],
     tasks:Array.isArray(c?.tasks) ? c.tasks.filter(x => x && x.text && Number.isFinite(x.due)) : [],
@@ -169,14 +172,15 @@ function b2cClients(){
   const map = new Map();
   const add = (phone, name, at) => {
     const key = digits(phone); if (!key || key.length < 9) return null;
-    if (!map.has(key)) map.set(key, { key, phone:prettyPhone(phone), name:"", orders:[], leads:[], spent:0, paid:0, last:0, first:at || Date.now() });
-    const c = map.get(key); if (!c.name && name) c.name = name; if (at) { c.last = Math.max(c.last, at); c.first = Math.min(c.first, at); }
+    // first — первое появление; 0 — неизвестно (вход на сайт до того, как его время стали хранить): такой клиент не «новый».
+    if (!map.has(key)) map.set(key, { key, phone:prettyPhone(phone), name:"", orders:[], leads:[], spent:0, paid:0, last:0, first:at || 0 });
+    const c = map.get(key); if (!c.name && name) c.name = name; if (at) { c.last = Math.max(c.last, at); c.first = c.first ? Math.min(c.first, at) : at; }
     return c;
   };
   // Имя — из лида (его вводит менеджер), затем из заказа (латиницей, как в паспорте).
   // Лиды — только те, что сотруднику видны: чужие лиды не раскрываются через карточку клиента.
   for (const l of O.crm.leads) if (l.kind !== "b2b" && canSeeLead(l)) { const c = add(l.phone, l.name, l.createdAt); if (c) c.leads.push(l); }
-  if (SITE?.user?.phone) add(SITE.user.phone, "", 0);
+  if (SITE?.user?.phone) add(SITE.user.phone, "", validTs(SITE.user.at) ? SITE.user.at : 0);
   for (const o of SITE?.orders || []) {
     const c = add(o.contact?.phone, o.travellers?.[0] ? `${o.travellers[0].given} ${o.travellers[0].surname}`.trim() : "", o.createdAt); if (!c) continue;
     c.orders.push(o);

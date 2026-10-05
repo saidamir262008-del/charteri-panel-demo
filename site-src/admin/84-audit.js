@@ -21,8 +21,8 @@ const auditRole = e => roleName(e.role || O.staff.find(s => s.id === e.staffId)?
 
 function auditRows(){
   const who = M.ui.auWho || "all", mod = M.ui.auMod || "all", per = M.ui.auPer || "all", q = (M.ui.auq || "").trim().toLowerCase();
-  // Начало сегодняшнего дня — по часам сейчас: админка может быть открыта с вечера.
-  const since = per === "today" ? new Date().setHours(0, 0, 0, 0) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
+  // Начало сегодняшнего дня — по часам сейчас (админка может быть открыта с вечера) и в поясе компании.
+  const since = per === "today" ? tzDayStart(tzToday()) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
   return O.audit.filter(e => (who === "all" || e.staffId === who) && (mod === "all" || auditModule(e) === mod) && e.at >= since
     && (!q || [auditText(e), staffName(e.staffId), e.ip || "", ...(e.diff || []).map(diffText)].join(" ").toLowerCase().includes(q)));
 }
@@ -67,7 +67,7 @@ document.addEventListener("change", e => {
 });
 ACT.aucsv = () => {
   if (denied("audit.export")) return;
-  const when = ms => new Date(ms).toLocaleString(LOC[S.lang]), rows = auditRows();
+  const when = fdtFull, rows = auditRows();
   const out = [[t("col_date"), t("col_staff"), t("staff_role"), t("col_section"), t("col_action"), t("col_was"), t("col_now"), "IP", t("au_device")],
     ...rows.map(e => [when(e.at), staffName(e.staffId), auditRole(e), t("m_" + auditModule(e)), auditText(e),
       (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.from) || "—"}`).join("; "), (e.diff || []).map(d => `${diffLabel(d)}: ${auditVal(d.to) || "—"}`).join("; "), e.ip || "", e.dev || ""])];

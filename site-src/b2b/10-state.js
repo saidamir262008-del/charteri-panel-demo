@@ -105,7 +105,7 @@ const DEMO_CLIENTS = [
 ];
 function freshState(){
   const prev = typeof S !== "undefined" && S ? S : {};
-  S = { v:1, lang:prev.lang || "ru", cur:prev.cur || "UZS", theme:prev.theme || "system", user:null, session:prev.session || null,
+  S = { v:1, lang:prev.lang || sysCfg().langs.def, cur:prev.cur || sysCfg().cur.def, theme:prev.theme || "system", user:null, session:prev.session || null,
     agency:{ name:"Silk Road Travel", legal:"OOO «SILK ROAD TRAVEL»", inn:"305 678 912", phone:"+998 71 200 45 67", email:"booking@silkroad.uz", status:"verified", since:addDays(TODAY, -210) },
     brand:{ name:"Silk Road Travel", phone:"+998 71 200 45 67", email:"booking@silkroad.uz", address:"Toshkent, Amir Temur ko‘chasi, 107", telegram:"@silkroad_uz", color:"#0F5E54", logo:null },
     balance:0, ledger:[], topups:[], orders:[], notes:[],

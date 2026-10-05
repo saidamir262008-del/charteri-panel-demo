@@ -152,7 +152,7 @@ Object.assign(ACT, {
     const s = O.staff.find(x => x.id === el.dataset.v && x.active !== false); if (!s) return;
     M.ui = {};
     change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("switch", { name:s.name, role:roleRef(s.role) }); });
-    toast(tf("switched", { name:s.name, role:roleName(s.role) }));
+    idleTouch(true); toast(tf("switched", { name:s.name, role:roleName(s.role) }));
   },
   stnew:   () => { if (denied("staff.create")) return; M.ui.stDraft = blankStaff(); M.ui.stFocus = true; rerender(); },
   stedit:  el => { const s = staffById(el.dataset.v); if (denied("staff.edit") || !s) return; if (!canManageStaff(s)) return toast(t("no_rights"));
@@ -190,15 +190,16 @@ Object.assign(ACT, {
   asetlang:   el => { O.lang = el.dataset.v; adminPrefs(); saveOps(); rerender(); },
   asettheme:  el => { O.theme = el.dataset.v; adminPrefs(); saveOps(); withTransition(rerender, "theme"); },
   asignout:   () => { change(() => { audit("signout", {}); O.session = null; }); stopHeartbeat(); toast(t("signed_out")); go(""); },
-  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки, содержимое сайта. Сотрудник остаётся в админке. */
+  /* Сброс всех трёх демо: кабинет, сайт, админка, цены, заявки, содержимое сайта, системные
+     настройки и служебные ключи (активность, блокировки входа, копия на подтверждении). Сотрудник остаётся в админке. */
   areset:     () => {
     if (denied("settings.manage") || !confirm(t("reset_all_q"))) return;
     const session = O.session;
-    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY, CMS_KEY]) try { localStorage.removeItem(k); } catch(e) {}
-    PRICES = null; CMS_CACHE = null; M.ui = {}; applyDirections();
+    for (const k of [CAB_KEY, SITE_KEY, OPS_KEY, PRICES_KEY, APPS_KEY, DIRS_KEY, BLOCK_KEY, CMS_KEY, SYS_KEY, IDLE_KEY, OTP_KEY, RESTORE_KEY]) try { localStorage.removeItem(k); } catch(e) {}
+    PRICES = null; CMS_CACHE = null; SYS_CACHE = null; TZF = null; M.ui = {}; applyDirections();
     S = freshState(); S.session = null; S.rev = 1; writeJSON(CAB_KEY, S);
     // Сотрудника, добавленного вручную, в исходных данных нет — входим основателем.
-    O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:FOUNDER_ID, at:Date.now() } }); saveOps(); SITE = null; seedApps();
+    O = freshOps({ lang:O.lang, theme:O.theme, session:STAFF.some(s => s.id === session?.staffId) ? session : { staffId:FOUNDER_ID, at:Date.now() } }); saveOps(); idleTouch(true); SITE = seedSite(); seedApps();
     change(() => audit("reset", {})); go("");
   }
 });
@@ -225,13 +226,24 @@ PAGES.auth = {
   },
   after(){ $("#aotp")?.focus(); }
 };
+/* Неверный код — попытка в счёт лимита из «Системы»; исчерпал — вход с номера
+   закрыт на время блокировки (79-system-ops.js), даже с верным кодом. */
 function aVerify(){
-  const v = ($("#aotp")?.value || "").trim();
+  const v = ($("#aotp")?.value || "").trim(), phone = M.ui.aPhone, sec = sysCfg().sec;
   if (!/^\d{4}$/.test(v)) return showErr("#aerr", t("err_code"));
-  if (v !== ADM_CODE) return showErr("#aerr", t("err_code_wrong"));
-  const s = activeStaff().find(x => digits(x.phone) === digits(M.ui.aPhone)); if (!s) return showErr("#aerr", t("err_staff"));
+  const locked = otpLockedMin(phone);
+  if (locked) return showErr("#aerr", tf("err_otp_locked", { n:pl(locked, "minute") }));
+  if (v !== ADM_CODE) {
+    const n = (otpState(phone)?.n || 0) + 1;
+    if (n < sec.otp) { otpSet(phone, { n, until:0 }); return showErr("#aerr", tf("err_code_left", { n:sec.otp - n })); }
+    otpSet(phone, { n:0, until:Date.now() + sec.lock * 60000 });
+    change(() => audit("otp_lock", { phone:prettyPhone(phone), n, min:sec.lock }, { module:"session" }));
+    return showErr("#aerr", tf("err_otp_locked", { n:pl(sec.lock, "minute") }));
+  }
+  const s = activeStaff().find(x => digits(x.phone) === digits(phone)); if (!s) return showErr("#aerr", t("err_staff"));
+  otpSet(phone, null);
   change(() => { O.session = { staffId:s.id, at:Date.now() }; audit("signin", { role:roleRef(s.role) }); });
-  M.ui = { aStep:"phone" }; heartbeat(); toast(tf("hello_toast", { name:s.name.split(" ")[0] }));
+  idleTouch(true); M.ui = { aStep:"phone" }; heartbeat(); toast(tf("hello_toast", { name:s.name.split(" ")[0] }));
   if (currentParts()[0] === "auth") go(""); else render(true);
 }
 Object.assign(ACT, {

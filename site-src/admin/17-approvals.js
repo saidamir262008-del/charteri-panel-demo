@@ -21,11 +21,13 @@ const AP_KINDS = {
   role_del:   { rule:"access",  perm:"roles.approve",    module:"roles",    icon:"key" },
   staff_add:  { rule:"access",  perm:"roles.approve",    module:"staff",    icon:"badge" },
   staff_role: { rule:"access",  perm:"roles.approve",    module:"staff",    icon:"badge" },
-  dir_del:    { rule:"delete",  perm:"services.approve", module:"services", icon:"globe" }
+  dir_del:    { rule:"delete",  perm:"services.approve", module:"services", icon:"globe" },
+  sys:        { rule:"system",  perm:"settings.approve", module:"settings", icon:"sliders" },
+  restore:    { rule:"system",  perm:"settings.approve", module:"settings", icon:"upload" }
 };
 /* Правила: какие операции ждут второго сотрудника. У денежных — порог в сумах. */
-const AP_RULES = ["refund", "adjust", "pricing", "access", "delete"];
-const DEFAULT_RULES = { refund:{ on:true, min:5_000_000 }, adjust:{ on:true, min:0 }, pricing:{ on:true }, access:{ on:true }, delete:{ on:true } };
+const AP_RULES = ["refund", "adjust", "pricing", "access", "delete", "system"];
+const DEFAULT_RULES = { refund:{ on:true, min:5_000_000 }, adjust:{ on:true, min:0 }, pricing:{ on:true }, access:{ on:true }, delete:{ on:true }, system:{ on:true } };
 const RULE_MIN_MAX = 10_000_000_000;
 function cleanRules(r){
   const out = {};
@@ -66,10 +68,13 @@ function requestApproval(kind, { key, payload, vars = {}, diff = [], amount = nu
 
 /* Почему текущий сотрудник не может решить запрос (ключ строки) или null.
    Свой запрос подтверждает другой; изменение своих прав — тоже другой. */
+/* Права, нужные для решения. Восстановление, которое меняет балансы или цены,
+   решает тот, кто вправе подтверждать и их (payload.money / prices, 79-system-ops.js). */
+const apPerms = a => [AP_KINDS[a.kind].perm, ...(a.kind === "restore" ? [a.payload?.money && "finance.approve", a.payload?.prices && "pricing.approve"].filter(Boolean) : [])];
 function apBlock(a){
   const u = me(); if (!u) return "no_rights";
   if (a.by === u.id) return "ap_err_self";
-  if (!can(AP_KINDS[a.kind].perm)) return "no_rights";
+  if (!apPerms(a).every(can)) return "no_rights";
   const p = a.payload || {};
   if ((a.kind === "staff_role" && p.staffId === u.id) || (["role_edit", "role_del"].includes(a.kind) && p.roleId === u.role)) return "ap_err_own";
   return null;
@@ -91,13 +96,15 @@ const AP_EXEC = {
   role_del:   (p, a) => execRoleDel(p, a),
   staff_add:  (p, a) => execStaffAdd(p, a),
   staff_role: (p, a) => execStaffRole(p, a),
-  dir_del:    (p, a) => execDirDel(p, a)
+  dir_del:    (p, a) => execDirDel(p, a),
+  sys:        (p, a) => execSys(p, a),
+  restore:    (p, a) => execRestore(p, a)
 };
 /* Право, с которым запрос создавали. К моменту решения автор должен быть
    действующим сотрудником и сохранить это право — иначе запрос не выполняется:
    отключённый или понижённый сотрудник не проводит операцию чужими руками. */
 const AP_REQ_PERM = { refund:"finance.refund", adjust:"finance.manage", credit:"finance.manage", pricing:"pricing.edit", role_new:"roles.create", role_edit:"roles.edit",
-  role_del:"roles.delete", staff_add:"staff.create", staff_role:"staff.edit", dir_del:"services.delete" };
+  role_del:"roles.delete", staff_add:"staff.create", staff_role:"staff.edit", dir_del:"services.delete", sys:"settings.manage", restore:"settings.manage" };
 function requesterBlock(a){
   const u = O.staff.find(s => s.id === a.by), p = a.payload || {};
   if (!u || u.active === false) return "ap_err_requester";
@@ -108,6 +115,8 @@ function requesterBlock(a){
   if (a.kind === "staff_role") { const x = O.staff.find(s => s.id === p.staffId);
     if (p.staffId === u.id || (!founder && (TOP_ROLES.includes(p.to) || TOP_ROLES.includes(x?.role)))) return "ap_err_requester"; }
   if (a.kind === "staff_add" && !founder && TOP_ROLES.includes(p.rec.role)) return "ap_err_requester";
+  // Копия с другими балансами или ценами — автору нужны и права на них, как при правке вручную.
+  if (a.kind === "restore" && !founder && ((p.money && !hasPerm(permsOf(u.role), "finance.manage")) || (p.prices && !hasPerm(permsOf(u.role), "pricing.edit")))) return "ap_err_requester";
   return null;
 }
 /* Сотрудника отключили или сменили ему роль — его ждущие запросы снимаются. */

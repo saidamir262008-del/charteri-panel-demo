@@ -20,7 +20,7 @@ function checkLines(lines, total, countKey){
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
   const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
-  M.checkout = { ...spec, method:"payme", pstate: spec.recheck ? "checking" : "ok", pending:null,
+  M.checkout = { ...spec, rate:sysRate(), method:firstPay(), pstate: spec.recheck ? "checking" : "ok", pending:null,
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
   go("checkout");
@@ -48,6 +48,7 @@ function travellerForm(x, i, mode){
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
+    if (!payOn(c.method)) c.method = firstPay();           // способ выключили в админке, пока страница открыта
     const lines0 = c.pstate === "changed" ? c.pending.lines : c.lines, gross = c.pstate === "changed" ? c.pending.total : c.total;
     // Скидка по промокоду или акции — отдельной строкой чека; к оплате — со скидкой.
     const pr = checkoutPromo(c, gross), total = pr ? subA(gross, pr.off) : gross, lines = pr ? [...lines0, promoLine(pr)] : lines0;
@@ -87,7 +88,22 @@ PAGES.checkout = {
     }, 1100);
   }
 };
-const payMethods = (act, val) => `<div class="methods">${PAY_METHODS.map(([k, l, col]) =>
+/* Курс сменили в админке, пока оформление открыто: сумы на экране посчитаны по
+   старому. Пересчитываем и показываем новую сумму, как при перепроверке цены, —
+   старую не списываем. true — оплату надо остановить. */
+function rateMoved(c){
+  if (c.rate === sysRate()) return false;
+  c.rate = sysRate();
+  // Пересчитать нечем — предложение выбирается заново: по старому курсу не платим.
+  if (!c.priceChange) { M.checkout = null; toast(t("rate_moved_redo")); go(SEARCH_PATH); return true; }
+  const fresh = c.priceChange(true);
+  if (fresh.total.usd === c.total.usd && fresh.total.uzs === c.total.uzs) return false;
+  Object.assign(c, { pending:fresh, pstate:"changed", accepted:false });
+  rerender(); toast(t("rate_moved"));
+  return true;
+}
+/* Выбор — только включённые в админке способы; PAY_METHODS и methodName — все, для старых заказов. */
+const payMethods = (act, val) => `<div class="methods">${payList().map(([k, l, col]) =>
   `<button type="button" class="method" data-act="${act}" data-v="${k}" aria-pressed="${val === k}"><span class="dot" style="background:${col}"></span>${l}<span class="rad"></span></button>`).join("")}</div>`;
 
 function validateCheckout(){
@@ -126,6 +142,8 @@ Object.assign(ACT, {
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (rateMoved(c)) return;
+    if (!payOn(c.method)) { c.method = firstPay(); rerender(); return toast(t("pay_off")); }
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     c.travellers.forEach(x => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
@@ -139,6 +157,10 @@ Object.assign(ACT, {
     overlay(t("processing"));
     setTimeout(() => {
       overlay("");
+      // За время оплаты админка могла закрыть сайт на обслуживание или выключить способ.
+      if (sysMaint()) return render(false);
+      if (!payOn(c.method)) { rerender(); return toast(t("pay_off")); }
+      if (rateMoved(c)) return;
       createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
         ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },

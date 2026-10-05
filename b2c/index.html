@@ -35,21 +35,21 @@
   --shadow:0 1px 2px rgba(22,39,92,.05),0 14px 34px -20px rgba(22,39,92,.30);
   --card-border:transparent; --r:18px;
   --ease-out:cubic-bezier(0.23,1,0.32,1); --ease-in-out:cubic-bezier(0.77,0,0.175,1); --ease-drawer:cubic-bezier(0.32,0.72,0,1);
-  --lift-shadow:0 22px 44px -24px rgba(22,39,92,.45); --core-hi:rgba(255,255,255,.7);
+  --lift-shadow:0 22px 44px -24px rgba(22,39,92,.45); --core-hi:rgba(255,255,255,.7); --seg-on:#FFFFFF; --seg-ring:transparent;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06); --seg-on:#343D50; --seg-ring:#4A5670;
 }}
 :root[data-theme="dark"]{
   --blue:#6D9BF2; --blue-hi:#87ADF6; --navy:#D2DEF7; --paper:#0C0E13; --surface:#1B202B;
   --sunken:#141922; --sky:#1F2A3F; --ink:#E9EAEE; --muted:#A0A6B4; --faint:#767D8C;
   --line:#2B3240; --mint:#4FC79A; --mint-bg:#10291E; --coral:#F07070; --coral-bg:#2C1919;
   --warn:#E0A94B; --warn-bg:#2A2113; --hero-a:#24427C; --hero-b:#132650; --band:#11151D;
-  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06);
+  --shadow:none; --card-border:#2B3240; --lift-shadow:0 22px 44px -22px rgba(0,0,0,.7); --core-hi:rgba(255,255,255,.06); --seg-on:#343D50; --seg-ring:#4A5670;
 }
 [hidden]{display:none!important}
 *{box-sizing:border-box}
@@ -111,7 +111,7 @@ input:disabled,select:disabled{opacity:.6}
 .chk input{width:18px;height:18px;min-height:0;accent-color:var(--blue);flex:none;margin:0}
 .chk .stars svg{width:14px;height:14px}
 .seg{position:relative;display:flex;background:var(--sunken);border-radius:12px;padding:3px;gap:2px;flex-wrap:wrap}
-.seg .ind{position:absolute;left:0;top:0;border-radius:9px;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.1);pointer-events:none;transform-origin:0 0;opacity:0}
+.seg .ind{position:absolute;left:0;top:0;border-radius:9px;background:var(--seg-on);box-shadow:0 1px 3px rgba(0,0,0,.1),inset 0 0 0 1px var(--seg-ring);pointer-events:none;transform-origin:0 0;opacity:0}
 .seg button{flex:1;min-height:36px;border-radius:9px;font-weight:600;font-size:14px;color:var(--muted);text-align:center;white-space:nowrap;padding-inline:10px}
 .seg button{position:relative;z-index:1;transition:color 200ms ease}
 .seg button[aria-pressed="true"]{color:var(--navy)}
@@ -634,6 +634,10 @@ input:disabled,select:disabled{opacity:.6}
 .cms-body ul{padding-left:1.3em;display:flex;flex-direction:column;gap:4px}
 .cms-body h2{font-size:21px;margin-top:10px}
 .cms-body h3{font-size:17px;margin-top:6px}
+/* Ссылка в тексте страницы видна без наведения; внешняя — со стрелкой (диктору её не читаем). */
+.cms-body a{color:var(--blue);font-weight:500;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.cms-body a:hover{color:var(--blue-hi);text-decoration-thickness:2px}
+.cms-body a[target="_blank"]::after{content:"\2197";content:"\2197" / "";margin-left:2px;font-size:.85em}
 .cms-faq-g{display:flex;flex-direction:column}
 .cms-faq-g + .cms-faq-g{margin-top:26px}
 .cms-faq-g > h2{font-size:20px;margin-bottom:6px}
@@ -950,6 +954,15 @@ input:disabled,select:disabled{opacity:.6}
 .promo-ok svg{width:18px;height:18px;flex:none}
 .promo-ok .link{margin-left:auto}
 
+/* ---- технические работы (14-system.js): только заглушка, без шапки и подвала ---- */
+body.is-maint #nav,body.is-maint #top,body.is-maint #footer{display:none}
+.maint{min-height:100dvh;display:grid;place-items:center;padding:24px 16px}
+.maint-card{max-width:520px;width:100%;text-align:center;align-items:center;gap:14px;padding:32px 24px}
+.maint-card h1{font-size:clamp(24px,4vw,30px);margin:0}
+.maint-card p{margin:0;max-width:44ch}
+.maint-ic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
+.maint-ic svg{width:28px;height:28px}
+
 </style>
 </head>
 <body>
@@ -1195,7 +1208,7 @@ const STR = {
   how_1:["Выберите","Tanlang","Choose"],
   how_1_d:["Рейс, тур, отель или борт — цены из тех же систем, с которыми работают агентства.","Reys, tur, mehmonxona yoki samolyot — narxlar agentliklar ishlaydigan tizimlardan.","A flight, tour, hotel or aircraft — prices from the same systems agencies use."],
   how_2:["Оплатите","To‘lang","Pay"],
-  how_2_d:["Payme, Click, Uzum, Uzcard, Humo или Visa и Mastercard. Цена проверяется перед списанием.","Payme, Click, Uzum, Uzcard, Humo yoki Visa va Mastercard. Narx yechishdan oldin tekshiriladi.","Payme, Click, Uzum, Uzcard, Humo, or Visa and Mastercard. The price is checked before you’re charged."],
+  how_2_d:["{methods}. Цена проверяется перед списанием.","{methods}. Narx yechishdan oldin tekshiriladi.","{methods}. The price is checked before you’re charged."],
   how_3:["Летите","Uching","Fly"],
   how_3_d:["Билет или ваучер с QR-кодом — в «Моих заказах» и на телефоне, открывается без интернета.","QR-kodli chipta yoki vaucher — «Buyurtmalarim»da va telefonda, internetsiz ochiladi.","A ticket or voucher with a QR code in My orders and on your phone, opens offline."],
   how_title:["Как это работает","Bu qanday ishlaydi","How it works"],
@@ -1322,8 +1335,13 @@ const STR = {
   trip_kind:["Тип рейса","Reys turi","Trip type"],
   trust_1:["Цена проверяется перед оплатой","Narx to‘lovdan oldin tekshiriladi","The price is checked before you pay"],
   trust_1_d:["Если поставщик изменил цену, вы увидите старую и новую сумму и решите сами","Agar ta’minotchi narxni o‘zgartirsa, eski va yangi summani ko‘rib, o‘zingiz qaror qilasiz","If the supplier changes the price, you see the old and new amounts and decide"],
-  trust_2:["Три языка","Uch til","Three languages"],
-  trust_2_d:["Сайт, документы и поддержка — на узбекском, русском и английском","Sayt, hujjatlar va yordam — o‘zbek, rus va ingliz tillarida","Site, documents and support in Uzbek, Russian and English"],
+  trust_2:["На вашем языке","O‘z tilingizda","In your language"],
+  trust_2_d:["Сайт, документы и поддержка — на {langs}","Sayt, hujjatlar va yordam — {langs}","Site, documents and support in {langs}"],
+  lang_in_uz:["узбекском","o‘zbek","Uzbek"], lang_in_ru:["русском","rus","Russian"], lang_in_en:["английском","ingliz","English"],
+  list_and:["и","va","and"],
+  // В узбекском после списка языков — «tillarida», после одного — «tilida».
+  lang_in_one:["","tilida",""],
+  lang_in_many:["","tillarida",""],
   trust_3:["Документ без интернета","Internetsiz hujjat","Documents work offline"],
   trust_3_d:["Билет и ваучер с QR-кодом открываются в аэропорту даже без роуминга","QR-kodli chipta va vaucher aeroportda rouminsiz ham ochiladi","Tickets and vouchers with QR codes open at the airport even without roaming"],
   type_FLIGHT:["Авиабилеты","Aviachiptalar","Flights"],
@@ -1374,7 +1392,16 @@ const STR = {
   cms_soc_telegram:["Telegram","Telegram","Telegram"],
   cms_soc_instagram:["Instagram","Instagram","Instagram"],
   cms_soc_facebook:["Facebook","Facebook","Facebook"],
-  cms_soc_youtube:["YouTube","YouTube","YouTube"]
+  cms_soc_youtube:["YouTube","YouTube","YouTube"],
+
+  /* ---- системные настройки из админки (14-system.js) ---- */
+  maint_h:["Идут технические работы","Texnik ishlar olib borilmoqda","Maintenance in progress"],
+  maint_d:["Мы обновляем систему. Бронирование и оплата ненадолго недоступны — скоро всё заработает.","Tizimni yangilayapmiz. Bron qilish va to‘lov qisqa vaqtga ishlamaydi — tez orada hammasi ishlaydi.","We’re updating the system. Booking and payment are briefly unavailable — we’ll be back soon."],
+  maint_since:["Работы начались: {time}","Ishlar boshlandi: {time}","Started: {time}"],
+  pay_off:["Этот способ оплаты сейчас отключён — выберите другой","Bu to‘lov usuli hozir o‘chirilgan — boshqasini tanlang","This payment method is switched off — choose another"],
+  rate_moved:["Курс доллара изменился — проверьте новую сумму","Dollar kursi o‘zgardi — yangi summani tekshiring","The dollar rate has changed — check the new amount"],
+  rate_moved_redo:["Курс доллара изменился — выберите предложение заново","Dollar kursi o‘zgardi — taklifni qaytadan tanlang","The dollar rate has changed — choose the offer again"],
+  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
@@ -1722,6 +1749,12 @@ let PRICES = null;
 function prices(){
   if (PRICES) return PRICES;
   let saved = {}; try { saved = JSON.parse(localStorage.getItem(PRICES_KEY) || "{}") || {}; } catch(e) {}
+  return (PRICES = pricesClean(saved));
+}
+/* Сохранённые цены → проверенные: каждое поле отдельно, неверное — по умолчанию.
+   Отдельно от prices(): так же читается и цена из резервной копии. */
+function pricesClean(saved){
+  if (!saved || typeof saved !== "object" || Array.isArray(saved)) saved = {};
   const ok = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi, on = v => typeof v === "boolean" ? v : true;
   const svc = {};
   for (const k of SVC_TYPES) { const x = saved.svc?.[k] || {};
@@ -1730,10 +1763,9 @@ function prices(){
   svc.TRANSFER = { on:on(saved.svc?.TRANSFER?.on), usd:ok(saved.svc?.TRANSFER?.usd, 0, 1000) ? saved.svc.TRANSFER.usd : PRICE_DEFAULTS.transferUsd };
   svc.INSURANCE = { on:on(saved.svc?.INSURANCE?.on), usd:ok(saved.svc?.INSURANCE?.usd, 0, 1000) ? saved.svc.INSURANCE.usd : PRICE_DEFAULTS.insuranceUsd };
   const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
-  PRICES = { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
+  return { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
     svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
     promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
-  return PRICES;
 }
 /* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
    агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
@@ -1752,8 +1784,8 @@ const svcOn = type => prices().svc[type]?.on !== false;
 const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
 /* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
 const modForm = mod => svcOn(mod.type) ? mod.form() : svcOffNote();
-/* Нельзя купить: услуга выключена или итог не положительный. */
-const cantBuy = (type, total) => !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
+/* Нельзя купить: идут технические работы (14-system.js), услуга выключена или итог не положительный. */
+const cantBuy = (type, total) => sysMaint() ? "maint_h" : !svcOn(type) ? "svc_off_h" : !(total?.usd > 0) ? "err_total" : null;
 
 /* ---- промокоды и акции (только сайт; авиабилеты, туры, отели) ----
    Промокод вводят; акция (auto) применяется сама. Скидка одна на заказ —
@@ -1831,8 +1863,10 @@ function fdate(s, o={ day:"numeric", month:"short" }){
 }
 const fdateLong = s => fdate(s, { weekday:"short", day:"numeric", month:"long" });
 const fdateY    = s => fdate(s, { day:"numeric", month:"long", year:"numeric" });
-const fdt = ms => { const d = new Date(ms), hm = String(d.getHours()).padStart(2,"0") + ":" + String(d.getMinutes()).padStart(2,"0");
-  return S.lang === "uz" ? `${uzDate(d, {})}, ${hm}` : d.toLocaleString(LOC[S.lang], { day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" }); };
+/* Время события — в часовом поясе компании из админки (14-system.js). */
+const fdt = ms => { if (tzParts(ms).bad) return "—";
+  if (S.lang !== "uz") return new Date(ms).toLocaleString(LOC[S.lang], { timeZone:sysTz(), day:"numeric", month:"short", hour:"2-digit", minute:"2-digit" });
+  const p = tzParts(ms); return `${p.d}-${UZ_MS[p.m - 1]}, ${p.h}:${p.mi}`; };
 const dur = m => Math.floor(m/60) + t("h") + " " + String(Math.round(m%60)).padStart(2,"0") + t("m");
 const AP = iata => AIRPORTS.find(a => a.iata === iata);
 const cityName = iata => AP(iata)?.city[S.lang] ?? iata;
@@ -1840,13 +1874,16 @@ const countryName = iata => AP(iata)?.country[S.lang] ?? "";
 
 /* ---- деньги ----
    Сумма — пара {usd, uzs}. Сумы считаются из тех же единичных цен, что в
-   приложении (цена в USD × 12 650, с округлением до тысячи), и складываются
-   попарно, а не пересчитываются из итога — иначе итог разошёлся бы с суммой
-   строк на тысячу-другую сумов. */
+   приложении (цена в USD × курс из админки (14-system.js, по умолчанию
+   USD_TO_UZS), с округлением до тысячи), и складываются попарно, а не
+   пересчитываются из итога — иначе итог разошёлся бы с суммой строк на
+   тысячу-другую сумов. Сумы в сохранённых заказах не пересчитываются. */
 const NB = " ";                                    // брендбук: узкий неразрывный пробел
 const grp = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, NB);
-const toUzs = usd => Math.round(usd * USD_TO_UZS / 1000) * 1000;
-const amt  = usd => ({ usd: Math.round(usd), uzs: toUzs(Math.round(usd)) });
+const toUzsAt = (usd, rate) => Math.round(usd * rate / 1000) * 1000;
+const toUzs = usd => toUzsAt(usd, sysRate());
+/* rate — курс, по которому считался сохранённый заказ (снимок в заказе); без него — текущий. */
+const amt  = (usd, rate = sysRate()) => ({ usd: Math.round(usd), uzs: toUzsAt(Math.round(usd), rate) });
 const addA = (...xs) => xs.reduce((s, x) => ({ usd: s.usd + x.usd, uzs: s.uzs + x.uzs }), { usd:0, uzs:0 });
 const mulA = (a, n) => ({ usd: a.usd * n, uzs: a.uzs * n });
 const pctA = (a, k) => ({ usd: Math.round(a.usd * k), uzs: Math.round(a.uzs * k / 1000) * 1000 });
@@ -1884,7 +1921,11 @@ function go(path){ const h = "#/" + path; if (location.hash === h) render(true);
 /* routeGuard — необязательный хук приложения: вернуть ключ страницы, на которую
    нужно попасть вместо запрошенной (кабинет агентства без входа — на вход). */
 function render(scrollTop = true){
-  applyTheme();
+  sysCoerce(); applyTheme();
+  // Технические работы (14-system.js): сайт и кабинет показывают только заглушку.
+  const mt = sysMaint(); document.body.classList.toggle("is-maint", !!mt);
+  // Меню кабинета было открыто: заглушка его не рисует — закрываем, иначе затемнение и ловушка Tab остались бы поверх.
+  if (mt) { document.body.classList.remove("nav-open"); if (typeof syncDrawer === "function") syncDrawer(); return maintRender(mt, scrollTop); }
   const m = matchRoute(currentParts()), guard = typeof routeGuard === "function" ? routeGuard(m.key) : null;
   // "" — тоже перенаправление (на главную); «не перенаправлять» — только null.
   const { key, params } = guard != null ? { key:guard, params:{} } : m;
@@ -2220,9 +2261,15 @@ window.addEventListener("storage", e => {
    загружает, но содержимое сайта не показывает.
 
    { v:1, texts:{ ключ:{ru,uz,en} }, site:{ title, desc, logo, favicon, phone,
-     email, address, socials:{telegram,instagram,facebook,youtube} }, items:[…] }
+     email, address, socials:{telegram,instagram,facebook,youtube},
+     foot:{contacts,socials} }, items:[…], home:[{k,on}], hist:{ texts, site } }
    texts — замены строк сайта (t() берёт их первыми); site — название и
-   описание для поисковиков, логотип, значок вкладки, контакты, соцсети.
+   описание для поисковиков, логотип, значок вкладки, контакты, соцсети;
+   foot — показывать ли контакты и соцсети в подвале.
+   home — блоки главной под поиском (CMS_HOME) по порядку, on — виден ли.
+   hist — прежние версии замен текста (по ключу) и настроек сайта (по полю):
+     { at, by, prev:[{ v, at, by }] } — кто и когда поставил нынешнее значение
+     и прежние значения, новые сверху; at 0 — значение было до истории.
    Элемент: { id, type, status, deleted, order, at, by, …поля типа }:
      banner  title, text, btn, href, icon, image, video, tone, place
      page    slug, title, body, seoTitle, seoDesc, menu, mo
@@ -2253,6 +2300,13 @@ const CMS_LEN = { title:120, text:600, btn:40, q:200, a:2000, body:20000, label:
 const CMS_IMG_RE = /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/;
 const CMS_SLUG_RE = /^[a-z0-9-]{2,40}$/, CMS_YT_RE = /^[\w-]{11}$/, CMS_ID_RE = /^[\w-]{1,40}$/, CMS_TKEY_RE = /^[A-Za-z][\w]{0,60}$/;
 const CMS_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+/* Блоки главной под поиском (поиск с заголовком — всегда первый и всегда
+   виден); banner_* — места баннеров. Порядок здесь — порядок по умолчанию. */
+const CMS_HOME = ["banner_top", "board", "dest", "banner_mid", "services", "how", "banner_end", "trust"];
+/* История: до CMS_HIST_MAX прежних версий на ключ или поле, картинок — не
+   больше CMS_HIST_IMG прежних на поле (они тяжёлые). Не хватает места —
+   CMS_HIST_CUT версий, потом без истории (cmsWrite). */
+const CMS_HIST_MAX = 10, CMS_HIST_IMG = 2, CMS_HIST_CUT = 3;
 let CMS_CACHE = null;
 
 Object.assign(IC, {
@@ -2294,6 +2348,14 @@ const cmsTx = s => s.replace(/[<>"]/g, "").replace(/'/g, "’");
 const cmsMo = (x, it) => Number.isInteger(x.mo) ? clamp(x.mo, 0, 9999) : it.order;
 /* Адрес, как его ввёл человек: «charteri.uz/…» и «www.…» — это https. */
 const cmsNormHref = h => { const s = String(h ?? "").trim(); return /^(www\.|[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,})(\/|$)/i.test(s) ? "https://" + s : s; };
+const cmsTxL = v => Object.fromEntries(Object.entries(cmsL(v, CMS_TEXT_MAX)).map(([x, s]) => [x, cmsTx(s)]));
+/* Поля настроек сайта: проверка значения (и для истории). */
+const CMS_SITE_V = {
+  title:v => cmsL(v, CMS_LEN.siteTitle), desc:v => cmsL(v, CMS_LEN.siteDesc), logo:v => cmsImg(v), favicon:v => cmsImg(v),
+  phone:v => cmsPhone(v), email:v => cmsEmail(v), address:v => cmsL(v, CMS_LEN.address),
+  socials:v => Object.fromEntries(CMS_SOCIALS.map(k => [k, cmsWebHref(v?.[k])]))
+};
+const CMS_SITE_F = Object.keys(CMS_SITE_V), CMS_SITE_IMG = ["logo", "favicon"];
 
 const CMS_CLEAN = {
   banner: (x, it) => ({ ...it, title:cmsL(x.title, CMS_LEN.title), text:cmsL(x.text, CMS_LEN.text), btn:cmsL(x.btn, CMS_LEN.btn), href:cmsSafeHref(x.href),
@@ -2315,23 +2377,50 @@ function cmsCleanItem(x){
   if (r && x.type === "faq" && !r.a.ru) return null;
   return r && r[CMS_MAIN[x.type]].ru ? r : null;
 }
+const cmsObj = v => v && typeof v === "object" && !Array.isArray(v);
+/* Блоки главной: известные, без повторов; пропущенный — на своё место по
+   умолчанию (после ближайшего предшественника из CMS_HOME), видимым. */
+function cmsHomeClean(v){
+  const out = [];
+  for (const x of Array.isArray(v) ? v : []) if (CMS_HOME.includes(x?.k) && !out.some(y => y.k === x.k)) out.push({ k:x.k, on:x.on !== false });
+  CMS_HOME.forEach((k, i) => { if (out.some(y => y.k === k)) return;
+    const prev = CMS_HOME.slice(0, i).reverse().find(p => out.some(y => y.k === p));
+    out.splice(prev ? out.findIndex(y => y.k === prev) + 1 : 0, 0, { k, on:true }); });
+  return out;
+}
+/* История одного ключа или поля; img — у поля картинка: прежних картинок
+   не больше CMS_HIST_IMG, версии «без картинки» остаются. */
+const cmsWhen = x => ({ at:Number.isFinite(x?.at) && x.at > 0 ? x.at : 0, by:typeof x?.by === "string" ? x.by.slice(0, 60) : "" });
+function cmsHistOne(h, clean, img){
+  if (!cmsObj(h)) return null;
+  let imgs = 0;
+  const prev = (Array.isArray(h.prev) ? h.prev : []).filter(e => cmsObj(e) && "v" in e).slice(0, CMS_HIST_MAX)
+    .map(e => ({ v:clean(e.v), ...cmsWhen(e) })).filter(e => !img || !e.v || ++imgs <= CMS_HIST_IMG);
+  const x = { ...cmsWhen(h), prev };
+  return prev.length || x.at ? x : null;
+}
+function cmsHistClean(h){
+  const out = { texts:{}, site:{} }; if (!cmsObj(h)) return out;
+  if (cmsObj(h.texts)) for (const [k, v] of Object.entries(h.texts).slice(0, CMS_TEXTS_MAX)) { const x = CMS_TKEY_RE.test(k) && cmsHistOne(v, cmsTxL); if (x) out.texts[k] = x; }
+  if (cmsObj(h.site)) for (const f of CMS_SITE_F) { const x = cmsHistOne(h.site[f], CMS_SITE_V[f], CMS_SITE_IMG.includes(f)); if (x) out.site[f] = x; }
+  return out;
+}
 function cmsClean(r){
   if (!r || typeof r !== "object" || r.v !== 1) return null;
   const texts = {};
-  if (r.texts && typeof r.texts === "object" && !Array.isArray(r.texts))
+  if (cmsObj(r.texts))
     for (const [k, v] of Object.entries(r.texts).slice(0, CMS_TEXTS_MAX)) { if (!CMS_TKEY_RE.test(k)) continue;
-      const l = Object.fromEntries(Object.entries(cmsL(v, CMS_TEXT_MAX)).map(([x, s]) => [x, cmsTx(s)])); if (CMS_LANGS.some(x => l[x])) texts[k] = l; }
-  const s = r.site && typeof r.site === "object" ? r.site : {};
-  const site = { title:cmsL(s.title, CMS_LEN.siteTitle), desc:cmsL(s.desc, CMS_LEN.siteDesc), logo:cmsImg(s.logo), favicon:cmsImg(s.favicon),
-    phone:cmsPhone(s.phone), email:cmsEmail(s.email), address:cmsL(s.address, CMS_LEN.address),
-    socials:Object.fromEntries(CMS_SOCIALS.map(k => [k, cmsWebHref(s.socials?.[k])])) };
+      const l = cmsTxL(v); if (CMS_LANGS.some(x => l[x])) texts[k] = l; }
+  const s = cmsObj(r.site) ? r.site : {};
+  const site = { ...Object.fromEntries(CMS_SITE_F.map(f => [f, CMS_SITE_V[f](s[f])])),
+    foot:{ contacts:s.foot?.contacts !== false, socials:s.foot?.socials !== false } };
   // Повтор номера или адреса страницы — берём первый: второй перекрыл бы его на сайте.
   const ids = new Set(), slugs = new Set(), items = [];
   for (const raw of (Array.isArray(r.items) ? r.items : []).slice(0, CMS_ITEMS_MAX)) {
     const x = cmsCleanItem(raw); if (!x || ids.has(x.id) || (x.slug && slugs.has(x.slug))) continue;
     ids.add(x.id); if (x.slug) slugs.add(x.slug); items.push(x);
   }
-  return { v:1, texts, site, items };
+  return { v:1, texts, site, items, home:cmsHomeClean(r.home), hist:cmsHistClean(r.hist) };
 }
 
 /* ---- встроенное содержимое ----
@@ -2343,9 +2432,9 @@ function cmsDefaults(){
   const it = (id, type, order, x) => ({ id, type, status:"published", deleted:0, order, at:0, by:"Charteri", ...x });
   return cmsClean({ v:1, texts:{},
     site:{ title:{ ru:"Charteri — авиабилеты, туры, отели и частные рейсы", uz:"Charteri — aviachiptalar, turlar, mehmonxonalar va xususiy reyslar", en:"Charteri — flights, tours, hotels and private charters" },
-      desc:{ ru:"Демонстрация сайта Charteri: авиабилеты, туры, отели, частные самолёты и вертолёты из Узбекистана. Оплата Payme, Click, Uzum, Uzcard, Humo или картой.",
-        uz:"Charteri sayti namoyishi: O‘zbekistondan aviachiptalar, turlar, mehmonxonalar, xususiy samolyot va vertolyotlar. To‘lov Payme, Click, Uzum, Uzcard, Humo yoki karta orqali.",
-        en:"Charteri site demo: flights, tours, hotels, private jets and helicopters from Uzbekistan. Pay with Payme, Click, Uzum, Uzcard, Humo or a card." },
+      desc:{ ru:"Демонстрация сайта Charteri: авиабилеты, туры, отели, частные самолёты и вертолёты из Узбекистана с оплатой онлайн.",
+        uz:"Charteri sayti namoyishi: O‘zbekistondan aviachiptalar, turlar, mehmonxonalar, xususiy samolyot va vertolyotlar — onlayn to‘lov bilan.",
+        en:"Charteri site demo: flights, tours, hotels, private jets and helicopters from Uzbekistan, paid online." },
       logo:null, favicon:null, phone:sup.phone || "", email:sup.email || "", address:{ ru:"", uz:"", en:"" },
       socials:{ telegram:/^[\w]{3,32}$/.test(tg) ? "https://t.me/" + tg : cmsWebHref(sup.telegram), instagram:"", facebook:"", youtube:"" } },
     items:[
@@ -2404,16 +2493,30 @@ function cmsLoad(){
 /* Перед правкой — свежие данные: другая вкладка админки могла записать их только что. */
 function cmsFresh(){ CMS_CACHE = null; return cmsLoad(); }
 const cmsClone = x => JSON.parse(JSON.stringify(x));
-/* Запись: false — не поместилось (предел CMS_MAX или хранилище браузера полно). */
+/* История короче: 1 — без прежних картинок, 2 — ещё и по CMS_HIST_CUT версий,
+   3 — без истории. */
+function cmsHistLess(c, level){
+  if (level === 3) return { ...c, hist:{ texts:{}, site:{} } };
+  const cut = (x, img) => ({ ...x, prev:x.prev.filter(e => !img || !e.v).slice(0, level === 2 ? CMS_HIST_CUT : CMS_HIST_MAX) });
+  const map = (o, img) => Object.fromEntries(Object.entries(o).map(([k, x]) => [k, cut(x, img(k))]));
+  return { ...c, hist:{ texts:map(c.hist.texts, () => false), site:map(c.hist.site, f => CMS_SITE_IMG.includes(f)) } };
+}
+/* Запись: false — не поместилось (предел CMS_MAX или хранилище браузера полно).
+   Сначала жертвуем историей (cmsHistLess): содержимое сайта важнее. */
 function cmsWrite(next){
   const clean = cmsClean(next); if (!clean) return false;
-  const json = JSON.stringify(clean);
-  if (json.length > CMS_MAX) return false;
-  try { localStorage.setItem(CMS_KEY, json); } catch(e) { return false; }
-  CMS_CACHE = clean; return true;
+  const hasHist = Object.keys(clean.hist.texts).length || Object.keys(clean.hist.site).length;
+  for (const level of hasHist ? [0, 1, 2, 3] : [0]) {
+    const c = level ? cmsHistLess(clean, level) : clean, json = JSON.stringify(c);
+    if (json.length > CMS_MAX) continue;
+    try { localStorage.setItem(CMS_KEY, json); } catch(e) { continue; }
+    CMS_CACHE = c; return true;
+  }
+  return false;
 }
 const cmsTexts = () => (CMS_CACHE || cmsLoad()).texts;
 const cmsSite = () => cmsLoad().site;
+const cmsHome = () => cmsLoad().home;
 const cmsText = v => v?.[S.lang] || v?.ru || "";
 /* Элементы типа по порядку; published — только опубликованные, trash — только корзина. */
 function cmsItems(type, { published = false, trash = false } = {}){
@@ -2432,16 +2535,31 @@ const cmsMenuItems = (place, opts) => cmsMenuList(cmsItems(null, opts), place);
 const cmsByDate = (a, b) => b.date.localeCompare(a.date) || b.order - a.order || b.at - a.at;
 const cmsPageBySlug = slug => cmsItems("page", { published:true }).find(x => x.slug === slug) || null;
 
+/* Ссылка в тексте: [текст](адрес). Адрес — только то, что пропускает
+   cmsSafeHref (https, tel:, mailto:, #/…), иначе запись остаётся текстом.
+   Внешняя — в новой вкладке, и диктор об этом предупреждает. */
+const CMS_LINK_RE = /\[([^\[\]\n]{1,200})\]\(([^()\s]{1,300})\)/g;
+function cmsInline(s){
+  let out = "", i = 0;
+  for (const m of s.matchAll(CMS_LINK_RE)) {
+    const h = cmsSafeHref(m[2]); if (!h) continue;
+    const ext = cmsIsExt(h);
+    out += esc(s.slice(i, m.index)) + `<a href="${esc(h)}"${ext ? ' target="_blank" rel="noopener"' : ""}>${esc(m[1])}${ext ? `<span class="sr-only"> (${esc(t("cms_new_tab"))})</span>` : ""}</a>`;
+    i = m.index + m[0].length;
+  }
+  return out + esc(s.slice(i));
+}
 /* Текст страницы: пустая строка — новый абзац, «- » — пункт списка,
-   «## » — подзаголовок. HTML не принимается: всё экранируется. */
+   «## » — подзаголовок, [текст](адрес) — ссылка. HTML не принимается:
+   всё остальное экранируется. */
 function cmsBody(text, h = "h2"){
   const out = []; let para = [], list = [];
-  const flushP = () => { if (para.length) out.push(`<p>${para.map(esc).join("<br>")}</p>`); para = []; };
-  const flushL = () => { if (list.length) out.push(`<ul>${list.map(x => `<li>${esc(x)}</li>`).join("")}</ul>`); list = []; };
+  const flushP = () => { if (para.length) out.push(`<p>${para.map(cmsInline).join("<br>")}</p>`); para = []; };
+  const flushL = () => { if (list.length) out.push(`<ul>${list.map(x => `<li>${cmsInline(x)}</li>`).join("")}</ul>`); list = []; };
   for (const raw of String(text || "").split(/\r?\n/)) {
     const l = raw.trim();
     if (!l) { flushP(); flushL(); continue; }
-    if (l.startsWith("## ")) { flushP(); flushL(); out.push(`<${h}>${esc(l.slice(3))}</${h}>`); continue; }
+    if (l.startsWith("## ")) { flushP(); flushL(); out.push(`<${h}>${cmsInline(l.slice(3))}</${h}>`); continue; }
     if (l.startsWith("- ")) { flushP(); list.push(l.slice(2)); continue; }
     flushL(); para.push(l);
   }
@@ -2450,7 +2568,8 @@ function cmsBody(text, h = "h2"){
 }
 /* Первый абзац без разметки — для карточки новости и описания страницы. */
 function cmsExcerpt(text, max = 180){
-  const p = String(text || "").split(/\r?\n\s*\r?\n/).map(s => s.replace(/^(## |- )/gm, "").replace(/\s+/g, " ").trim()).find(Boolean) || "";
+  const p = String(text || "").split(/\r?\n\s*\r?\n/).map(s => s.replace(/^(## |- )/gm, "").replace(CMS_LINK_RE, (m, a, h) => cmsSafeHref(h) ? a : m)
+    .replace(/\s+/g, " ").trim()).find(Boolean) || "";
   return p.length > max ? p.slice(0, max - 1).replace(/\s+\S*$/, "") + "…" : p;
 }
 
@@ -2478,6 +2597,154 @@ window.addEventListener("storage", e => {
   if (!S || APP === "b2b") return;
   onExternalChange();
   if (APP === "b2c") announcePage(false);
+});
+
+/* ---- 14-system.js ---- */
+/* ==========================================================================
+   Системные настройки Charteri из админки (раздел «Система»): курс доллара,
+   языки сайта и кабинета, часовой пояс, платёжные системы, каналы отправки,
+   уведомления, безопасность админки, режим обслуживания. Админка пишет их в
+   SYS_KEY; сайт, кабинет и админка читают одинаково — через sysCfg().
+
+   { v:1, cur:{rate,usd,def}, langs:{on,def}, tz:{zone}, pay:{site,topup},
+     ch:{email,sms,telegram}, notify:{событие:[каналы]}, sec:{idle,otp,lock},
+     maint:{on,msg,at,by} }
+   Каждая часть пересобирается в одном порядке ключей — JSON.stringify частей
+   можно сравнивать. Секретов (ключей API, токенов) здесь нет и быть не может:
+   файл уходит в браузер каждому посетителю.
+   ========================================================================== */
+"use strict";
+
+const SYS_KEY = "charteri.ops.sys";
+const SYS_LANGS = ["ru", "uz", "en"];
+const SYS_CURS = ["UZS", "USD"];
+const SYS_TOPUP = ["card", "bank", "cash"];
+const SYS_CHANNELS = ["email", "sms", "telegram"];
+const SYS_TZS = ["Asia/Tashkent", "Asia/Almaty", "Asia/Dubai", "Europe/Istanbul", "Europe/Moscow", "Europe/London", "UTC"];
+/* Событие → каналы, которыми его можно отправить (клиенту — почта и SMS,
+   сотрудникам — почта и Telegram), и включённые по умолчанию. */
+const SYS_EVENTS = { order_paid:["email", "sms"], charter_req:["email", "telegram"], charter_price:["email", "sms"], refund:["email", "sms"],
+  topup_wait:["email", "telegram"], topup_done:["email", "sms"], agency_app:["email", "telegram"], approval:["email", "telegram"] };
+const SYS_NOTIFY0 = { order_paid:["email", "sms"], charter_req:["telegram", "email"], charter_price:["sms", "email"], refund:["sms", "email"],
+  topup_wait:["telegram"], topup_done:["email", "sms"], agency_app:["telegram", "email"], approval:["telegram"] };
+const SYS_IDLE = [0, 15, 30, 60, 120, 480], SYS_LOCK = [5, 15, 30, 60];
+const SYS_RATE = [1000, 100000], SYS_MSG_MAX = 300;
+/* Предел Date: метка дальше — не время, а мусор из файла или хранилища. */
+const TS_MAX = 8.64e15, validTs = v => Number.isFinite(v) && v > 0 && v <= TS_MAX;
+const SYS_SMS_RE = /^[A-Za-z0-9][A-Za-z0-9 .-]{2,10}$/, SYS_BOT_RE = /^@[A-Za-z][A-Za-z0-9_]{4,31}$/;
+let SYS_CACHE = null, TZF = null;
+
+function sysDefaults(){
+  return { v:1, cur:{ rate:USD_TO_UZS, usd:true, def:"UZS" }, langs:{ on:[...SYS_LANGS], def:"ru" }, tz:{ zone:"Asia/Tashkent" },
+    pay:{ site:Object.fromEntries(PAY_METHODS.map(m => [m[0], true])), topup:Object.fromEntries(SYS_TOPUP.map(k => [k, true])) },
+    ch:{ email:{ on:true, name:"Charteri", from:"noreply@charteri.uz", reply:"" }, sms:{ on:true, sender:"CHARTERI" }, telegram:{ on:true, bot:"@charteri_ops_bot", chat:"" } },
+    notify:Object.fromEntries(Object.entries(SYS_EVENTS).map(([ev, chs]) => [ev, chs.filter(c => SYS_NOTIFY0[ev].includes(c))])),
+    sec:{ idle:60, otp:5, lock:15 }, maint:{ on:false, msg:{ ru:"", uz:"", en:"" }, at:0, by:"" } };
+}
+/* Данные из хранилища — чужие: каждое поле проверяется отдельно и при ошибке
+   берётся по умолчанию. Строку, которую стёрли (пусто), не подменяем. */
+function sysClean(r){
+  const d = sysDefaults(); if (!r || typeof r !== "object" || r.v !== 1) return d;
+  const bool = (v, def) => typeof v === "boolean" ? v : def;
+  const int = (v, lo, hi, def) => Number.isInteger(v) && v >= lo && v <= hi ? v : def;
+  const str = (v, ok, def) => typeof v !== "string" ? def : !v.trim() ? "" : ok(v.trim()) ? v.trim() : def;
+  const flags = (x, keys, def) => { const g = Object.fromEntries(keys.map(k => [k, bool(x?.[k], true)])); return keys.some(k => g[k]) ? g : def; };
+  const usd = bool(r.cur?.usd, true);
+  const on = Array.isArray(r.langs?.on) ? SYS_LANGS.filter(l => r.langs.on.includes(l)) : [];
+  const e = r.ch?.email || {}, s = r.ch?.sms || {}, tg = r.ch?.telegram || {}, sec = r.sec || {}, mt = r.maint || {};
+  const name = typeof e.name === "string" ? e.name.trim().slice(0, 40) : "";
+  return { v:1,
+    cur:{ rate:int(r.cur?.rate, SYS_RATE[0], SYS_RATE[1], d.cur.rate), usd, def:usd && r.cur?.def === "USD" ? "USD" : "UZS" },
+    langs:on.length ? { on, def:on.includes(r.langs.def) ? r.langs.def : on.includes("ru") ? "ru" : on[0] } : d.langs,
+    tz:{ zone:SYS_TZS.includes(r.tz?.zone) ? r.tz.zone : d.tz.zone },
+    pay:{ site:flags(r.pay?.site, PAY_METHODS.map(m => m[0]), d.pay.site), topup:flags(r.pay?.topup, SYS_TOPUP, d.pay.topup) },
+    ch:{ email:{ on:bool(e.on, true), name:name.length >= 2 ? name : d.ch.email.name, from:str(e.from, cmsEmail, d.ch.email.from), reply:str(e.reply, cmsEmail, "") },
+      sms:{ on:bool(s.on, true), sender:str(s.sender, v => SYS_SMS_RE.test(v), d.ch.sms.sender) },
+      telegram:{ on:bool(tg.on, true), bot:str(tg.bot, v => SYS_BOT_RE.test(v), d.ch.telegram.bot), chat:typeof tg.chat === "string" ? tg.chat.trim().slice(0, 60) : "" } },
+    notify:Object.fromEntries(Object.entries(SYS_EVENTS).map(([ev, chs]) => { const x = r.notify?.[ev]; return [ev, Array.isArray(x) ? chs.filter(c => x.includes(c)) : d.notify[ev]]; })),
+    sec:{ idle:SYS_IDLE.includes(sec.idle) ? sec.idle : d.sec.idle, otp:int(sec.otp, 3, 10, d.sec.otp), lock:SYS_LOCK.includes(sec.lock) ? sec.lock : d.sec.lock },
+    maint:{ on:bool(mt.on, false), msg:cmsL(mt.msg, SYS_MSG_MAX), at:validTs(mt.at) ? Math.round(mt.at) : 0, by:typeof mt.by === "string" ? mt.by.slice(0, 80) : "" } };
+}
+function sysCfg(){ return SYS_CACHE || (SYS_CACHE = sysClean(readJSON(SYS_KEY, null))); }
+/* Запись не удалась (в браузере нет места) — null: кэш не меняем, иначе
+   админка показала бы и записала в журнал то, чего нет у сайта и кабинета. */
+function sysWrite(next){
+  const c = sysClean(next);
+  try { localStorage.setItem(SYS_KEY, JSON.stringify(c)); } catch(e) { return null; }
+  SYS_CACHE = c; TZF = null; return c;
+}
+function sysRate(){ return sysCfg().cur.rate; }
+function sysTz(){ return sysCfg().tz.zone; }
+
+/* ---- способы оплаты: выключенные в админке не предлагаются ---- */
+function payOn(k){ return sysCfg().pay.site[k] === true; }
+function payList(){ return PAY_METHODS.filter(m => payOn(m[0])); }
+function firstPay(){ return payList()[0]?.[0] || "payme"; }
+function topupOn(k){ return sysCfg().pay.topup[k] === true; }
+function firstTopup(){ return SYS_TOPUP.find(topupOn) || "card"; }
+
+/* ---- языки: на сайте и в кабинете — включённые в админке, в админке — все ---- */
+const LANG_SHORT = [["uz", "O‘z"], ["ru", "Рус"], ["en", "Eng"]], LANG_FULL = [["uz", "O‘zbekcha"], ["ru", "Русский"], ["en", "English"]];
+function langsOn(list){ return APP === "admin" ? list : list.filter(([k]) => sysCfg().langs.on.includes(k)); }
+function langSelect(){ const l = langsOn(LANG_SHORT);
+  return l.length > 1 ? `<select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${l.map(([k, n]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${n}</option>`).join("")}</select>` : ""; }
+function langSeg(act){ const l = langsOn(LANG_FULL); return l.length > 1 ? seg(act, l, S.lang) : ""; }
+
+/* ---- часовой пояс компании: время событий (fdt, выгрузки) и дни отчётов.
+        Даты поездок и TODAY не пересчитываются — это календарь устройства. ---- */
+/* Неверная метка (за пределом Date) — bad: Intl.formatToParts на ней падает. */
+function tzParts(ms){
+  if (!(Number.isFinite(ms) && Math.abs(ms) <= TS_MAX)) return { y:0, m:1, d:1, h:"00", mi:"00", bad:true };
+  const z = sysTz();
+  if (TZF?.z !== z) TZF = { z, f:new Intl.DateTimeFormat("en-GB", { timeZone:z, year:"numeric", month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit", hourCycle:"h23" }) };
+  const p = Object.fromEntries(TZF.f.formatToParts(ms).map(x => [x.type, x.value]));
+  return { y:+p.year, m:+p.month, d:+p.day, h:p.hour === "24" ? "00" : p.hour, mi:p.minute };
+}
+function tzYmd(ms){ const p = tzParts(ms); return p.bad ? "" : `${p.y}-${String(p.m).padStart(2, "0")}-${String(p.d).padStart(2, "0")}`; }
+function tzToday(){ return tzYmd(Date.now()); }
+function tzOffset(z = sysTz()){
+  const v = new Intl.DateTimeFormat("en-GB", { timeZone:z, timeZoneName:"shortOffset" }).formatToParts(Date.now()).find(x => x.type === "timeZoneName")?.value || "GMT";
+  return v.replace("GMT", "UTC");
+}
+/* Полночь дня ymd в поясе компании (мс): начало «сегодня» в фильтрах журнала
+   и операций. Смещение берётся дважды — на случай перехода на летнее время. */
+function tzDayStart(day){
+  const g = Date.parse(day + "T00:00:00Z"), off = ms => { const p = tzParts(ms); return Date.UTC(p.y, p.m - 1, p.d, +p.h, +p.mi) - Math.floor(ms / 60000) * 60000; };
+  return g - off(g - off(g));
+}
+function fdtFull(ms){ return tzParts(ms).bad ? "—" : new Date(ms).toLocaleString(LOC[S.lang], { timeZone:sysTz() }); }
+
+/* ---- режим обслуживания: сайт и кабинет закрыты, админка работает ---- */
+function sysMaint(){ return APP !== "admin" && sysCfg().maint.on ? sysCfg().maint : null; }
+/* Язык или валюта, которые админка выключила, — на включённые по умолчанию. */
+function sysCoerce(){
+  if (APP === "admin" || !S) return;
+  const c = sysCfg();
+  if (!c.langs.on.includes(S.lang)) S.lang = c.langs.def;
+  if (!c.cur.usd && S.cur === "USD") S.cur = "UZS";
+}
+function maintRender(mt, isNav){
+  // Пустое сообщение на языке экрана — текст по умолчанию на этом же языке (так обещает карточка в админке).
+  const msg = mt.msg[S.lang] || t("maint_d");
+  $("#app").innerHTML = `<div class="maint"><section class="card stack maint-card" aria-labelledby="maint-h"><span class="maint-ic">${IC.clock}</span>
+    <span class="wordmark dark">CHARTERI<b>.UZ</b></span><h1 id="maint-h">${esc(t("maint_h"))}</h1><p class="muted">${esc(msg)}</p>
+    ${mt.at ? `<p class="small muted">${esc(tf("maint_since", { time:fdt(mt.at) }))}</p>` : ""}${langSeg("setlang")}</section></div>`;
+  document.title = t("maint_h") + " — Charteri";
+  if (isNav) window.scrollTo({ top:0, behavior:"instant" });
+  slideIndicators();
+  if (isNav) { const h = $("#maint-h"); h.tabIndex = -1; h.focus({ preventScroll:true }); }
+}
+
+/* Админка в другой вкладке изменила настройки (или сбросила демо). Включили
+   или выключили обслуживание, убрали язык экрана — перерисовываем целиком,
+   даже если человек печатает: страница всё равно другая. */
+window.addEventListener("storage", e => {
+  if (e.key !== SYS_KEY && e.key !== null) return;
+  const was = SYS_CACHE; SYS_CACHE = null; TZF = null;
+  if (!S) return;
+  const now = sysCfg();
+  if (APP !== "admin" && (!was || was.maint.on !== now.maint.on || !now.langs.on.includes(S.lang))) return render(false);
+  onExternalChange();
 });
 
 /* ---- 15-motion.js ---- */
@@ -3581,11 +3848,14 @@ function startFlightCheckout(){
     /* Перепроверка цены: рейс берётся заново по текущей наценке (её могли
        сменить в админке после выбора). Демонстрация «Цена изменилась» на рейсах
        в Анталию — чтобы экран можно было показать по заказу, а не случайно. */
-    priceChange: () => {
+    /* Сумы сверяются тоже: курс могли сменить в админке после выбора рейса.
+       force — вернуть пересчёт всегда (курс сменился при открытом оформлении). */
+    priceChange: (force = false) => {
       const fresh = x => x && (generateOffers({ from:x.from, to:x.to, date:x.date, cabin:x.cabin }).find(y => y.id === x.id) || x);
       let newOut = fresh(out); const newBack = fresh(back);
       if (out.to === "AYT") { const usd = Math.round(newOut.priceUSD * 1.045); newOut = { ...newOut, priceUSD:usd, priceUZS:toUzs(usd) }; }
-      if (newOut.priceUSD === out.priceUSD && (!back || newBack.priceUSD === back.priceUSD)) return null;
+      const same = (a, b) => a.priceUSD === b.priceUSD && a.priceUZS === b.priceUZS;
+      if (!force && same(newOut, out) && (!back || same(newBack, back))) return null;
       const r = flightLines(newOut, newBack, f);
       return { total:r.total, lines:r.lines, details:flightDetailsOf(newOut, newBack, f) };
     }
@@ -3627,9 +3897,9 @@ function hotelNightly(h, date, bps = adjBps("HOTEL", h.city)){
   const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
   return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12) * (1 + bps / 10000);
 }
-function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city)){
+function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city), rate = sysRate()){
   let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i), bps);
-  return amt(sum * mult * rooms);
+  return amt(sum * mult * rooms, rate);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
@@ -3763,15 +4033,19 @@ PAGES["hotels/item/:id"] = {
 
 function startHotelCheckout(hid, rid){
   const q = M.hotels, h = hotelById(hid), r = ROOM_TYPES.find(x => x.id === rid), n = nightsOf(q);
-  const total = hotelStay(h, q.checkin, n, q.rooms, r.mult);
+  const total = hotelStay(h, q.checkin, n, q.rooms, r.mult), line = `${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`;
+  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms };
   startCheckout({
     type: "HOTEL", title: h.name,
     sub: `${cityName(h.city)} · ${fdateY(q.checkin)} — ${fdateY(q.checkout)} · ${pl(n, "night")}`,
     start: q.checkin, end: q.checkout,
     travellers: { mode:"lead", types:["adult"] },
-    lines: [[`${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`, total]],
+    lines: [[line, total]],
     total, recheck: false,
-    details: { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms },
+    /* Перепроверки у поставщика нет; пересчёт — только если курс сменили при открытом оформлении. */
+    priceChange: (force = false) => { const t2 = hotelStay(h, d.checkin, n, d.rooms, r.mult); return !force && t2.usd === total.usd && t2.uzs === total.uzs ? null
+      : { total:t2, lines:[[line, t2]], details:d }; },
+    details: d,
     ref: makeRef(h.id + q.checkin + r.id)
   });
 }
@@ -3801,20 +4075,22 @@ function hotelVoucherBody(o){
    пакета, трансфер и страховка за человека (null — не входит, 0 — входит
    бесплатно). Заказ хранит их снимок (px), чтобы строки чека сходились с
    оплаченной суммой и после смены цен. У старых заказов снимка нет — они
-   считались по прежним постоянным (LEGACY_PX). */
+   считались по прежним постоянным (LEGACY_PX). rate — курс доллара на момент
+   покупки: отель, трансфер и страховка заказа пересчитываются по нему, а не по
+   сегодняшнему; до курса из админки он был постоянным (USD_TO_UZS). */
 const LEGACY_PX = { hotel:0, pkg:700, transfer:20, insurance:0 };
-function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null }; }
+function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null, rate:sysRate() }; }
 
 /* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
    от сегодняшней наценки. Без них — рейсы по текущим ценам. */
 function tourPackage(h, q, legs = null){
-  const px = legs ? legs.px || LEGACY_PX : tourPx(h);
+  const px = legs ? legs.px || LEGACY_PX : tourPx(h), rate = Number.isInteger(px.rate) ? px.rate : USD_TO_UZS;
   const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
-  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel);
-  const transfer = px.transfer == null ? null : mulA(amt(px.transfer), people);
-  const insurance = px.insurance ? mulA(amt(px.insurance), people) : null;
+  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel, rate);
+  const transfer = px.transfer == null ? null : mulA(amt(px.transfer, rate), people);
+  const insurance = px.insurance ? mulA(amt(px.insurance, rate), people) : null;
   const separate = addA(flights, hotel, ...[transfer, insurance].filter(Boolean));
   const total = pctA(separate, 1 - px.pkg / 10000);
   const saving = { usd: separate.usd - total.usd, uzs: separate.uzs - total.uzs };
@@ -3952,7 +4228,7 @@ function startTourCheckout(hid){
     travellers: { mode:"full", types },
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
-    priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
+    priceChange: (force = false) => { const p2 = tourPackage(h, q); return !force && p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
       : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
     details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
@@ -4176,7 +4452,7 @@ function checkLines(lines, total, countKey){
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
   const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
-  M.checkout = { ...spec, method:"payme", pstate: spec.recheck ? "checking" : "ok", pending:null,
+  M.checkout = { ...spec, rate:sysRate(), method:firstPay(), pstate: spec.recheck ? "checking" : "ok", pending:null,
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
   go("checkout");
@@ -4204,6 +4480,7 @@ function travellerForm(x, i, mode){
 PAGES.checkout = {
   render(){
     const c = M.checkout; if (!c) { go(SEARCH_PATH); return null; }
+    if (!payOn(c.method)) c.method = firstPay();           // способ выключили в админке, пока страница открыта
     const lines0 = c.pstate === "changed" ? c.pending.lines : c.lines, gross = c.pstate === "changed" ? c.pending.total : c.total;
     // Скидка по промокоду или акции — отдельной строкой чека; к оплате — со скидкой.
     const pr = checkoutPromo(c, gross), total = pr ? subA(gross, pr.off) : gross, lines = pr ? [...lines0, promoLine(pr)] : lines0;
@@ -4243,7 +4520,22 @@ PAGES.checkout = {
     }, 1100);
   }
 };
-const payMethods = (act, val) => `<div class="methods">${PAY_METHODS.map(([k, l, col]) =>
+/* Курс сменили в админке, пока оформление открыто: сумы на экране посчитаны по
+   старому. Пересчитываем и показываем новую сумму, как при перепроверке цены, —
+   старую не списываем. true — оплату надо остановить. */
+function rateMoved(c){
+  if (c.rate === sysRate()) return false;
+  c.rate = sysRate();
+  // Пересчитать нечем — предложение выбирается заново: по старому курсу не платим.
+  if (!c.priceChange) { M.checkout = null; toast(t("rate_moved_redo")); go(SEARCH_PATH); return true; }
+  const fresh = c.priceChange(true);
+  if (fresh.total.usd === c.total.usd && fresh.total.uzs === c.total.uzs) return false;
+  Object.assign(c, { pending:fresh, pstate:"changed", accepted:false });
+  rerender(); toast(t("rate_moved"));
+  return true;
+}
+/* Выбор — только включённые в админке способы; PAY_METHODS и methodName — все, для старых заказов. */
+const payMethods = (act, val) => `<div class="methods">${payList().map(([k, l, col]) =>
   `<button type="button" class="method" data-act="${act}" data-v="${k}" aria-pressed="${val === k}"><span class="dot" style="background:${col}"></span>${l}<span class="rad"></span></button>`).join("")}</div>`;
 
 function validateCheckout(){
@@ -4282,6 +4574,8 @@ Object.assign(ACT, {
   caccept: () => { const c = M.checkout; Object.assign(c, { total:c.pending.total, lines:c.pending.lines, details:c.pending.details, accepted:true, pstate:"ok" }); rerender(); },
   cpay:    () => {
     const c = M.checkout; if (c.pstate !== "ok" || !validateCheckout()) return;
+    if (rateMoved(c)) return;
+    if (!payOn(c.method)) { c.method = firstPay(); rerender(); return toast(t("pay_off")); }
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
     c.travellers.forEach(x => {
       if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
@@ -4295,6 +4589,10 @@ Object.assign(ACT, {
     overlay(t("processing"));
     setTimeout(() => {
       overlay("");
+      // За время оплаты админка могла закрыть сайт на обслуживание или выключить способ.
+      if (sysMaint()) return render(false);
+      if (!payOn(c.method)) { rerender(); return toast(t("pay_off")); }
+      if (rateMoved(c)) return;
       createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
         ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
         travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
@@ -4416,6 +4714,41 @@ function orderDocument(o){
     <div class="v-body">${body}</div><div class="perf"></div>${qrStub(o)}</article>`;
 }
 
+/* ---- 65-site-seed.js ---- */
+/* ==========================================================================
+   Демо-данные сайта: сохранённый путешественник и два оплаченных заказа.
+   Общие для сайта (js/99-boot.js) и админки: админку могут открыть раньше
+   сайта, и без них обзор показывал бы продажи сайта нулём.
+   Даты и склонения — на языке S текущего приложения.
+   ========================================================================== */
+"use strict";
+
+const SEED_TRAVELLER = { id:"tr1", surname:"KARIMOV", given:"AZIZ", passport:"FA1234567", gender:"M", dob:"1988-04-12", expiry:"2031-06-30", cit:"UZB" };
+
+function siteFresh({ lang, cur, theme }){
+  const st = { v:1, lang, cur, theme, user:null, travellers:[{ ...SEED_TRAVELLER }], orders:[] };
+  const traveller = ({ id, ...x }) => x;
+
+  // Предстоящий перелёт в Стамбул — у демо сразу есть билет, который можно открыть.
+  const d1 = addDays(TODAY, 9), out = baseOffer("TAS", "IST", d1), q1 = { adults:1, children:0, infants:0, cabin:"economy" };
+  const t1 = Date.now() - 3 * 864e5;
+  st.orders.push({ id:"o-seed-1", no:makeRef("seed-1" + d1), type:"FLIGHT", status:"CONFIRMED", createdAt:t1,
+    title:`${cityName("TAS")} → ${cityName("IST")}`, sub:`${fdateY(d1)} · ${pl(1, "pax")}`, start:d1, end:d1,
+    total:flightFare(out, null, q1).total, method:"payme", travellers:[traveller(SEED_TRAVELLER)],
+    contact:{ phone:"+998 90 123 45 67", email:"" }, details:{ out, back:null, q:q1 }, req:null, paidAt:null,
+    history:[{ s:"PAID", at:t1 }, { s:"CONFIRMED", at:t1 + 1000 }] });
+
+  // Прошедший отдых в Анталии — показывает статус «Выполнен».
+  const h = hotelById("ayt-lara"), ci = addDays(TODAY, -40), n = 7, t2 = Date.now() - 55 * 864e5;
+  st.orders.push({ id:"o-seed-2", no:makeRef("seed-2" + ci), type:"HOTEL", status:"CONFIRMED", createdAt:t2,
+    title:h.name, sub:`${cityName("AYT")} · ${fdateY(ci)} — ${fdateY(addDays(ci, n))} · ${pl(n, "night")}`, start:ci, end:addDays(ci, n),
+    total:hotelStay(h, ci, n, 1, 1), method:"uzum", travellers:[traveller(SEED_TRAVELLER)],
+    contact:{ phone:"+998 90 123 45 67", email:"" },
+    details:{ hotelId:h.id, room:"standard", checkin:ci, checkout:addDays(ci, n), nights:n, adults:2, children:0, rooms:1 }, req:null, paidAt:null,
+    history:[{ s:"PAID", at:t2 }, { s:"CONFIRMED", at:t2 + 1000 }] });
+  return st;
+}
+
 /* ---- 70-pages.js ---- */
 /* ==========================================================================
    Страницы: главная, заказы, карточка заказа, успех, вход, профиль. Навигация.
@@ -4438,6 +4771,32 @@ function destCard(c, i){
       <button type="button" class="dest-row" data-act="tgo" data-v="${c}"><span>${IC.tours}${esc(t("mod_tours"))} · ${esc(pl(7, "night"))}</span><b>${priceFrom(fmt(p.tour))}</b></button>
     </div></article>`;
 }
+/* Подстановки в тексты главной: только включённые в «Системе» способы оплаты и языки. */
+const listAnd = xs => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} ${t("list_and")} ${xs.at(-1)}` : xs.join("");
+function homeVars(){
+  const l = langsOn(LANG_FULL).map(([k]) => t("lang_in_" + k));
+  return { methods:payList().map(m => m[1]).join(", "), langs:[listAnd(l), t(l.length > 1 ? "lang_in_many" : "lang_in_one")].filter(Boolean).join(" ") };
+}
+/* Блоки главной под поиском — в порядке и с видимостью из админки (cmsHome,
+   13-cms.js); поиск с заголовком всегда первый. */
+const HOME_BLOCKS = {
+  banner_top: () => cmsBanners("top"),
+  board:      () => departureBoard(),
+  dest:       () => `<section class="container section">
+        <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
+        <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>`,
+  banner_mid: () => cmsBanners("mid"),
+  services:   () => `<section class="band"><div class="container section">
+        <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
+        <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
+          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>`,
+  how:        () => `<section class="container section">
+        <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
+        <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(tf("how_" + i + "_d", homeVars()))}</p></li>`).join("")}</ol></section>`,
+  banner_end: () => cmsBanners("end"),
+  trust:      () => `<section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
+        `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(tf(k + "_d", homeVars()))}</p></div></div>`).join("")}</div></section>`
+};
 PAGES[""] = {
   render(){
     // «#/?m=tours» (кнопка баннера из админки) — главная с поиском этого раздела;
@@ -4458,19 +4817,7 @@ PAGES[""] = {
           <div class="modtabs" role="tablist" data-ind="modtabs" data-ind-line><span class="ind" aria-hidden="true"></span>${MODULE_ORDER.map(k => `<button type="button" role="tab" class="modtab" data-act="mod" data-v="${k}" aria-selected="${M.module === k}">${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></button>`).join("")}</div>
           <div class="${swapped && !REDUCED ? "swap-in" : ""}">${modForm(mod)}</div>
         </div></div></div></section>
-      ${cmsBanners("top")}${departureBoard()}
-      <section class="container section">
-        <div class="sec-h"><h2>${esc(t("popular_dest"))}</h2><p class="muted">${esc(t("popular_dest_sub"))}</p></div>
-        <div class="destgrid">${RESORTS.map(destCard).join("")}</div></section>
-      ${cmsBanners("mid")}<section class="band"><div class="container section">
-        <div class="sec-h"><h2>${esc(t("all_services"))}</h2><p class="muted">${esc(t("all_services_sub"))}</p></div>
-        <div class="svcgrid">${MODULE_ORDER.map(k => `<button type="button" class="svc lift" data-act="mod" data-v="${k}">
-          <span class="svc-ic">${MODULES[k].icon}</span><b>${esc(t(MODULES[k].label))}</b><span class="muted small">${esc(tf("svc_" + k, { p:pctText(prices().svc.TOUR.pkg) }))}</span></button>`).join("")}</div></div></section>
-      <section class="container section">
-        <div class="sec-h"><h2>${esc(t("how_title"))}</h2></div>
-        <ol class="how">${[1,2,3].map(i => `<li><span class="how-n mono">0${i}</span><h3>${esc(t("how_" + i))}</h3><p class="muted">${esc(t("how_" + i + "_d"))}</p></li>`).join("")}</ol></section>
-      ${cmsBanners("end")}<section class="container section"><div class="trust">${[["shield","trust_1"],["globe","trust_2"],["clock","trust_3"]].map(([ic, k]) =>
-        `<div>${IC[ic]}<div><b>${esc(t(k))}</b><p class="muted small">${esc(t(k + "_d"))}</p></div></div>`).join("")}</div></section>`;
+      ${cmsHome().filter(x => x.on).map(x => HOME_BLOCKS[x.k]()).join("")}`;
   },
   after(){ centerActive($(".modtab[aria-selected=\"true\"]")); armBoard(); dockMap(); }
 };
@@ -4488,9 +4835,9 @@ const TYPE_ICON = { FLIGHT:IC.flights, TOUR:IC.tours, HOTEL:IC.hotels, JET:IC.je
 function orderCard(o, i, rc = ""){
   const st = effStatus(o);
   const price = o.total ? fmt(o.total) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`;
-  return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}" data-flip="${o.id}">
+  return `<a class="ocard lift ${rc} ${st === "COMPLETED" ? "past" : ""}" style="--i:${i}" href="#/orders/${esc(o.id)}" data-flip="${esc(o.id)}">
     ${hasPhoto(orderPhotoKey(o)) ? `<span class="oc-ic has-ph">${photo(orderPhotoKey(o), { w:140, sizes:"64px", deco:true })}<i>${TYPE_ICON[o.type]}</i></span>` : `<span class="oc-ic">${TYPE_ICON[o.type]}</span>`}
-    <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${o.no}</span></span>
+    <span class="oc-main"><b>${esc(orderTitle(o))}</b><span class="muted small">${esc(orderSub(o))}</span><span class="mono small muted">${esc(o.no)}</span></span>
     <span class="oc-side">${pill(st)}<b class="mono">${price}</b></span></a>`;
 }
 PAGES.orders = {
@@ -4517,7 +4864,7 @@ PAGES["orders/:id"] = {
     if (charter && st === "NEW") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${TYPE_ICON[o.type]}</span><h3>${esc(t("mgr_title"))}</h3>
         <p class="muted">${esc(t("mgr_body"))}</p><p class="small">${esc(t("estimate"))}: <b class="mono">${fmt(o.details.low)} – ${fmt(o.details.high)}</b></p></div>`;
     else if (charter && st === "PENDING") main = `<div class="card stack"><h3>${esc(t("price_ready"))}</h3><p class="muted">${esc(t("price_ready_d"))}</p>
-        ${checkLines(orderLines(o), o.total)}<h3 style="margin-top:6px">${esc(t("pay_method"))}</h3>${payMethods("opm", M.ui.opm || "payme")}
+        ${checkLines(orderLines(o), o.total)}<h3 style="margin-top:6px">${esc(t("pay_method"))}</h3>${payMethods("opm", payOn(M.ui.opm) ? M.ui.opm : firstPay())}
         <button type="button" class="cta" data-act="opay" data-v="${o.id}">${esc(t("pay_now"))} · ${fmt(o.total)}</button>
         <p class="demo-note">${esc(t("pay_demo_note"))}</p></div>`;
     else if (charter && st === "PAID") main = `<div class="card stack waitcard"><span class="radar" aria-hidden="true"><i></i><i></i>${IC.shield}</span><h3>${esc(t("confirming_title"))}</h3><p class="muted">${esc(t("confirming_body"))}</p></div>`;
@@ -4568,10 +4915,12 @@ Object.assign(ACT, {
   opay:     el => {
     const id = el.dataset.v, o0 = S.orders.find(x => x.id === id); if (!o0 || o0.status !== "PENDING") return;
     if (phoneBlocked(o0.contact?.phone)) return toast(t("err_blocked"));
-    const method = M.ui.opm || "payme";
+    const method = payOn(M.ui.opm) ? M.ui.opm : firstPay();
     overlay(t("processing"));
     setTimeout(() => {
       overlay(""); refresh();
+      if (sysMaint()) return render(false);
+      if (!payOn(method)) { rerender(); return toast(t("pay_off")); }
       const o = S.orders.find(x => x.id === id);
       if (!o || o.status !== "PENDING") { rerender(); return toast(t("order_changed")); }
       Object.assign(o, { status:"PAID", paidAt:Date.now(), method }); hist(o, "PAID"); save(); rerender();
@@ -4628,7 +4977,8 @@ PAGES.login = {
 function doVerify(){
   const v = ($("#lotp")?.value || "").trim();
   if (!/^\d{4}$/.test(v)) return showErr("#lerr", t("err_code"));
-  S.user = { phone:M.ui.loginPhone }; save(); M.ui.loginStep = "phone";
+  // at — когда вошёл: админка считает клиента сайта новым по первому появлению, а не по сегодняшнему дню.
+  S.user = { phone:M.ui.loginPhone, at:S.user?.phone === M.ui.loginPhone && S.user.at ? S.user.at : Date.now() }; save(); M.ui.loginStep = "phone";
   toast(t("signed_in")); go(M.returnTo || "orders"); M.returnTo = null;
 }
 Object.assign(ACT, {
@@ -4649,8 +4999,8 @@ PAGES.account = {
         <a class="solid" style="max-width:160px" href="#/login">${esc(t("sign_in"))}</a></div>`;
     return `<div class="container section narrow">${pageHead(t("tab_profile"))}<div class="stack">${who}
       <div class="card stack"><h3>${esc(t("settings"))}</h3>
-        <div class="setrow"><span>${esc(t("language"))}</span>${seg("setlang", [["uz","O‘zbekcha"],["ru","Русский"],["en","English"]], S.lang)}</div>
-        <div class="setrow"><span>${esc(t("currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>
+        ${langSeg("setlang") ? `<div class="setrow"><span>${esc(t("language"))}</span>${langSeg("setlang")}</div>` : ""}
+        ${sysCfg().cur.usd ? `<div class="setrow"><span>${esc(t("currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
         <div class="setrow"><span>${esc(t("appearance"))}</span>${seg("settheme", [["system", t("theme_system")],["light", t("theme_light")],["dark", t("theme_dark")]], S.theme)}</div></div>
       <div class="card stack"><h3>${esc(t("saved_travellers"))}</h3>
         ${S.travellers.length ? S.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b>
@@ -4687,8 +5037,8 @@ function renderNav(key){
     <a class="logo" href="#/" aria-label="${esc((cmsSiteTitle() || "Charteri").split(" — ")[0])}">${cmsLogo()}</a>
     <nav class="navmods" aria-label="${esc(t("all_services"))}">${MODULE_ORDER.map(k => `<button type="button" data-act="mod" data-v="${k}" aria-current="${active === k}">${esc(t(MODULES[k].label))}</button>`).join("")}</nav>
     <div class="navright">
-      <select id="langSel" class="minisel" aria-label="${esc(t("language"))}">${[["uz","O‘z"],["ru","Рус"],["en","Eng"]].map(([k, l]) => `<option value="${k}" ${S.lang === k ? "selected" : ""}>${l}</option>`).join("")}</select>
-      <div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>
+      ${langSelect()}
+      ${sysCfg().cur.usd ? `<div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
       <a class="navlink" href="#/orders" aria-current="${key.startsWith("orders")}">${IC.bag}<span>${esc(t("my_orders"))}</span>${live ? `<i class="badge">${live}</i>` : ""}</a>
       <a class="navlink" href="#/${S.user ? "account" : "login"}" aria-current="${key === "account" || key === "login"}">${IC.user}<span>${esc(S.user ? t("tab_profile") : t("sign_in"))}</span></a>
     </div>${cmsNav}</div>`;
@@ -4699,7 +5049,7 @@ function renderNav(key){
   $("#footer").innerHTML = `<div class="container foot-in" style="--fc:${2 + extra.length}">
     <div class="stack" style="gap:8px">${cmsFootLogo()}<p class="small">${esc(t("tagline"))}</p></div>
     <div class="stack" style="gap:6px"><b>${esc(t("all_services"))}</b>${MODULE_ORDER.map(k => `<button type="button" class="footlink" data-act="mod" data-v="${k}">${esc(t(MODULES[k].label))}</button>`).join("")}</div>
-    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${PAY_METHODS.map(m => `<span>${m[1]}</span>`).join("")}</div></div>
+    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${payList().map(m => `<span>${m[1]}</span>`).join("")}</div></div>
     <p class="foot-note small">${esc(t("demo_footer"))}<br>${esc(t("credits"))}</p></div>`;
 }
 
@@ -4776,15 +5126,16 @@ function cmsLogo(){
 /* В подвале логотип — на светлой плашке: подвал тёмный в любой теме. */
 const cmsFootLogo = () => cmsSite().logo ? `<span class="foot-logo"><img src="${cmsSite().logo}" alt="${esc(cmsSiteName())}"></span>` : `<span class="wordmark">CHARTERI<b>.UZ</b></span>`;
 /* Колонки подвала из админки: «Информация» (страницы, ссылки, FAQ, новости)
-   и «Контакты» (телефон, почта, адрес, соцсети) — только если есть что показать. */
+   и «Контакты» (телефон, почта, адрес, соцсети) — только если есть что показать
+   и контакты или соцсети не выключены в админке (site.foot). */
 function cmsFootCols(){
   const s = cmsSite(), cols = [], link = (href, label) => cmsA(href, esc(label), "footlink");
   const info = [...cmsMenu("footer").map(x => cmsA(x.href, cmsMenuLabel(x), "footlink")),
     ...(cmsItems("faq", { published:true }).length ? [link("#/faq", t("cms_faq"))] : []),
     ...(cmsItems("news", { published:true }).length ? [link("#/news", t("cms_news"))] : [])];
   if (info.length) cols.push(`<div class="stack" style="gap:6px"><b>${esc(t("cms_info"))}</b>${info.join("")}</div>`);
-  const soc = CMS_SOCIALS.filter(k => s.socials[k]).map(k => link(s.socials[k], t("cms_soc_" + k)));
-  const con = [s.phone ? link("tel:" + s.phone.replace(/[^\d+]/g, ""), s.phone) : "", s.email ? link("mailto:" + s.email, s.email) : "",
+  const soc = s.foot.socials ? CMS_SOCIALS.filter(k => s.socials[k]).map(k => link(s.socials[k], t("cms_soc_" + k))) : [];
+  const con = !s.foot.contacts ? [] : [s.phone ? link("tel:" + s.phone.replace(/[^\d+]/g, ""), s.phone) : "", s.email ? link("mailto:" + s.email, s.email) : "",
     cmsText(s.address) ? `<span class="small">${esc(cmsText(s.address))}</span>` : ""].filter(Boolean);
   if (con.length || soc.length) cols.push(`<div class="stack" style="gap:6px"><b>${esc(t("cms_contacts"))}</b>${con.join("")}
     ${soc.length ? `<span class="foot-soc-h small">${esc(t("cms_follow"))}</span>${soc.join("")}` : ""}</div>`);
@@ -4833,40 +5184,17 @@ PAGES["news/:id"] = {
 
 /* ---- 99-boot.js ---- */
 /* ==========================================================================
-   Запуск: начальное состояние с двумя демо-заказами и сохранённым путешественником.
+   Запуск: начальное состояние с двумя демо-заказами и сохранённым путешественником
+   (siteFresh — js/65-site-seed.js, его же берёт админка).
    ========================================================================== */
 "use strict";
 
-const SEED_TRAVELLER = { id:"tr1", surname:"KARIMOV", given:"AZIZ", passport:"FA1234567", gender:"M", dob:"1988-04-12", expiry:"2031-06-30", cit:"UZB" };
-
-function freshState(){
-  const st = { v:1, lang:S?.lang || "ru", cur:S?.cur || "UZS", theme:S?.theme || "system", user:null, travellers:[{ ...SEED_TRAVELLER }], orders:[] };
-  const traveller = ({ id, ...x }) => x;
-
-  // Предстоящий перелёт в Стамбул — у демо сразу есть билет, который можно открыть.
-  const d1 = addDays(TODAY, 9), out = baseOffer("TAS", "IST", d1), q1 = { adults:1, children:0, infants:0, cabin:"economy" };
-  const t1 = Date.now() - 3 * 864e5;
-  st.orders.push({ id:"o-seed-1", no:makeRef("seed-1" + d1), type:"FLIGHT", status:"CONFIRMED", createdAt:t1,
-    title:`${cityName("TAS")} → ${cityName("IST")}`, sub:`${fdateY(d1)} · ${pl(1, "pax")}`, start:d1, end:d1,
-    total:flightFare(out, null, q1).total, method:"payme", travellers:[traveller(SEED_TRAVELLER)],
-    contact:{ phone:"+998 90 123 45 67", email:"" }, details:{ out, back:null, q:q1 }, req:null, paidAt:null,
-    history:[{ s:"PAID", at:t1 }, { s:"CONFIRMED", at:t1 + 1000 }] });
-
-  // Прошедший отдых в Анталии — показывает статус «Выполнен».
-  const h = hotelById("ayt-lara"), ci = addDays(TODAY, -40), n = 7, t2 = Date.now() - 55 * 864e5;
-  st.orders.push({ id:"o-seed-2", no:makeRef("seed-2" + ci), type:"HOTEL", status:"CONFIRMED", createdAt:t2,
-    title:h.name, sub:`${cityName("AYT")} · ${fdateY(ci)} — ${fdateY(addDays(ci, n))} · ${pl(n, "night")}`, start:ci, end:addDays(ci, n),
-    total:hotelStay(h, ci, n, 1, 1), method:"uzum", travellers:[traveller(SEED_TRAVELLER)],
-    contact:{ phone:"+998 90 123 45 67", email:"" },
-    details:{ hotelId:h.id, room:"standard", checkin:ci, checkout:addDays(ci, n), nights:n, adults:2, children:0, rooms:1 }, req:null, paidAt:null,
-    history:[{ s:"PAID", at:t2 }, { s:"CONFIRMED", at:t2 + 1000 }] });
-  return st;
-}
+function freshState(){ return siteFresh({ lang:S?.lang || sysCfg().langs.def, cur:S?.cur || sysCfg().cur.def, theme:S?.theme || "system" }); }
 
 applyDirections();                // направления из админки — до первой отрисовки
 S = loadState();
 // freshState() форматирует даты и склонения через S.lang — сначала нужен язык.
-if (!S) { S = { v:1, lang:"ru", cur:"UZS", theme:"system", user:null, travellers:[], orders:[] }; S = freshState(); save(); }
+if (!S) { S = { v:1, lang:sysCfg().langs.def, cur:sysCfg().cur.def, theme:"system", user:null, travellers:[], orders:[] }; S = freshState(); save(); }
 render(true);
 tickCharter();
 setInterval(tickCharter, 1000);

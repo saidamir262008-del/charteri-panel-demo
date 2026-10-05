@@ -323,7 +323,8 @@ a.orow:hover + .orow{box-shadow:none}
 .swatch.custom:focus-within{outline:2px solid var(--blue);outline-offset:2px}
 
 /* ---- вход ---- */
-body.is-auth{grid-template-columns:1fr}
+body.is-auth,body.is-maint{grid-template-columns:1fr}
+body.is-maint .scrim{display:none!important}
 body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
 .auth{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);min-height:100dvh}
 .auth-side{position:relative;overflow:hidden;color:#fff;padding:36px clamp(28px,5vw,64px);display:flex;flex-direction:column;justify-content:space-between;gap:32px;

@@ -51,7 +51,7 @@ function transactions(){
 const txMethod = x => !x.method ? "—" : x.method === "balance" ? t("tx_m_balance") : ["cash", "bank", "card"].includes(x.method) && x.src !== "site" ? methodLabel(x.method) : methodName(x.method);
 function txRows(){
   const k = M.ui.txk || "all", s = M.ui.txs || "all", q = (M.ui.txq || "").trim().toLowerCase(), per = M.ui.txp || "all";
-  const since = per === "today" ? new Date().setHours(0, 0, 0, 0) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
+  const since = per === "today" ? tzDayStart(tzToday()) : per === "all" ? 0 : Date.now() - Number(per) * DAY_MS;
   return transactions().filter(x => (k === "all" || x.kind === k) && (s === "all" || x.status === s) && x.at >= since
     && (!q || [txNo(x.id), x.who, x.order?.no || "", x.by, x.note].join(" ").toLowerCase().includes(q)));
 }
@@ -119,7 +119,7 @@ function xlsDownload(rows, name){
   document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 const txExportRows = () => [[t("tx_no"), t("col_date"), t("tx_who"), t("tx_kind"), t("tx_method"), t("col_amount"), t("col_status"), t("tx_staff"), t("booking_ref"), t("reason")],
-  ...txRows().map(x => [txNo(x.id), new Date(x.at).toLocaleString(LOC[S.lang]), x.who, t("tx_k_" + x.kind), txMethod(x), x.amount, t("tx_st_" + x.status), x.by, x.order?.no || "", x.note])];
+  ...txRows().map(x => [txNo(x.id), fdtFull(x.at), x.who, t("tx_k_" + x.kind), txMethod(x), x.amount, t("tx_st_" + x.status), x.by, x.order?.no || "", x.note])];
 Object.assign(ACT, {
   txcsv: () => { if (denied("finance.export")) return; csvDownload(txExportRows(), "transactions"); change(() => audit("export", { what:strRef("fin_tx_csv") }, { module:"finance" })); },
   txxls: () => { if (denied("finance.export")) return; xlsDownload(txExportRows(), "transactions"); change(() => audit("export", { what:strRef("fin_tx_xls") }, { module:"finance" })); }

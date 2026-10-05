@@ -29,7 +29,8 @@ function ledgerRows(){
         <span class="l-after mono" role="cell">${grp(l.after)}</span></div>`; }).join("")}</div>`;
 }
 function topupForm(){
-  const m = M.ui.tuMethod || "card", amount = Number(M.ui.tuAmount || 0);
+  const m = topupOn(M.ui.tuMethod) ? M.ui.tuMethod : firstTopup(), amount = Number(M.ui.tuAmount || 0);
+  M.ui.tuShown = m;                                     // способ, который виден на кнопке: им и платим
   const detail = m === "bank"
     ? `<div class="reqs">${DEMO_REQUISITES.map(([k, v]) => `<div><span class="k">${esc(t(k))}</span><span class="v mono">${esc(v)}</span></div>`).join("")}
         <div><span class="k">${esc(t("req_purpose"))}</span><span class="v">${esc(tf("req_purpose_v", { inn:S.agency.inn }))}</span></div></div>`
@@ -38,7 +39,7 @@ function topupForm(){
     <label class="field"><span>${esc(t("topup_amount"))}</span>
       <span class="amt-in"><input id="tuAmount" inputmode="numeric" autocomplete="off" value="${amount ? grp(amount) : ""}" placeholder="10 000 000"><i>${esc(t("cur_uzs"))}</i></span></label>
     <div class="quickamt">${TOPUP_QUICK.map(v => `<button type="button" class="chip" data-act="tuq" data-v="${v}" aria-pressed="${amount === v}">${grp(v)}</button>`).join("")}</div>
-    <div class="field"><span>${esc(t("topup_method"))}</span>${seg("tum", TOPUP_METHODS.map(k => [k, t("topup_m_" + k)]), m)}</div>
+    <div class="field"><span>${esc(t("topup_method"))}</span>${seg("tum", TOPUP_METHODS.filter(topupOn).map(k => [k, t("topup_m_" + k)]), m)}</div>
     <p class="tu-note">${IC.clock}<span>${esc(t("topup_d_" + m))}</span></p>${detail}
     <div class="err" id="tuerr" hidden></div>
     <button type="button" class="cta" data-act="tugo">${esc(t("topup_cta_" + m))}${amount ? ` · ${fmtUZS(amount)}` : ""}</button></section>`;
@@ -46,7 +47,8 @@ function topupForm(){
 PAGES.balance = {
   render(){
     const pending = S.topups.filter(p => p.status === "pending"), f = M.ui.lfilter || "all";
-    const month = TODAY.slice(0, 7), inMonth = l => ymd(new Date(l.at)).startsWith(month);
+    // Месяц — по часовому поясу компании (14-system.js), как в выписке и отчётах админки.
+    const month = tzToday().slice(0, 7), inMonth = l => tzYmd(l.at).startsWith(month);
     const credits = S.ledger.filter(l => inMonth(l) && l.amount > 0).reduce((s, l) => s + l.amount, 0);
     const debits = S.ledger.filter(l => inMonth(l) && l.amount < 0).reduce((s, l) => s - l.amount, 0);
     return `<div class="page">
@@ -82,14 +84,23 @@ Object.assign(ACT, {
   tum: el => { readAmount(); M.ui.tuMethod = el.dataset.v; rerender(); },
   lfilter: el => { M.ui.lfilter = el.dataset.v; rerender(); },
   tugo: () => {
-    const amount = readAmount(), m = M.ui.tuMethod || "card";
+    if (sysMaint()) return render(false);
+    const amount = readAmount(), m = M.ui.tuShown || firstTopup();
     hideErr("#tuerr");
+    // Платим тем, что на экране. Его выключили, а форма ещё не перерисовалась (фокус в поле суммы) —
+    // молча не подменяем: просим выбрать.
+    if (!topupOn(m)) { M.ui.tuMethod = firstTopup(); rerender(); return showErr("#tuerr", t("pay_off")); }
     if (!agencyActive()) return showErr("#tuerr", t("agency_blocked_d"));
     if (amount < TOPUP_MIN || amount > TOPUP_MAX) return showErr("#tuerr", tf("err_topup", { min:fmtUZS(TOPUP_MIN), max:fmtUZS(TOPUP_MAX) }));
     if (m === "card") {
       overlay(t("processing"));
       setTimeout(() => {
-        overlay(""); post("topup", amount, { method:"card" }); note("topup_ok", { amount });
+        overlay(""); if (sysMaint()) return render(false);
+        // За время оплаты админка могла выключить карты или заблокировать агентство — проверяем по свежим данным.
+        refresh();
+        if (!topupOn("card")) { M.ui.tuMethod = firstTopup(); rerender(); return showErr("#tuerr", t("pay_off")); }
+        if (!agencyActive()) { rerender(); return showErr("#tuerr", t("agency_blocked_d")); }
+        post("topup", amount, { method:"card" }); note("topup_ok", { amount });
         M.ui.tuAmount = ""; save(); rerender(); toast(tf("n_topup_ok", { amount:fmtUZS(amount) }));
       }, 1300);
       return;
@@ -101,7 +112,7 @@ Object.assign(ACT, {
   /* Выписка для бухгалтерии: CSV с BOM, чтобы Excel открыл кириллицу. */
   csv: () => {
     const rows = [[t("col_date"), t("col_operation"), t("col_amount"), t("col_after")],
-      ...S.ledger.map(l => [new Date(l.at).toLocaleString(LOC[S.lang]), ledgerTitle(l), l.amount, l.after])];
+      ...S.ledger.map(l => [fdtFull(l.at), ledgerTitle(l), l.amount, l.after])];
     const blob = new Blob([csvText(rows)], { type:"text/csv;charset=utf-8" });
     const a = Object.assign(document.createElement("a"), { href:URL.createObjectURL(blob), download:`charteri-statement-${TODAY}.csv` });
     document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);

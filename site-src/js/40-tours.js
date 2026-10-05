@@ -10,20 +10,22 @@
    пакета, трансфер и страховка за человека (null — не входит, 0 — входит
    бесплатно). Заказ хранит их снимок (px), чтобы строки чека сходились с
    оплаченной суммой и после смены цен. У старых заказов снимка нет — они
-   считались по прежним постоянным (LEGACY_PX). */
+   считались по прежним постоянным (LEGACY_PX). rate — курс доллара на момент
+   покупки: отель, трансфер и страховка заказа пересчитываются по нему, а не по
+   сегодняшнему; до курса из админки он был постоянным (USD_TO_UZS). */
 const LEGACY_PX = { hotel:0, pkg:700, transfer:20, insurance:0 };
-function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null }; }
+function tourPx(h){ const sv = prices().svc; return { hotel:adjBps("TOUR", h.city), pkg:sv.TOUR.pkg, transfer:sv.TRANSFER.on ? sv.TRANSFER.usd : null, insurance:sv.INSURANCE.on ? sv.INSURANCE.usd : null, rate:sysRate() }; }
 
 /* legs — рейсы из сохранённого заказа: чек старого заказа не должен зависеть
    от сегодняшней наценки. Без них — рейсы по текущим ценам. */
 function tourPackage(h, q, legs = null){
-  const px = legs ? legs.px || LEGACY_PX : tourPx(h);
+  const px = legs ? legs.px || LEGACY_PX : tourPx(h), rate = Number.isInteger(px.rate) ? px.rate : USD_TO_UZS;
   const out = legs?.out || baseOffer("TAS", q.to, q.depart), back = legs?.back || baseOffer(q.to, "TAS", addDays(q.depart, q.nights));
   const people = q.adults + q.children, rooms = Math.ceil(q.adults / 2);
   const flights = mulA({ usd: out.priceUSD + back.priceUSD, uzs: out.priceUZS + back.priceUZS }, people);
-  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel);
-  const transfer = px.transfer == null ? null : mulA(amt(px.transfer), people);
-  const insurance = px.insurance ? mulA(amt(px.insurance), people) : null;
+  const hotel = hotelStay(h, q.depart, q.nights, rooms, 1, px.hotel, rate);
+  const transfer = px.transfer == null ? null : mulA(amt(px.transfer, rate), people);
+  const insurance = px.insurance ? mulA(amt(px.insurance, rate), people) : null;
   const separate = addA(flights, hotel, ...[transfer, insurance].filter(Boolean));
   const total = pctA(separate, 1 - px.pkg / 10000);
   const saving = { usd: separate.usd - total.usd, uzs: separate.uzs - total.uzs };
@@ -161,7 +163,7 @@ function startTourCheckout(hid){
     travellers: { mode:"full", types },
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
-    priceChange: () => { const p2 = tourPackage(h, q); return p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
+    priceChange: (force = false) => { const p2 = tourPackage(h, q); return !force && p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
       : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
     details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)

@@ -16,9 +16,9 @@ const orderSum = o => { const d = dueOf(o); return d ? fmt(d) : `≈ ${fmt(o.det
 
 function orderRow(o, i, rc = ""){
   const st = effStatus(o);
-  return `<a class="orow ${rc} ${st === "COMPLETED" || o.status === "REFUNDED" ? "past" : ""}" style="--i:${i}" href="#/orders/${o.id}" data-flip="${o.id}">
+  return `<a class="orow ${rc} ${st === "COMPLETED" || o.status === "REFUNDED" ? "past" : ""}" style="--i:${i}" href="#/orders/${esc(o.id)}" data-flip="${esc(o.id)}">
     <span class="or-ic">${TYPE_ICON[o.type]}</span>
-    <span class="or-main"><b>${esc(orderTitle(o))}</b><span class="mono">${o.no}</span></span>
+    <span class="or-main"><b>${esc(orderTitle(o))}</b><span class="mono">${esc(o.no)}</span></span>
     <span class="or-client">${esc(clientOf(o))}</span>
     <span class="or-date">${esc(fdate(o.start))}${o.end !== o.start ? ` — ${esc(fdate(o.end))}` : ""}</span>
     <span class="or-sum mono">${orderSum(o)}</span>
@@ -107,7 +107,7 @@ PAGES["orders/:id"] = {
     const st = effStatus(o), cl = S.travellers.find(c => c.id === o.clientId), due = dueOf(o);
     const canCancel = ["NEW", "PENDING", "PAID", "CONFIRMED"].includes(st) && o.start >= TODAY;
     return `<div class="page">${backLink("orders", t("nav_orders"))}
-      <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span></span>
+      <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${esc(o.no)}</span></span>
         <h1>${esc(orderTitle(o))}</h1><p class="muted">${esc(orderSub(o))}</p></div>${pill(st)}</div>
       <div class="twocol"><div class="stack">${orderMain(o, st)}${M.ui.cancelFor === o.id ? cancelBox(o) : ""}</div>
         <aside class="stack sticky">
@@ -140,6 +140,7 @@ Object.assign(ACT, {
     overlay(t("processing_balance"));
     setTimeout(() => {
       overlay(""); refresh();
+      if (sysMaint()) return render(false);
       const o = S.orders.find(x => x.id === id), due = o && dueOf(o);
       if (!o || o.status !== "PENDING" || !due) { rerender(); return toast(t("order_changed")); }
       if (!agencyActive()) { rerender(); return toast(t("agency_blocked_d")); }

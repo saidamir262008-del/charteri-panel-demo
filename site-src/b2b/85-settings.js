@@ -14,8 +14,9 @@ PAGES.settings = {
             ${row("agency_since", fdateY(a.since))}${row("agency_fee", tf("agency_fee_v", { p:pctText(prices().feeBps) }))}</div>
           <p class="muted small">${esc(t("agency_note"))}</p></section>
         <section class="card stack"><h2>${esc(t("settings"))}</h2>
-          <div class="setrow"><span>${esc(t("language"))}</span>${seg("setlang", [["uz","O‘zbekcha"],["ru","Русский"],["en","English"]], S.lang)}</div>
-          <div class="setrow"><span>${esc(t("price_currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}<span class="muted small">${esc(t("price_currency_d"))}</span></div>
+          ${langSeg("setlang") ? `<div class="setrow"><span>${esc(t("language"))}</span>${langSeg("setlang")}</div>` : ""}
+          ${sysCfg().cur.usd ? `<div class="setrow"><span>${esc(t("price_currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}<span class="muted small">${esc(t("price_currency_d"))}</span>
+            <span class="muted small">${esc(tf("rate_note", { rate:grp(sysRate()) }))}</span></div>` : ""}
           <div class="setrow"><span>${esc(t("appearance"))}</span>${seg("settheme", [["system", t("theme_system")],["light", t("theme_light")],["dark", t("theme_dark")]], S.theme)}</div></section>
         <section class="card stack"><h2>${esc(t("session"))}</h2>
           <div class="rows">${row("signed_as", S.session?.phone || "")}</div>

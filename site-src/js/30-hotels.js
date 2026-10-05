@@ -12,9 +12,9 @@ function hotelNightly(h, date, bps = adjBps("HOTEL", h.city)){
   const season = (HIGH_SEASON[h.city] || []).includes(month) ? 1.18 : 1;
   return h.base * season * (0.94 + mulberry32(seedFrom(h.id + date))() * 0.12) * (1 + bps / 10000);
 }
-function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city)){
+function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.city), rate = sysRate()){
   let sum = 0; for (let i = 0; i < nights; i++) sum += hotelNightly(h, addDays(checkin, i), bps);
-  return amt(sum * mult * rooms);
+  return amt(sum * mult * rooms, rate);
 }
 const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
@@ -148,15 +148,19 @@ PAGES["hotels/item/:id"] = {
 
 function startHotelCheckout(hid, rid){
   const q = M.hotels, h = hotelById(hid), r = ROOM_TYPES.find(x => x.id === rid), n = nightsOf(q);
-  const total = hotelStay(h, q.checkin, n, q.rooms, r.mult);
+  const total = hotelStay(h, q.checkin, n, q.rooms, r.mult), line = `${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`;
+  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms };
   startCheckout({
     type: "HOTEL", title: h.name,
     sub: `${cityName(h.city)} · ${fdateY(q.checkin)} — ${fdateY(q.checkout)} · ${pl(n, "night")}`,
     start: q.checkin, end: q.checkout,
     travellers: { mode:"lead", types:["adult"] },
-    lines: [[`${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`, total]],
+    lines: [[line, total]],
     total, recheck: false,
-    details: { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms },
+    /* Перепроверки у поставщика нет; пересчёт — только если курс сменили при открытом оформлении. */
+    priceChange: (force = false) => { const t2 = hotelStay(h, d.checkin, n, d.rooms, r.mult); return !force && t2.usd === total.usd && t2.uzs === total.uzs ? null
+      : { total:t2, lines:[[line, t2]], details:d }; },
+    details: d,
     ref: makeRef(h.id + q.checkin + r.id)
   });
 }
