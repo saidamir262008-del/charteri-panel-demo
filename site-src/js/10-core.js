@@ -115,14 +115,15 @@ function pricesClean(saved){
    для кабинета — ещё индивидуальная цена агентства. */
 const CHANNEL = APP === "b2c" ? "b2c" : "b2b";
 /* Поправки складываются, но итог не ниже −50% и не выше +100%: цена не может
-   стать нулевой или отрицательной, как бы ни сложились настройки. */
-function adjBps(type, dest){
-  const p = prices(), sum = (p.svc[type]?.[CHANNEL] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
+   стать нулевой или отрицательной, как бы ни сложились настройки.
+   ch — канал явно: админка оформляет заказ пассажиру сайта по цене сайта (b2c). */
+function adjBps(type, dest, ch = CHANNEL){
+  const p = prices(), sum = (p.svc[type]?.[ch] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" && ch === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
   return Math.max(-ADJ_MAX, Math.min(2 * ADJ_MAX, sum));
 }
 /* Проценты из сотых: 150 → «1,5» (в английском — «1.5»). */
 const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
-const withAdj = (usd, type, dest) => usd * (1 + adjBps(type, dest) / 10000);
+const withAdj = (usd, type, dest, ch = CHANNEL) => usd * (1 + adjBps(type, dest, ch) / 10000);
 const svcOn = type => prices().svc[type]?.on !== false;
 const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
 /* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
@@ -241,7 +242,9 @@ const priceFrom = x => S.lang === "uz" ? `${x} ${t("price_from")}` : `${t("price
 const digits = v => String(v).replace(/\D/g, "");
 const validPhone = v => /^998\d{9}$/.test(digits(v));
 const prettyPhone = v => { const d = digits(v).replace(/^998/, ""); return d.length === 9 ? `+998 ${d.slice(0,2)} ${d.slice(2,5)} ${d.slice(5,7)} ${d.slice(7)}` : v; };
-const validEmail = v => !v || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+/* Почта — не длиннее EMAIL_MAX (столько же пропускает проверка резервной копии и maxlength полей). */
+const EMAIL_MAX = 120;
+const validEmail = v => !v || (v.length <= EMAIL_MAX && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
 
 /* ---- рабочее состояние: поиск и выбор по каждому модулю ---- */
 const M = { module: "flights", ui: {}, checkout: null, returnTo: null };
@@ -426,8 +429,9 @@ ACT.step = el => {
   MODULES[ks[0]]?.normalize?.();
   rerender();
 };
-function seg(act, options, value, extra = ""){
-  return `<div class="seg" role="group" data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
+/* extra — атрибуты кнопок; group — атрибуты группы (имя: aria-labelledby). */
+function seg(act, options, value, extra = "", group = ""){
+  return `<div class="seg" role="group" ${group} data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){

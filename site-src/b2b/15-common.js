@@ -53,8 +53,10 @@ const brandReqErr = b => b.acc && !BRAND_ACC.test(digits(b.acc)) ? ["err_brand_a
 const brandDoc = (st = S) => ({ ...st.brand, legal:st.agency?.legal || "", inn:st.agency?.inn || "" });
 function brandReq(b){
   const acc = digits(b.acc || ""), mfo = digits(b.mfo || "");
-  const parts = [b.legal, b.inn && `${t("req_inn")} ${b.inn}`, b.bank, BRAND_ACC.test(acc) && `${t("req_acc")} ${acc}`, BRAND_MFO.test(mfo) && `${t("req_mfo")} ${mfo}`].filter(Boolean);
-  return parts.length ? `<span class="bd-req">${parts.map(esc).join(" · ")}</span>` : "";
+  // Подпись и число — неразрывно: «р/с» на одной строке, а счёт на другой читались бы как обрывки.
+  const nw = (label, v) => `<span class="req-nw">${esc(label)}\u00a0${esc(v)}</span>`;
+  const parts = [b.legal && esc(b.legal), b.inn && nw(t("req_inn"), b.inn), b.bank && esc(b.bank), BRAND_ACC.test(acc) && nw(t("req_acc"), acc), BRAND_MFO.test(mfo) && nw(t("req_mfo"), mfo)].filter(Boolean);
+  return parts.length ? `<span class="bd-req">${parts.join(" · ")}</span>` : "";
 }
 function brandFoot(b = brandDoc()){
   return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}${brandReq(b)}</div>

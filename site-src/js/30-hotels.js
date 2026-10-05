@@ -20,6 +20,19 @@ const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
    заказа, а не падаем: один такой заказ не должен ломать список. */
 const missingHotel = o => ({ id:/^[\w-]{1,60}$/.test(o.details?.hotelId) ? o.details.hotelId : "x", name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
+/* Снимок отеля в заказе: название, звёзды, питание, район, город и цена за ночь
+   на момент покупки. Своё направление правят в админке (отель — по номеру
+   места в списке), а заказ остаётся с тем отелем и тем чеком, что купили. */
+const HOTEL_SNAP = ["name", "stars", "board", "area", "city", "base"];
+const hotelSnap = h => Object.fromEntries(HOTEL_SNAP.map(k => [k, h[k]]));
+const okHotelSnap = s => !!s && typeof s === "object" && typeof s.name === "string" && !!s.name.trim() && s.name.length <= 80 && BOARDS.includes(s.board)
+  && Number.isFinite(s.base) && s.base > 0 && (s.area == null || (typeof s.area === "string" && s.area.length <= 60)) && (s.city == null || /^[A-Z]{3}$/.test(s.city));
+/* Отель заказа: снимок поверх каталога; без снимка (старые заказы) — каталог; нет ни того, ни другого — null. */
+function orderHotel(o){
+  const d = o.details || {}, live = hotelById(d.hotelId), s = okHotelSnap(d.hotel) ? d.hotel : null;
+  if (!s) return live || null;
+  return { ...(live || missingHotel(o)), name:s.name, stars:clamp(Math.round(Number(s.stars)) || 0, 0, 5), board:s.board, area:s.area || "", city:s.city || live?.city || d.to || "", base:s.base };
+}
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
 /* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
@@ -149,7 +162,7 @@ PAGES["hotels/item/:id"] = {
 function startHotelCheckout(hid, rid){
   const q = M.hotels, h = hotelById(hid), r = ROOM_TYPES.find(x => x.id === rid), n = nightsOf(q);
   const total = hotelStay(h, q.checkin, n, q.rooms, r.mult), line = `${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`;
-  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms };
+  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms, hotel:hotelSnap(h) };
   startCheckout({
     type: "HOTEL", title: h.name,
     sub: `${cityName(h.city)} · ${fdateY(q.checkin)} — ${fdateY(q.checkout)} · ${pl(n, "night")}`,
@@ -165,7 +178,7 @@ function startHotelCheckout(hid, rid){
   });
 }
 function hotelVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o), lead = o.travellers[0];
+  const d = o.details, h = orderHotel(o) || missingHotel(o), lead = o.travellers[0];
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>

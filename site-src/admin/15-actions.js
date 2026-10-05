@@ -277,9 +277,11 @@ function refundRow(r){
     <b class="task-amt mono">${esc(fmtUZS(o.refund.uzs))}</b>
     <span class="task-act">${refundAction(r)}</span></div>`;
 }
+/* Кнопка возврата: агентству — на баланс, клиенту сайта — на карту, за оплату в офисе — наличными. */
+const refundCta = r => r.a ? "credit_refund" : r.o.method === "cash" ? "cash_refund" : "card_refund";
 /* Кнопка зачисления или отметка, что возврат ждёт второго сотрудника. */
 function refundAction(r){
   const ap = pendingAp(refundKey(r));
   if (ap) return `<span class="pill st-PENDING">${esc(t("ap_wait"))}</span>${can("approvals") ? `<a class="link" href="#/approvals">${esc(t("an_approvals"))}</a>` : ""}`;
-  return `<button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${r.o.id}" ${guard("finance.refund")}>${esc(t(r.a ? "credit_refund" : "card_refund"))}</button>`;
+  return `<button type="button" class="solid sm" data-act="arefund" data-src="${r.src}" data-v="${r.o.id}" ${guard("finance.refund")}>${esc(t(refundCta(r)))}</button>`;
 }

@@ -51,7 +51,7 @@ PAGES.checkout = {
           ${c.mode === "full" ? `<p class="secure">${IC.lock}<span>${esc(t("secure_note"))}</span></p>` : ""}</div>
         <div class="card stack"><h3>${esc(t("client_contact"))}</h3><p class="muted small">${esc(t("client_contact_d"))}</p><div class="sgrid sgrid-2">
           <label class="field"><span>${esc(t("contact_phone"))}</span><input data-ct="phone" type="tel" value="${esc(c.contact.phone)}" autocomplete="off" placeholder="+998"></label>
-          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" value="${esc(c.contact.email)}" autocomplete="off"></label></div>
+          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" maxlength="${EMAIL_MAX}" value="${esc(c.contact.email)}" autocomplete="off"></label></div>
           <div class="err" id="cerr" hidden></div></div>
         ${balanceBlock(due)}
       </div>

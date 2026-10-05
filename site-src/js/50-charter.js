@@ -6,6 +6,8 @@
    ========================================================================== */
 "use strict";
 
+/* Заявка на чартер: имя и пожелания — свободный текст, длину ограничивают поле и проверка. */
+const CH_NAME_MAX = 120, CH_NOTE_MAX = 1000;
 const round = (x, step) => Math.round(x / step) * step;
 const fitClass = (list, pax, id) => id === "auto" ? list.find(c => c.seats >= pax) : list.find(c => c.id === id && c.seats >= pax);
 
@@ -117,9 +119,9 @@ function charterPage(kind){
       <div class="card stack"><h3>${esc(t(isJet ? "aircraft_class" : "heli_type"))}</h3>${classCards(kind, isJet ? JETS : HELIS, q)}</div>
       <div class="card stack"><h3>${esc(t("contact_details"))}</h3>
         <div class="sgrid sgrid-2">
-          <label class="field"><span>${esc(t("your_name"))}</span><input data-bind="${kind}.name" value="${esc(q.name)}" autocomplete="name"></label>
+          <label class="field"><span>${esc(t("your_name"))}</span><input data-bind="${kind}.name" value="${esc(q.name)}" maxlength="${CH_NAME_MAX}" autocomplete="name"></label>
           <label class="field"><span>${esc(t("phone_label"))}</span><input type="tel" data-bind="${kind}.phone" value="${esc(q.phone || S.user?.phone || "")}" autocomplete="tel" placeholder="+998"></label></div>
-        <label class="field"><span>${esc(t("wishes"))}</span><textarea data-bind="${kind}.note" placeholder="${esc(t(isJet ? "jet_note_ph" : "heli_note_ph"))}">${esc(q.note)}</textarea></label>
+        <label class="field"><span>${esc(t("wishes"))}</span><textarea data-bind="${kind}.note" maxlength="${CH_NOTE_MAX}" placeholder="${esc(t(isJet ? "jet_note_ph" : "heli_note_ph"))}">${esc(q.note)}</textarea></label>
         <div class="err" id="cherr" hidden></div></div>
     </div>
     <aside class="card sticky stack">${hasPhoto(charterPhotoKey(kind, q)) ? `<div class="aside-ph">${photo(charterPhotoKey(kind, q), { w:640, sizes:"(max-width:900px) 100vw, 360px", eager:true, deco:true })}</div>` : ""}<span class="lbl">${esc(t("estimate"))}</span>
@@ -148,6 +150,8 @@ function sendCharterRequest(kind){
   if (q.date < TODAY) return showErr("#cherr", t("err_date_past"));
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
+  if (q.name.trim().length > CH_NAME_MAX) return showErr("#cherr", tf("err_name_long", { n:CH_NAME_MAX }));
+  if ((q.note || "").length > CH_NOTE_MAX) return showErr("#cherr", tf("err_note_long", { n:CH_NOTE_MAX }));
   if (!validPhone(phone)) return showErr("#cherr", t("err_contact"));
   if (phoneBlocked(phone)) return showErr("#cherr", t("err_blocked"));
   const title = isJet ? `${cityName(q.from)} → ${cityName(q.to)}` : heliName(q.to);

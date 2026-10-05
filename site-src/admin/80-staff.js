@@ -17,6 +17,8 @@ function staffForm(){
   const d = M.ui.stDraft; if (!d) return "";
   // Нынешняя роль сотрудника остаётся в списке, даже если назначить её сам ты не вправе: правка контактов её не меняет.
   const s0 = d.id ? staffById(d.id) : null, can0 = assignableRoles(), roles = s0 && !can0.some(r => r.id === s0.role) && roleById(s0.role) ? [roleById(s0.role), ...can0] : can0;
+  // Ролей в списке меньше, чем есть: подсказка «почему» привязана к списку (aria-describedby).
+  const mine = !isFounder() && can0.length < liveRoles().filter(r => !TOP_ROLES.includes(r.id)).length;
   const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-st="${k}" value="${esc(d[k])}" ${attrs}></label>`;
   return `<section class="card stack cl-edit" id="stedit" aria-labelledby="stedit-h"><div class="card-h"><h2 id="stedit-h">${esc(s0 ? tf("staff_edit_of", { name:s0.name }) : t("staff_new"))}</h2>
       <button type="button" class="iconbtn" data-act="stclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
@@ -26,10 +28,10 @@ function staffForm(){
       ${f("email", "agency_email", 'type="email" maxlength="80" autocomplete="off"')}
       ${f("pos", "staff_pos", 'maxlength="60" autocomplete="off"')}
       <label class="field"><span>${esc(t("staff_dept"))}</span><select data-st="dept">${DEPTS.map(x => `<option value="${x}" ${d.dept === x ? "selected" : ""}>${esc(t("dept_" + x))}</option>`).join("")}</select></label>
-      <label class="field"><span>${esc(t("staff_role"))}</span><select data-st="role">${roles.map(r => `<option value="${esc(r.id)}" ${d.role === r.id ? "selected" : ""}>${esc(roleName(r.id))}</option>`).join("")}</select></label>
+      <label class="field"><span>${esc(t("staff_role"))}</span><select data-st="role" ${mine ? 'aria-describedby="st-roles-mine"' : ""}>${roles.map(r => `<option value="${esc(r.id)}" ${d.role === r.id ? "selected" : ""}>${esc(roleName(r.id))}</option>`).join("")}</select></label>
     </div>
     ${needsApproval("staff_role") ? `<p class="muted small">${esc(t("staff_role_ap"))}</p>` : ""}
-    ${!isFounder() && can0.length < liveRoles().filter(r => !TOP_ROLES.includes(r.id)).length ? `<p class="muted small" data-note="roles-mine">${esc(t("staff_roles_mine"))}</p>` : ""}
+    ${mine ? `<p class="muted small" id="st-roles-mine" data-note="roles-mine">${esc(t("staff_roles_mine"))}</p>` : ""}
     <div class="err" id="sterr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="stsave">${esc(t(s0 ? "st_save" : "staff_add"))}</button><button type="button" class="link" data-act="stclose">${esc(t("cancel"))}</button></div></section>`;
 }

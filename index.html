@@ -104,6 +104,11 @@ select{appearance:none;-webkit-appearance:none;padding-right:30px;text-overflow:
 textarea{min-height:92px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
 input:disabled,select:disabled{opacity:.6}
+/* Поле с ошибкой: красная рамка остаётся и без фокуса — ставит проверка формы (aria-invalid). */
+input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:var(--coral);box-shadow:0 0 0 3px color-mix(in srgb,var(--coral) 18%,transparent)}
+/* Поле только для чтения не похоже на редактируемое: утопленный фон, пунктирная рамка. */
+input[readonly]{background:var(--sunken);color:var(--muted);border-style:dashed;cursor:default}
+input[readonly]:focus{border-color:var(--faint);box-shadow:0 0 0 3px color-mix(in srgb,var(--faint) 22%,transparent)}
 .field.is-off{opacity:.5}
 .upper{text-transform:uppercase}
 .err{background:var(--coral-bg);color:var(--coral);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:500}
@@ -1198,7 +1203,9 @@ a.orow:hover + .orow{box-shadow:none}
 .bd-top .v-kind{color:inherit;opacity:.78;white-space:nowrap}
 .bd-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
 .bd-foot b{color:var(--ink);font-size:13.5px}
+/* Реквизиты: название банка и юрлица переносятся где угодно, а «р/с 2020…» и «МФО 00440» — целиком, без разрыва подписи и числа. */
 .bd-req{font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
+.bd-req .req-nw{white-space:nowrap;overflow-wrap:normal}
 .bd-pw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);white-space:nowrap}
 .bd-pw .wordmark{font-size:10.5px}
 .bdoc{display:flex;flex-direction:column;gap:14px}
@@ -1614,6 +1621,8 @@ const STR = {
   err_rooms:["Не больше трёх взрослых в номере — добавьте номер","Bir xonada uchtadan ortiq katta bo‘lmaydi — xona qo‘shing","Up to three adults per room — add a room"],
   err_same_city:["Город вылета и прилёта совпадают","Uchish va qo‘nish shaharlari bir xil","Departure and arrival are the same"],
   err_your_name:["Укажите имя","Ismingizni kiriting","Enter your name"],
+  err_name_long:["Имя — не длиннее {n} символов","Ism {n} belgidan oshmasin","Name: {n} characters at most"],
+  err_note_long:["Пожелания — не длиннее {n} символов","Istaklar {n} belgidan oshmasin","Wishes: {n} characters at most"],
   est_line:["≈ {h} в пути, {m}","≈ {h} yo‘lda, {m}","≈ {h} in the air, {m}"],
   estimate:["Предварительная стоимость","Taxminiy narx","Estimated price"],
   estimate_note:["Точную цену менеджер пришлёт после проверки борта и слотов в аэропортах. Оплата — только после вашего подтверждения.","Aniq narxni menejer samolyot va aeroport slotlarini tekshirgach yuboradi. To‘lov — faqat sizning tasdig‘ingizdan keyin.","A manager sends the exact price after checking the aircraft and airport slots. You pay only after you confirm."],
@@ -1706,6 +1715,8 @@ const STR = {
   site_penalty:["Штраф поставщика, {p}%","Yetkazib beruvchi jarimasi, {p}%","Supplier penalty, {p}%"],
   site_refund_wait:["Вернётся на карту","Kartaga qaytadi","Will return to your card"],
   site_refund_done:["Возвращено на карту","Kartaga qaytarildi","Returned to your card"],
+  site_refund_cash_wait:["Вернём наличными в офисе","Ofisda naqd pulda qaytariladi","Cash refund at our office"],
+  site_refund_cash_done:["Возвращено наличными в офисе","Ofisda naqd pulda qaytarildi","Refunded in cash at our office"],
   dir_gone:["Это направление больше недоступно. Выберите другое.","Bu yo‘nalish endi mavjud emas. Boshqasini tanlang.","This destination is no longer available. Please choose another."],
   req_status_done:["Выполнено","Bajarildi","Done"],
   req_status_declined:["Отказано","Rad etildi","Declined"],
@@ -2230,14 +2241,15 @@ function pricesClean(saved){
    для кабинета — ещё индивидуальная цена агентства. */
 const CHANNEL = APP === "b2c" ? "b2c" : "b2b";
 /* Поправки складываются, но итог не ниже −50% и не выше +100%: цена не может
-   стать нулевой или отрицательной, как бы ни сложились настройки. */
-function adjBps(type, dest){
-  const p = prices(), sum = (p.svc[type]?.[CHANNEL] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
+   стать нулевой или отрицательной, как бы ни сложились настройки.
+   ch — канал явно: админка оформляет заказ пассажиру сайта по цене сайта (b2c). */
+function adjBps(type, dest, ch = CHANNEL){
+  const p = prices(), sum = (p.svc[type]?.[ch] || 0) + (dest ? p.dest[dest] || 0 : 0) + (APP === "b2b" && ch === "b2b" ? p.agents[LIVE_AGENCY] || 0 : 0);
   return Math.max(-ADJ_MAX, Math.min(2 * ADJ_MAX, sum));
 }
 /* Проценты из сотых: 150 → «1,5» (в английском — «1.5»). */
 const pctText = bps => String(bps / 100).replace(".", S.lang === "en" ? "." : ",");
-const withAdj = (usd, type, dest) => usd * (1 + adjBps(type, dest) / 10000);
+const withAdj = (usd, type, dest, ch = CHANNEL) => usd * (1 + adjBps(type, dest, ch) / 10000);
 const svcOn = type => prices().svc[type]?.on !== false;
 const svcOffNote = () => `<div class="svc-off" role="status">${IC.clock}<div><b>${esc(t("svc_off_h"))}</b><p class="muted small">${esc(t("svc_off_d"))}</p></div></div>`;
 /* Форма поиска услуги — или объявление, что услугу временно выключили в админке. */
@@ -2356,7 +2368,9 @@ const priceFrom = x => S.lang === "uz" ? `${x} ${t("price_from")}` : `${t("price
 const digits = v => String(v).replace(/\D/g, "");
 const validPhone = v => /^998\d{9}$/.test(digits(v));
 const prettyPhone = v => { const d = digits(v).replace(/^998/, ""); return d.length === 9 ? `+998 ${d.slice(0,2)} ${d.slice(2,5)} ${d.slice(5,7)} ${d.slice(7)}` : v; };
-const validEmail = v => !v || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v);
+/* Почта — не длиннее EMAIL_MAX (столько же пропускает проверка резервной копии и maxlength полей). */
+const EMAIL_MAX = 120;
+const validEmail = v => !v || (v.length <= EMAIL_MAX && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v));
 
 /* ---- рабочее состояние: поиск и выбор по каждому модулю ---- */
 const M = { module: "flights", ui: {}, checkout: null, returnTo: null };
@@ -2541,8 +2555,9 @@ ACT.step = el => {
   MODULES[ks[0]]?.normalize?.();
   rerender();
 };
-function seg(act, options, value, extra = ""){
-  return `<div class="seg" role="group" data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
+/* extra — атрибуты кнопок; group — атрибуты группы (имя: aria-labelledby). */
+function seg(act, options, value, extra = "", group = ""){
+  return `<div class="seg" role="group" ${group} data-ind="${act}"><span class="ind" aria-hidden="true"></span>${options.map(([v, l]) =>
     `<button type="button" data-act="${act}" data-v="${v}" ${extra} aria-pressed="${value === v}">${esc(l)}</button>`).join("")}</div>`;
 }
 function airportSelect(bind, value, exclude){
@@ -4038,7 +4053,7 @@ function baseSeed(from, to){
   return { carrier:c.name, flightNo:`${c.code}-${100+Math.floor(rnd()*899)}`, plane:PLANES[Math.floor(rnd()*PLANES.length)],
     depTime, arrTime:addMinutes(depTime, durationMin), ecoPrice:eco, busPrice:eco+220+Math.floor(rnd()*260), durationMin };
 }
-function generateOffers({ from, to, date, cabin }){
+function generateOffers({ from, to, date, cabin, ch = CHANNEL }){
   const seed = baseSeed(from, to), rnd = mulberry32(seedFrom(`${from}-${to}-${date}-${cabin}`));
   const count = 4+Math.floor(rnd()*4), offers = [];
   for (let i = 0; i < count; i++) {
@@ -4053,7 +4068,7 @@ function generateOffers({ from, to, date, cabin }){
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
     // Наценка на авиабилеты и поправка канала и направления — из админки.
-    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to));   // наценка (10%, меняется в админке), как на сервере
+    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to, ch));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,
@@ -4073,8 +4088,8 @@ function makeRef(seed){
   return `CHR-${out}`;
 }
 /* Регулярный рейс маршрута из таблицы приложения, если он есть, иначе самый дешёвый. */
-function baseOffer(from, to, date, cabin = "economy"){
-  const list = generateOffers({ from, to, date, cabin }), r = ROUTES[`${from}-${to}`];
+function baseOffer(from, to, date, cabin = "economy", ch = CHANNEL){
+  const list = generateOffers({ from, to, date, cabin, ch }), r = ROUTES[`${from}-${to}`];
   return (r && list.find(o => o.flightNo === r.flightNo)) || list[0];
 }
 const seatFor = o => `${10 + (o.durationMin % 20)}${"ABCDEF"[o.priceUSD % 6]}`;
@@ -4369,6 +4384,19 @@ const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
    заказа, а не падаем: один такой заказ не должен ломать список. */
 const missingHotel = o => ({ id:/^[\w-]{1,60}$/.test(o.details?.hotelId) ? o.details.hotelId : "x", name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
+/* Снимок отеля в заказе: название, звёзды, питание, район, город и цена за ночь
+   на момент покупки. Своё направление правят в админке (отель — по номеру
+   места в списке), а заказ остаётся с тем отелем и тем чеком, что купили. */
+const HOTEL_SNAP = ["name", "stars", "board", "area", "city", "base"];
+const hotelSnap = h => Object.fromEntries(HOTEL_SNAP.map(k => [k, h[k]]));
+const okHotelSnap = s => !!s && typeof s === "object" && typeof s.name === "string" && !!s.name.trim() && s.name.length <= 80 && BOARDS.includes(s.board)
+  && Number.isFinite(s.base) && s.base > 0 && (s.area == null || (typeof s.area === "string" && s.area.length <= 60)) && (s.city == null || /^[A-Z]{3}$/.test(s.city));
+/* Отель заказа: снимок поверх каталога; без снимка (старые заказы) — каталог; нет ни того, ни другого — null. */
+function orderHotel(o){
+  const d = o.details || {}, live = hotelById(d.hotelId), s = okHotelSnap(d.hotel) ? d.hotel : null;
+  if (!s) return live || null;
+  return { ...(live || missingHotel(o)), name:s.name, stars:clamp(Math.round(Number(s.stars)) || 0, 0, 5), board:s.board, area:s.area || "", city:s.city || live?.city || d.to || "", base:s.base };
+}
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
 /* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
@@ -4498,7 +4526,7 @@ PAGES["hotels/item/:id"] = {
 function startHotelCheckout(hid, rid){
   const q = M.hotels, h = hotelById(hid), r = ROOM_TYPES.find(x => x.id === rid), n = nightsOf(q);
   const total = hotelStay(h, q.checkin, n, q.rooms, r.mult), line = `${t("room_" + r.id)} × ${pl(q.rooms, "room")} · ${pl(n, "night")}`;
-  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms };
+  const d = { hotelId:h.id, room:r.id, checkin:q.checkin, checkout:q.checkout, nights:n, adults:q.adults, children:q.children, rooms:q.rooms, hotel:hotelSnap(h) };
   startCheckout({
     type: "HOTEL", title: h.name,
     sub: `${cityName(h.city)} · ${fdateY(q.checkin)} — ${fdateY(q.checkout)} · ${pl(n, "night")}`,
@@ -4514,7 +4542,7 @@ function startHotelCheckout(hid, rid){
   });
 }
 function hotelVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o), lead = o.travellers[0];
+  const d = o.details, h = orderHotel(o) || missingHotel(o), lead = o.travellers[0];
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
@@ -4696,13 +4724,13 @@ function startTourCheckout(hid){
     lines: tourLines(p, q), total: p.total, recheck: true,
     /* Наценку на рейсы могли сменить в админке после выбора тура — пересчитываем. */
     priceChange: (force = false) => { const p2 = tourPackage(h, q); return !force && p2.total.usd === p.total.usd && p2.total.uzs === p.total.uzs ? null
-      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px } }; },
-    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px },
+      : { total:p2.total, lines:tourLines(p2, q), details:{ hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p2.rooms, out:p2.out, back:p2.back, px:p2.px, hotel:hotelSnap(h) } }; },
+    details: { hotelId:h.id, to:q.to, depart:q.depart, nights:q.nights, adults:q.adults, children:q.children, rooms:p.rooms, out:p.out, back:p.back, px:p.px, hotel:hotelSnap(h) },
     ref: makeRef("TOUR" + h.id + q.depart + q.nights)
   });
 }
 function tourVoucherBody(o){
-  const d = o.details, h = hotelById(d.hotelId) || missingHotel(o);
+  const d = o.details, h = orderHotel(o) || missingHotel(o);
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
@@ -4724,6 +4752,8 @@ function tourVoucherBody(o){
    ========================================================================== */
 "use strict";
 
+/* Заявка на чартер: имя и пожелания — свободный текст, длину ограничивают поле и проверка. */
+const CH_NAME_MAX = 120, CH_NOTE_MAX = 1000;
 const round = (x, step) => Math.round(x / step) * step;
 const fitClass = (list, pax, id) => id === "auto" ? list.find(c => c.seats >= pax) : list.find(c => c.id === id && c.seats >= pax);
 
@@ -4835,9 +4865,9 @@ function charterPage(kind){
       <div class="card stack"><h3>${esc(t(isJet ? "aircraft_class" : "heli_type"))}</h3>${classCards(kind, isJet ? JETS : HELIS, q)}</div>
       <div class="card stack"><h3>${esc(t("contact_details"))}</h3>
         <div class="sgrid sgrid-2">
-          <label class="field"><span>${esc(t("your_name"))}</span><input data-bind="${kind}.name" value="${esc(q.name)}" autocomplete="name"></label>
+          <label class="field"><span>${esc(t("your_name"))}</span><input data-bind="${kind}.name" value="${esc(q.name)}" maxlength="${CH_NAME_MAX}" autocomplete="name"></label>
           <label class="field"><span>${esc(t("phone_label"))}</span><input type="tel" data-bind="${kind}.phone" value="${esc(q.phone || S.user?.phone || "")}" autocomplete="tel" placeholder="+998"></label></div>
-        <label class="field"><span>${esc(t("wishes"))}</span><textarea data-bind="${kind}.note" placeholder="${esc(t(isJet ? "jet_note_ph" : "heli_note_ph"))}">${esc(q.note)}</textarea></label>
+        <label class="field"><span>${esc(t("wishes"))}</span><textarea data-bind="${kind}.note" maxlength="${CH_NOTE_MAX}" placeholder="${esc(t(isJet ? "jet_note_ph" : "heli_note_ph"))}">${esc(q.note)}</textarea></label>
         <div class="err" id="cherr" hidden></div></div>
     </div>
     <aside class="card sticky stack">${hasPhoto(charterPhotoKey(kind, q)) ? `<div class="aside-ph">${photo(charterPhotoKey(kind, q), { w:640, sizes:"(max-width:900px) 100vw, 360px", eager:true, deco:true })}</div>` : ""}<span class="lbl">${esc(t("estimate"))}</span>
@@ -4866,6 +4896,8 @@ function sendCharterRequest(kind){
   if (q.date < TODAY) return showErr("#cherr", t("err_date_past"));
   if (!e) return showErr("#cherr", t("no_aircraft"));
   if (q.name.trim().length < 2) return showErr("#cherr", t("err_your_name"));
+  if (q.name.trim().length > CH_NAME_MAX) return showErr("#cherr", tf("err_name_long", { n:CH_NAME_MAX }));
+  if ((q.note || "").length > CH_NOTE_MAX) return showErr("#cherr", tf("err_note_long", { n:CH_NOTE_MAX }));
   if (!validPhone(phone)) return showErr("#cherr", t("err_contact"));
   if (phoneBlocked(phone)) return showErr("#cherr", t("err_blocked"));
   const title = isJet ? `${cityName(q.from)} → ${cityName(q.to)}` : heliName(q.to);
@@ -4907,6 +4939,8 @@ function charterVoucherBody(o){
 
 const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["uzum","Uzum","#7C3AED"],["humo","Uzcard / Humo","#12996A"],["card","Visa / Mastercard","#2F6FE0"]];
 // cash — оплата в офисе: заказ оформил сотрудник в админке (admin/43-order-new.js).
+/* Возврат клиенту сайта: на карту, а за заказ, оплаченный в офисе наличными, — наличными в офисе. */
+const siteRefundKey = o => o.method === "cash" ? (o.refund?.done ? "site_refund_cash_done" : "site_refund_cash_wait") : (o.refund?.done ? "site_refund_done" : "site_refund_wait");
 const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
@@ -4965,7 +4999,7 @@ PAGES.checkout = {
           ${c.mode === "full" ? `<p class="secure">${IC.lock}<span>${esc(t("secure_note"))}</span></p>` : ""}</div>
         <div class="card stack"><h3>${esc(t("contact_details"))}</h3><div class="sgrid sgrid-2">
           <label class="field"><span>${esc(t("contact_phone"))}</span><input data-ct="phone" type="tel" value="${esc(c.contact.phone)}" autocomplete="tel" placeholder="+998"></label>
-          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" value="${esc(c.contact.email)}" autocomplete="email"></label></div>
+          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" maxlength="${EMAIL_MAX}" value="${esc(c.contact.email)}" autocomplete="email"></label></div>
           <div class="err" id="cerr" hidden></div></div>
         <div class="card stack"><h3>${esc(t("pay_method"))}</h3>${payMethods("cmethod", c.method)}</div>
       </div>
@@ -5127,8 +5161,8 @@ const hist = (o, s) => o.history.push({ s, at:Date.now() });
 function orderTitle(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${cityName(d.out.from)} → ${cityName(d.out.to)}${d.back ? " → " + cityName(d.back.to) : ""}`;
-  if (o.type === "TOUR")   return hotelById(d.hotelId) ? `${hotelById(d.hotelId).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
-  if (o.type === "HOTEL")  return hotelById(d.hotelId)?.name || o.title || d.hotelId;
+  if (o.type === "TOUR")   return orderHotel(o) ? `${orderHotel(o).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
+  if (o.type === "HOTEL")  return orderHotel(o)?.name || o.title || d.hotelId;
   if (o.type === "JET")    return `${cityName(d.from)} → ${cityName(d.to)}`;
   return heliName(d.to);
 }
@@ -5136,7 +5170,7 @@ function orderSub(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${fdateY(d.out.date)}${d.back ? " — " + fdateY(d.back.date) : ""} · ${pl(d.q.adults + d.q.children + d.q.infants, "pax")}`;
   if (o.type === "TOUR")   return `${fdateY(d.depart)} — ${fdateY(addDays(d.depart, d.nights))} · ${pl(d.nights, "night")} · ${pl(d.adults + d.children, "tourist")}`;
-  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
+  if (o.type === "HOTEL")  return `${cityName(orderHotel(o)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
   return `${fdateY(d.date)}, ${d.time} · ${pl(d.pax, "pax")} · ${d.model}`;
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
@@ -5150,10 +5184,11 @@ function orderLines(o){
 function orderLinesBase(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
-  // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
-  if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { px:d.px, out:d.out, back:d.back }), q); }
-  if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
+  // Отель — из снимка заказа (orderHotel); нет ни снимка, ни отеля в каталоге — одна строка на всю сумму.
+  const h = (o.type === "TOUR" || o.type === "HOTEL") ? orderHotel(o) : null;
+  if ((o.type === "TOUR" || o.type === "HOTEL") && !h) return [[o.title || t("doc_" + o.type), o.total]];
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(h, q, { px:d.px, out:d.out, back:d.back }), q); }
+  if (o.type === "HOTEL") { const r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];
 }
@@ -5753,8 +5788,10 @@ const brandReqErr = b => b.acc && !BRAND_ACC.test(digits(b.acc)) ? ["err_brand_a
 const brandDoc = (st = S) => ({ ...st.brand, legal:st.agency?.legal || "", inn:st.agency?.inn || "" });
 function brandReq(b){
   const acc = digits(b.acc || ""), mfo = digits(b.mfo || "");
-  const parts = [b.legal, b.inn && `${t("req_inn")} ${b.inn}`, b.bank, BRAND_ACC.test(acc) && `${t("req_acc")} ${acc}`, BRAND_MFO.test(mfo) && `${t("req_mfo")} ${mfo}`].filter(Boolean);
-  return parts.length ? `<span class="bd-req">${parts.map(esc).join(" · ")}</span>` : "";
+  // Подпись и число — неразрывно: «р/с» на одной строке, а счёт на другой читались бы как обрывки.
+  const nw = (label, v) => `<span class="req-nw">${esc(label)}\u00a0${esc(v)}</span>`;
+  const parts = [b.legal && esc(b.legal), b.inn && nw(t("req_inn"), b.inn), b.bank && esc(b.bank), BRAND_ACC.test(acc) && nw(t("req_acc"), acc), BRAND_MFO.test(mfo) && nw(t("req_mfo"), mfo)].filter(Boolean);
+  return parts.length ? `<span class="bd-req">${parts.join(" · ")}</span>` : "";
 }
 function brandFoot(b = brandDoc()){
   return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}${brandReq(b)}</div>
@@ -5914,7 +5951,7 @@ function tripRoute(o){
   if (o.type === "FLIGHT") return { local:false, from:d.out.from, to:d.out.to };
   if (o.type === "JET")    return { local:false, from:d.from, to:d.to };
   if (o.type === "TOUR")   return { local:false, from:"TAS", to:d.to };
-  return { local:false, from:"TAS", to:hotelById(d.hotelId)?.city || d.to || "IST" };
+  return { local:false, from:"TAS", to:orderHotel({ details:d })?.city || d.to || "IST" };
 }
 const selectedTrip = () => { const trips = upcomingTrips(); return trips.find(o => o.id === M.ui.trip) || trips[0] || null; };
 
@@ -6094,7 +6131,7 @@ PAGES.checkout = {
           ${c.mode === "full" ? `<p class="secure">${IC.lock}<span>${esc(t("secure_note"))}</span></p>` : ""}</div>
         <div class="card stack"><h3>${esc(t("client_contact"))}</h3><p class="muted small">${esc(t("client_contact_d"))}</p><div class="sgrid sgrid-2">
           <label class="field"><span>${esc(t("contact_phone"))}</span><input data-ct="phone" type="tel" value="${esc(c.contact.phone)}" autocomplete="off" placeholder="+998"></label>
-          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" value="${esc(c.contact.email)}" autocomplete="off"></label></div>
+          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" maxlength="${EMAIL_MAX}" value="${esc(c.contact.email)}" autocomplete="off"></label></div>
           <div class="err" id="cerr" hidden></div></div>
         ${balanceBlock(due)}
       </div>
@@ -6522,7 +6559,7 @@ function clientEditor(){
       ${f("dob", t("dob"), `type="date" max="${TODAY}"`)}
       ${f("expiry", t("expiry"), `type="date" min="${TODAY}"`)}
       ${f("phone", t("phone_label"), 'type="tel" autocomplete="off" placeholder="+998"')}
-      ${f("email", t("email_opt"), 'type="email" autocomplete="off"')}
+      ${f("email", t("email_opt"), `type="email" maxlength="${EMAIL_MAX}" autocomplete="off"`)}
     </div>
     <div class="err" id="clerr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="clsave">${esc(t("client_save"))}</button>
@@ -6653,7 +6690,9 @@ const brandPreview = () => { const o = brandSample(); return o ? orderDocument(o
 
 PAGES.brand = {
   render(){
-    const b = S.brand, f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-br="${k}" value="${esc(b[k] || "")}" ${extra}></label>`;
+    // Счёт или МФО неправильного вида — ошибка у поля и после перерисовки (язык, переход): иначе документ молча печатался бы без них.
+    const rq = brandReqErr(S.brand), bad = k => rq?.[1] === k ? 'aria-invalid="true" aria-describedby="breqerr"' : "";
+    const b = S.brand, f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-br="${k}" value="${esc(b[k] || "")}" ${extra} ${bad(k)}></label>`;
     return `<div class="page">
       <div class="pagehead"><h1>${esc(t("nav_brand"))}</h1><p class="muted">${esc(t("brand_sub"))}</p></div>
       <div class="brandgrid"><div class="stack">
@@ -6666,14 +6705,14 @@ PAGES.brand = {
           <div class="err" id="berr" hidden></div></section>
         <section class="card stack"><h2>${esc(t("brand_details"))}</h2>
           ${f("name", t("brand_name"), 'maxlength="40" autocomplete="organization"')}
-          <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
+          <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", `type="email" maxlength="${EMAIL_MAX}"`)}</div>
           <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
           <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
         <section class="card stack" id="breq"><h2>${esc(t("brand_req_h"))}</h2>
           <p class="muted small">${esc(tf("brand_req_d", { legal:S.agency.legal || S.agency.name, inn:S.agency.inn || "—" }))}</p>
           ${f("bank", t("brand_bank"), 'maxlength="60" autocomplete="off"')}
           <div class="sgrid sgrid-2">${f("acc", t("brand_acc"), 'class="mono" inputmode="numeric" maxlength="24" autocomplete="off" placeholder="20208000…"')}${f("mfo", t("brand_mfo"), 'class="mono" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="00440"')}</div>
-          <div class="err" id="breqerr" hidden></div></section>
+          <div class="err" id="breqerr" aria-live="polite" ${rq ? "" : "hidden"}>${rq ? esc(t(rq[0])) : ""}</div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}
@@ -6695,14 +6734,20 @@ document.addEventListener("input", e => {
   const k = e.target.dataset?.br; if (!k) return;
   S.brand[k] = k === "name" ? e.target.value.slice(0, 40) : e.target.value;
   if (k === "color") e.target.parentElement.style.setProperty("--c", e.target.value);
-  // Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
-  if (k === "acc" || k === "mfo") {
-    const err = brandReqErr(S.brand);
-    for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
-    if (err) showErr("#breqerr", t(err[0])); else hideErr("#breqerr");
-  }
+  if (k === "acc" || k === "mfo") brandReqNote();
   save(); brandRefresh();
 });
+/* Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
+   Пока человек печатает, подсказка тихая (aria-live="polite", текст меняется, только когда меняется
+   ошибка): без role="alert", встряски и прокрутки на каждую цифру. */
+function brandReqNote(){
+  const err = brandReqErr(S.brand), box = $("#breqerr");
+  for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
+  if (!box) return;
+  const msg = err ? t(err[0]) : "";
+  if (box.textContent !== msg) box.textContent = msg;
+  box.hidden = !err;
+}
 document.addEventListener("change", e => {
   if (e.target.dataset?.br === "color") rerender();
   if (e.target.id === "blogo") readLogo(e.target.files?.[0]);

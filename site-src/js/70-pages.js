@@ -119,7 +119,7 @@ PAGES["orders/:id"] = {
     // Отменённый заказ — без билета и QR: документ больше не действует.
     else if (st === "CANCELLED" || st === "REFUNDED") main = `<div class="card stack"><h3>${esc(t("site_cancel_h"))}</h3><p class="muted">${esc(t("site_cancel_d"))}</p>
         ${o.refund ? `<div class="rows"><div><span class="k">${esc(tf("site_penalty", { p:Math.round(o.refund.rate * 100) }))}</span><span class="v mono">−${grp(o.refund.penalty)} ${esc(t("cur_uzs"))}</span></div>
-          <div class="tot"><span class="k">${esc(t(o.refund.done ? "site_refund_done" : "site_refund_wait"))}</span><span class="v">${grp(o.refund.uzs)} ${esc(t("cur_uzs"))}</span></div></div>` : ""}</div>`;
+          <div class="tot"><span class="k">${esc(t(siteRefundKey(o)))}</span><span class="v">${grp(o.refund.uzs)} ${esc(t("cur_uzs"))}</span></div></div>` : ""}</div>`;
     else main = orderDocument(o);
 
     let req = "";

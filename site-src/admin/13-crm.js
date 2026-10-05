@@ -189,7 +189,9 @@ function b2cClients(){
   for (const [k, v] of Object.entries(O.crm.clients)) if (k.startsWith("c:") && v.phone) add(v.phone, v.name, v.at);
   return [...map.values()].map(c => {
     const d = clientData("c:" + c.key) || {};
-    const src = d.source || [...c.leads].sort((a, b) => a.createdAt - b.createdAt)[0]?.source || (c.orders.length ? "site" : "other");
+    // Без лида источник — по первому заказу: оформлен в офисе (43-order-new.js) — «Визит в офис», иначе сайт.
+    const first = [...c.orders].sort((a, b) => a.createdAt - b.createdAt)[0];
+    const src = d.source || [...c.leads].sort((a, b) => a.createdAt - b.createdAt)[0]?.source || (first ? (first.channel === "office" ? "walk_in" : "site") : "other");
     // Данные CRM главнее: пустое значение, которое сотрудник поставил сам, не подменяется данными из лида.
     return { ...c, name:d.name || c.name, email:d.email !== undefined ? d.email : c.orders.find(o => o.contact?.email)?.contact.email || c.leads.find(l => l.email)?.email || "",
       country:d.country !== undefined ? d.country : c.leads.find(l => l.country)?.country || "", source:src, manager:"manager" in d ? d.manager : c.leads.find(l => l.manager)?.manager || null,

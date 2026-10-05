@@ -17,7 +17,7 @@ const blankDir = () => ({ iata:"", city:{ ru:"", uz:"", en:"" }, country:{ ru:""
 const dirsSaved = () => loadDirections();
 /* Сколько заказов уже ведут в направление: удалять такое нельзя, только скрыть. */
 function ordersTo(code){
-  const hits = o => { const d = o.details || {}; return [d.from, d.to, d.out?.from, d.out?.to, d.back?.from, d.back?.to, hotelById(d.hotelId)?.city].includes(code); };
+  const hits = o => { const d = o.details || {}; return [d.from, d.to, d.out?.from, d.out?.to, d.back?.from, d.back?.to, d.hotelId ? orderHotel(o)?.city : null].includes(code); };
   return allOrders().filter(r => hits(r.o)).length;
 }
 const flightHours = d => { const km = distanceKm(COORDS.TAS, [d.lat, d.lon]); return { km:Math.round(km), min:Math.round(km / CRUISE_KMH * 60 + TAXI_MIN) }; };
@@ -38,7 +38,8 @@ function dirForm(){
   return `<section class="card stack cl-edit" id="diredit"><div class="card-h"><h2>${esc(d.edit ? tf("dir_edit_of", { city:d.city[S.lang] || d.city.ru }) : t("dir_new"))}</h2>
       <button type="button" class="iconbtn" data-act="dirclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
     <div class="sgrid sgrid-3">
-      ${txt("iata", t("dir_iata"), `class="upper mono" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DPS" ${lock ? "readonly aria-describedby=\"dirlock\"" : ""}`)}
+      <div class="stack dir-iata" style="gap:4px">${txt("iata", t("dir_iata"), `class="upper mono" maxlength="3" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="DPS" ${lock ? "readonly aria-describedby=\"dirlock\"" : ""}`)}
+        ${lock ? `<p class="muted small" id="dirlock">${esc(t("dir_locked"))}</p>` : ""}</div>
       ${txt("lat", t("dir_lat"), 'inputmode="decimal" placeholder="-8.7482"')}${txt("lon", t("dir_lon"), 'inputmode="decimal" placeholder="115.1672"')}
       ${txt("city.ru", t("dir_city") + " · RU", `placeholder="Бали" maxlength="${NAME_MAX}"`)}${txt("city.uz", t("dir_city") + " · UZ", `placeholder="Bali" maxlength="${NAME_MAX}"`)}${txt("city.en", t("dir_city") + " · EN", `placeholder="Bali" maxlength="${NAME_MAX}"`)}
       ${txt("country.ru", t("dir_country") + " · RU", `placeholder="Индонезия" maxlength="${NAME_MAX}"`)}${txt("country.uz", t("dir_country") + " · UZ", `placeholder="Indoneziya" maxlength="${NAME_MAX}"`)}${txt("country.en", t("dir_country") + " · EN", `placeholder="Indonesia" maxlength="${NAME_MAX}"`)}
@@ -48,7 +49,6 @@ function dirForm(){
       <p class="muted small dir-est">${est ? esc(tf("dir_est", { km:grp(est.km), time:dur(est.min) })) : esc(t("dir_est_none"))}</p></div>
     <label class="chk"><input type="checkbox" data-dir="popular" ${d.popular ? "checked" : ""}><span>${esc(t("dir_popular"))}</span></label>
     <label class="chk"><input type="checkbox" data-dir="resort" ${d.resort ? "checked" : ""} ${lock && d.hotels0 ? "disabled" : ""}><span>${esc(t("dir_resort"))}</span></label>
-    ${lock ? `<p class="muted small" id="dirlock">${esc(t("dir_locked"))}</p>` : ""}
     ${d.resort ? `<div class="stack dir-hotels"><h3>${esc(t("dir_hotels"))}</h3><p class="muted small">${esc(t("dir_hotels_d"))}</p>
       ${d.hotels.map((h, i) => `<fieldset class="dir-hotel-set"><legend class="sr-only">${esc(tf("dir_hotel_n", { n:i + 1 }))}</legend><div class="sgrid dir-hotel">
         <label class="field"><span>${esc(t("hotel"))}</span><input data-dh="${i}.name" value="${esc(h.name)}" maxlength="50" placeholder="Ubud Garden Resort"></label>
@@ -100,7 +100,8 @@ PAGES.directions = {
         <div id="dirlist">${dirList()}</div></div>
       <p class="muted small" style="margin-top:12px">${esc(t("directions_note"))}</p></div>`;
   },
-  after(){ if (M.ui.dirDraft && M.ui.dirFocus) { $("#diredit [data-dir=iata]")?.focus(); M.ui.dirFocus = false; } }
+  // Код закреплён (по направлению есть заказы) — фокус на первое поле, которое можно править.
+  after(){ if (M.ui.dirDraft && M.ui.dirFocus) { $(M.ui.dirDraft.edit && M.ui.dirDraft.locked ? "#diredit [data-dir=lat]" : "#diredit [data-dir=iata]")?.focus(); M.ui.dirFocus = false; } }
 };
 
 /* ---- проверка и сохранение ---- */
@@ -128,14 +129,21 @@ function dirError(x, d0 = null){
     if (i >= 0) return { key:"err_dir_hotels", hotel:`${i}.${x.hotels[i].name.length < 3 ? "name" : "base"}` }; }
   return null;
 }
-function saveDirs(list, action, vars, diff){
-  writeJSON(DIRS_KEY, list); applyDirections();
-  change(() => audit(action, vars, { diff }));
+/* code — правка направления: заказам в его отели без снимка отеля (оформлены
+   до снимков, см. orderHotel) сначала пишем снимок по каталогу до правки —
+   иначе новое название и цена за ночь попали бы в их чек и ваучер. */
+function saveDirs(list, action, vars, diff, code = null){
+  change(() => { if (code) snapDirOrders(code); writeJSON(DIRS_KEY, list); applyDirections(); audit(action, vars, { diff }); });
+}
+function snapDirOrders(code){
+  for (const r of allOrders()) { const d = r.o.details, h = d?.hotelId && !okHotelSnap(d.hotel) ? hotelById(d.hotelId) : null;
+    if (h?.custom && h.city === code) mutOrder(r, o => { o.details = { ...o.details, hotel:hotelSnap(h) }; }); }
 }
 const DIR_SHOWN = () => [{ k:"col_status", from:strRef("dir_hidden"), to:strRef("dir_visible") }], DIR_HID = () => [{ k:"col_status", from:strRef("dir_visible"), to:strRef("dir_hidden") }];
 Object.assign(ACT, {
   dirnew:   () => { if (denied("services.create")) return; M.ui.dirDraft = blankDir(); M.ui.dirFocus = true; rerender(); },
-  dirclose: () => { M.ui.dirDraft = null; rerender(); },
+  dirclose: () => { const code = M.ui.dirDraft?.edit; M.ui.dirDraft = null; rerender();
+    (code ? $(`[data-act="diredit"][data-v="${CSS.escape(code)}"]`) : $('[data-act="dirnew"]'))?.focus(); },
   dircolor: el => { M.ui.dirDraft.color = Number(el.dataset.v); rerender(); },
   dirhoteladd: () => { const h = M.ui.dirDraft.hotels; h.push(blankHotel()); rerender(); $(`[data-dh="${h.length - 1}.name"]`)?.focus(); },
   dirhoteldel: el => { M.ui.dirDraft.hotels.splice(Number(el.dataset.v), 1); rerender(); ($('[data-act="dirhoteladd"]') || $('[data-dh="0.name"]'))?.focus(); },
@@ -155,7 +163,7 @@ Object.assign(ACT, {
     if (d0) {
       const diff = dirDiff(d0, x);
       if (diff.length) saveDirs(dirsSaved().map(d => d.iata === d0.iata ? { ...d, ...x, hidden:d.hidden, by:d.by, at:d.at, editedBy:me().name, editedAt:Date.now() } : d),
-        "dir_edit", { city:x.city, iata:x.iata }, diff);
+        "dir_edit", { city:x.city, iata:x.iata }, diff, d0.iata);
       M.ui.dirDraft = null; rerender(); toast(diff.length ? tf("t_dir_edit", { city:x.city[S.lang] || x.city.ru }) : t("role_same"));
       return $(`[data-act="diredit"][data-v="${x.iata}"]`)?.focus();
     }

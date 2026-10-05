@@ -8,6 +8,8 @@
 
 const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["uzum","Uzum","#7C3AED"],["humo","Uzcard / Humo","#12996A"],["card","Visa / Mastercard","#2F6FE0"]];
 // cash — оплата в офисе: заказ оформил сотрудник в админке (admin/43-order-new.js).
+/* Возврат клиенту сайта: на карту, а за заказ, оплаченный в офисе наличными, — наличными в офисе. */
+const siteRefundKey = o => o.method === "cash" ? (o.refund?.done ? "site_refund_cash_done" : "site_refund_cash_wait") : (o.refund?.done ? "site_refund_done" : "site_refund_wait");
 const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
@@ -66,7 +68,7 @@ PAGES.checkout = {
           ${c.mode === "full" ? `<p class="secure">${IC.lock}<span>${esc(t("secure_note"))}</span></p>` : ""}</div>
         <div class="card stack"><h3>${esc(t("contact_details"))}</h3><div class="sgrid sgrid-2">
           <label class="field"><span>${esc(t("contact_phone"))}</span><input data-ct="phone" type="tel" value="${esc(c.contact.phone)}" autocomplete="tel" placeholder="+998"></label>
-          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" value="${esc(c.contact.email)}" autocomplete="email"></label></div>
+          <label class="field"><span>${esc(t("email_opt"))}</span><input data-ct="email" type="email" maxlength="${EMAIL_MAX}" value="${esc(c.contact.email)}" autocomplete="email"></label></div>
           <div class="err" id="cerr" hidden></div></div>
         <div class="card stack"><h3>${esc(t("pay_method"))}</h3>${payMethods("cmethod", c.method)}</div>
       </div>
@@ -228,8 +230,8 @@ const hist = (o, s) => o.history.push({ s, at:Date.now() });
 function orderTitle(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${cityName(d.out.from)} → ${cityName(d.out.to)}${d.back ? " → " + cityName(d.back.to) : ""}`;
-  if (o.type === "TOUR")   return hotelById(d.hotelId) ? `${hotelById(d.hotelId).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
-  if (o.type === "HOTEL")  return hotelById(d.hotelId)?.name || o.title || d.hotelId;
+  if (o.type === "TOUR")   return orderHotel(o) ? `${orderHotel(o).name} · ${cityName(d.to)}` : o.title || cityName(d.to);
+  if (o.type === "HOTEL")  return orderHotel(o)?.name || o.title || d.hotelId;
   if (o.type === "JET")    return `${cityName(d.from)} → ${cityName(d.to)}`;
   return heliName(d.to);
 }
@@ -237,7 +239,7 @@ function orderSub(o){
   const d = o.details;
   if (o.type === "FLIGHT") return `${fdateY(d.out.date)}${d.back ? " — " + fdateY(d.back.date) : ""} · ${pl(d.q.adults + d.q.children + d.q.infants, "pax")}`;
   if (o.type === "TOUR")   return `${fdateY(d.depart)} — ${fdateY(addDays(d.depart, d.nights))} · ${pl(d.nights, "night")} · ${pl(d.adults + d.children, "tourist")}`;
-  if (o.type === "HOTEL")  return `${cityName(hotelById(d.hotelId)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
+  if (o.type === "HOTEL")  return `${cityName(orderHotel(o)?.city || "")} · ${fdateY(d.checkin)} — ${fdateY(d.checkout)} · ${pl(d.nights, "night")}`;
   return `${fdateY(d.date)}, ${d.time} · ${pl(d.pax, "pax")} · ${d.model}`;
 }
 function effStatus(o){ return o.status === "CONFIRMED" && o.end < TODAY ? "COMPLETED" : o.status; }
@@ -251,10 +253,11 @@ function orderLines(o){
 function orderLinesBase(o){
   const d = o.details;
   if (o.type === "FLIGHT") return flightLines(d.out, d.back, { ...d.q }).lines;
-  // Отеля уже нет в каталоге — одна строка на всю сумму заказа.
-  if ((o.type === "TOUR" || o.type === "HOTEL") && !hotelById(d.hotelId)) return [[o.title || t("doc_" + o.type), o.total]];
-  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(hotelById(d.hotelId), q, { px:d.px, out:d.out, back:d.back }), q); }
-  if (o.type === "HOTEL") { const h = hotelById(d.hotelId), r = ROOM_TYPES.find(x => x.id === d.room);
+  // Отель — из снимка заказа (orderHotel); нет ни снимка, ни отеля в каталоге — одна строка на всю сумму.
+  const h = (o.type === "TOUR" || o.type === "HOTEL") ? orderHotel(o) : null;
+  if ((o.type === "TOUR" || o.type === "HOTEL") && !h) return [[o.title || t("doc_" + o.type), o.total]];
+  if (o.type === "TOUR")  { const q = { to:d.to, depart:d.depart, nights:d.nights, adults:d.adults, children:d.children }; return tourLines(tourPackage(h, q, { px:d.px, out:d.out, back:d.back }), q); }
+  if (o.type === "HOTEL") { const r = ROOM_TYPES.find(x => x.id === d.room);
     return [[`${t("room_" + r.id)} × ${pl(d.rooms, "room")} · ${pl(d.nights, "night")}`, o.total]]; }
   return [[`${d.model} · ${hoursText(d.hours)}`, o.total]];
 }

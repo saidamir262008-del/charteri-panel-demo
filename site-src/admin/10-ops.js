@@ -21,7 +21,9 @@ let O = null, SITE = null;
 const me = () => O?.staff.find(s => s.id === O.session?.staffId && s.active !== false) || null;
 const activeStaff = () => O.staff.filter(s => s.active !== false).sort(byRank);
 /* Кнопка без права не прячется: она выключена и подписана «нет прав». */
-const guard = p => can(p) ? "" : `disabled aria-disabled="true" title="${esc(t("no_rights"))}" data-nr="${esc(t("no_rights_short"))}"`;
+/* Кнопка без прав: выключена, с подсказкой и пометкой «нет прав». guardOff — когда нужно несколько прав сразу. */
+const guardOff = () => `disabled aria-disabled="true" title="${esc(t("no_rights"))}" data-nr="${esc(t("no_rights_short"))}"`;
+const guard = p => can(p) ? "" : guardOff();
 const denied = p => { if (can(p)) return false; toast(t("no_rights")); return true; };
 
 /* Короткое объявление для экранного диктора без всплывающего сообщения:

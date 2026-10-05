@@ -46,10 +46,10 @@ function promoSection(f, dis){
 /* Корзина: удалённые промокоды и акции — восстановить одним нажатием. */
 function promoTrash(trash, dis){
   return `<details class="pm-trash" id="pmtrash" ${M.ui.pmTrash ? "open" : ""}><summary>${esc(tf("pm_trash_n", { n:trash.length }))}</summary>
-    <div class="atable" style="--cols:minmax(0,1.6fr) 90px minmax(0,1.3fr) auto">
-      ${trash.map(x => `<div class="arow past"><span class="a-main"><b class="${x.auto ? "" : "mono"}">${esc(x.auto ? t("pm_auto_short") : x.code)}</b><span class="small muted">${esc(x.name)}</span></span>
+    <div class="atable" style="--cols:minmax(0,2.6fr) 90px auto">
+      ${trash.map(x => `<div class="arow pm-del"><span class="a-main"><b class="${x.auto ? "" : "mono"}">${esc(x.auto ? t("pm_auto_short") : x.code)}</b><span class="small muted">${esc(x.name)}</span>
+          <span class="small muted">${esc(tf("pm_deleted_at", { date:fdt(x.deleted) }))}</span></span>
         <span class="a-cell mono a-sub">${esc(promoValue(x))}</span>
-        <span class="a-cell small muted">${esc(tf("pm_deleted_at", { date:fdt(x.deleted) }))}</span>
         <span class="a-end">${dis ? "" : `<button type="button" class="link" data-act="pmrestore" data-v="${esc(x.id)}" aria-label="${esc(t("pm_restore"))}: ${esc(x.code || x.name)}">${esc(t("pm_restore"))}</button>`}</span></div>`).join("")}</div>
     <p class="muted small">${esc(t("pm_trash_d"))}</p></details>`;
 }

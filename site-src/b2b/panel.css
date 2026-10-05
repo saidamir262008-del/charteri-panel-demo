@@ -233,7 +233,9 @@ a.orow:hover + .orow{box-shadow:none}
 .bd-top .v-kind{color:inherit;opacity:.78;white-space:nowrap}
 .bd-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
 .bd-foot b{color:var(--ink);font-size:13.5px}
+/* Реквизиты: название банка и юрлица переносятся где угодно, а «р/с 2020…» и «МФО 00440» — целиком, без разрыва подписи и числа. */
 .bd-req{font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
+.bd-req .req-nw{white-space:nowrap;overflow-wrap:normal}
 .bd-pw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);white-space:nowrap}
 .bd-pw .wordmark{font-size:10.5px}
 .bdoc{display:flex;flex-direction:column;gap:14px}

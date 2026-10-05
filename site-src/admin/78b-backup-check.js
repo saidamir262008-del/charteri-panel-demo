@@ -24,6 +24,11 @@ const bkStr = (v, re) => typeof v === "string" && re.test(v);
 const bkInt = (v, lo, hi) => Number.isInteger(v) && v >= lo && v <= hi;
 const bkSum = x => x == null || (bkObj(x) && Number.isFinite(x.usd) && Number.isSafeInteger(x.uzs));
 const bkText = (v, max) => v == null || (typeof v === "string" && v.length <= max);
+/* Свободный текст, который вводят посетители и сотрудники (имя в заявке на
+   чартер, пожелания, почта): его выводят через esc, длину ограничивают поля
+   ввода. В копии длину не проверяем — запись из старых данных или с другим
+   пределом не должна делать невосстановимой всю копию; предел — размер файла. */
+const BK_FREE = BACKUP_MAX;
 /* Строки деталей заказа берутся из каталога и поиска — в них не бывает
    разметки и кавычек. Дерево из чисел, булевых и таких строк: даже там, где
    вывод забыли экранировать, файл не вставит свой тег или атрибут. */
@@ -43,19 +48,21 @@ const bkLeg = l => bkObj(l) && bkStr(l.from, BK_IATA) && bkStr(l.to, BK_IATA) &&
 const bkPax = d => bkInt(d.adults, 0, 9) && bkInt(d.children, 0, 9) && d.adults + d.children > 0;
 const bkCharter = d => ["jet", "heli"].includes(d.kind) && bkStr(d.from, BK_IATA) && bkStr(d.to, d.kind === "jet" ? BK_IATA : /^[a-z0-9_-]{2,30}$/)
   && bkStr(d.date, BK_DATE) && bkStr(d.time, BK_HM) && bkInt(d.pax, 1, 30) && ["oneway", "roundtrip"].includes(d.trip) && Number.isFinite(d.hours)
-  && [d.low, d.high, d.quote].every(x => x && bkSum(x)) && bkText(d.note, 1000) && bkPlain({ ...d, note:null });
+  && [d.low, d.high, d.quote].every(x => x && bkSum(x)) && bkText(d.note, BK_FREE) && bkPlain({ ...d, note:null });
+/* Снимок отеля в заказе (orderHotel): название и район выводятся через esc. */
+const bkHotelSnap = h => h == null || (okHotelSnap(h) && bkInt(h.stars, 0, 5) && Object.keys(h).every(k => HOTEL_SNAP.includes(k)));
 const BK_DETAILS = {
   FLIGHT: d => bkLeg(d.out) && (d.back == null || bkLeg(d.back)) && bkObj(d.q) && bkPax(d.q) && bkInt(d.q.infants, 0, 9) && bkPlain(d.q),
   TOUR:   d => bkStr(d.hotelId, BK_ID) && bkStr(d.to, BK_IATA) && bkStr(d.depart, BK_DATE) && bkInt(d.nights, 1, 60) && bkPax(d) && bkInt(d.rooms, 1, 9)
-                && bkLeg(d.out) && bkLeg(d.back) && (d.px == null || bkPlain(d.px)),
+                && bkLeg(d.out) && bkLeg(d.back) && (d.px == null || bkPlain(d.px)) && bkHotelSnap(d.hotel),
   HOTEL:  d => bkStr(d.hotelId, BK_ID) && ROOM_TYPES.some(r => r.id === d.room) && bkStr(d.checkin, BK_DATE) && bkStr(d.checkout, BK_DATE)
-                && bkInt(d.nights, 1, 60) && bkPax(d) && bkInt(d.rooms, 1, 9),
+                && bkInt(d.nights, 1, 60) && bkPax(d) && bkInt(d.rooms, 1, 9) && bkHotelSnap(d.hotel),
   JET:    d => d.kind === "jet" && bkCharter(d),
   HELI:   d => d.kind === "heli" && bkCharter(d)
 };
-/* Путешественник заказа и клиент агентства: строки ограниченной длины (их
-   выводят через esc), id клиента — как у приложения. */
-const bkPerson = x => bkObj(x) && Object.values(x).every(v => v == null || typeof v === "boolean" || (typeof v === "string" && v.length <= 120));
+/* Путешественник заказа и клиент агентства: строки (их выводят через esc), id
+   клиента — как у приложения. */
+const bkPerson = x => bkObj(x) && Object.values(x).every(v => v == null || typeof v === "boolean" || bkText(v, BK_FREE));
 const bkClient = c => bkPerson(c) && bkStr(c.id, BK_ID);
 const bkRefund = r => r == null || (bkObj(r) && Number.isSafeInteger(r.uzs) && validTs(r.at) && (r.penalty == null || Number.isSafeInteger(r.penalty)) && (r.rate == null || Number.isFinite(r.rate)));
 /* Заказ рисуется: заголовок, подзаголовок, чек, документ. Упал — запись битая. */
@@ -66,8 +73,8 @@ function bkRenders(o){
 const bkOrder = o => bkObj(o) && BK_ID.test(o.id) && typeof o.no === "string" && BK_NO.test(o.no) && SVC_TYPES.includes(o.type) && BK_STATUS.includes(o.status)
   && validTs(o.createdAt) && (!o.paidAt || validTs(o.paidAt)) && bkSum(o.total) && bkSum(o.fee) && bkSum(o.gross) && bkObj(o.details) && BK_DETAILS[o.type](o.details)
   && bkStr(o.start, BK_DATE) && bkStr(o.end, BK_DATE) && bkText(o.title, 300) && bkText(o.sub, 300)
-  && (o.clientId == null || bkStr(o.clientId, BK_ID)) && (o.method == null || bkStr(o.method, BK_WORD)) && bkRefund(o.refund)
-  && bkObj(o.contact) && bkText(o.contact.phone, 40) && bkText(o.contact.email, 120)
+  && (o.clientId == null || bkStr(o.clientId, BK_ID)) && (o.method == null || bkStr(o.method, BK_WORD)) && (o.channel == null || o.channel === "office") && bkRefund(o.refund)
+  && bkObj(o.contact) && bkText(o.contact.phone, 40) && bkText(o.contact.email, BK_FREE)
   && Array.isArray(o.travellers) && o.travellers.length > 0 && o.travellers.length <= 20 && o.travellers.every(bkPerson)
   && (o.history == null || (Array.isArray(o.history) && o.history.every(h => bkObj(h) && BK_STATUS.includes(h.s) && validTs(h.at))));
 const bkLedger = l => bkObj(l) && BK_ID.test(l.id) && BK_WORD.test(l.kind) && Number.isSafeInteger(l.amount) && validTs(l.at) && (l.orderId == null || BK_ID.test(l.orderId));
@@ -145,7 +152,10 @@ const BK_AREAS = {
   crm:     { need:"crm.edit",        ap:null,               err:"err_bk_crm" },
   crmDel:  { need:"crm.delete",      ap:null,               err:"err_bk_crm" },
   blocks:  { need:"b2c.manage",      ap:null,               err:"err_bk_blocks" },
-  ag:      { need:"b2b.manage",      ap:null,               err:"err_bk_ag" }
+  ag:      { need:"b2b.manage",      ap:null,               err:"err_bk_ag" },
+  agNew:   { need:"b2b.create",      ap:null,               err:"err_bk_ag_new" },
+  agEdit:  { need:"b2b.edit",        ap:null,               err:"err_bk_ag_edit" },
+  orders:  { need:"orders.edit",     ap:null,               err:"err_bk_orders" }
 };
 /* Разделы запроса; у запросов прошлой версии — только деньги и цены. */
 const bkAreasOf = p => p?.areas || { money:!!p?.money, prices:!!p?.prices };
@@ -173,6 +183,22 @@ function bkOrdersDiff(d, row){
   }
   return { money, max };
 }
+/* Данные агентства, которые вручную правят с правом «Агентства: правка»:
+   карточка (название, юрлицо, ИНН, контакты) и бренд с реквизитами (банк, р/с,
+   МФО) — они печатаются на документах. Пассажиры (с паспортами) и контакты
+   заказа — правка с правом «Заказы: правка». */
+const bkAgData = st => JSON.stringify([["name", "legal", "inn", "phone", "email"].map(k => st.agency?.[k] ?? null), st.brand ?? null]);
+const bkOrderData = o => JSON.stringify([o.travellers ?? null, o.contact ?? null]);
+function bkOrdersDataDiff(d, row){
+  const key = (src, o) => src + ":" + o.id, cur = new Map(allOrders().map(r => [key(r.src, r.o), r.o]));
+  let n = 0;
+  for (const [k, y] of [...d[CAB_KEY].orders.map(o => [key(LIVE_ID, o), o]), ...d[OPS_KEY].agencies.flatMap(a => a.orders.map(o => [key(a.id, o), o])),
+    ...(d[SITE_KEY]?.orders || []).map(o => [key("site", o), o])]) {
+    const x = cur.get(k); if (!x || bkOrderData(x) === bkOrderData(y)) continue;
+    if (n++ < 10) row("bk_d_order_data", "", strRef("bk_d_replaced"), y.no);
+  }
+  return n > 0;
+}
 /* CRM: лиды, задачи и комментарии — по id и стадии; блокировки клиентов — по номерам. */
 const bkCrmIds = c => ({ leads:c.leads.map(l => l.id + ":" + l.status + ":" + (l.manager || "")), tasks:c.tasks.map(x => x.id + ":" + !!x.done), notes:c.notes.map(x => x.id),
   blocked:Object.entries(c.clients).filter(([k, v]) => k.startsWith("c:") && v?.blocked).map(([k]) => k).sort() });
@@ -183,10 +209,13 @@ const bkGone = (a, b) => a.some(x => !b.includes(x.split(":")[0]));
 function backupDiff(bk){
   const d = bk.data, out = [], row = (k, from, to, sub) => out.push({ k, from, to, ...(sub ? { sub } : {}) });
   const areas = {};
-  const agOf = (id, st) => ({ id, name:st.agency?.name || id, bal:st.balance, credit:creditOf(st), active:st.agency?.status !== "blocked" });
+  const agOf = (id, st) => ({ id, name:st.agency?.name || id, bal:st.balance, credit:creditOf(st), active:st.agency?.status !== "blocked", data:bkAgData(st) });
   const cur = agencies().map(a => agOf(a.id, a.st)), next = [agOf(LIVE_ID, d[CAB_KEY]), ...d[OPS_KEY].agencies.map(a => agOf(a.id, a))];
   let moneyMax = 0;
-  if (cur.length !== next.length) { row("bk_d_agencies", String(cur.length), String(next.length)); areas.ag = true; }
+  if (cur.length !== next.length) row("bk_d_agencies", String(cur.length), String(next.length));
+  // Агентства — по id, а не по числу: копия, где одно агентство заменено другим, — удаление и заведение.
+  for (const x of cur) if (!next.some(y => y.id === x.id)) { row("bk_d_agency", x.name, ""); areas.ag = true; }
+  for (const y of next) if (!cur.some(x => x.id === y.id)) { row("bk_d_agency", "", y.name); areas.ag = true; areas.agNew = true; }
   for (const id of new Set([...cur, ...next].map(a => a.id))) {
     const x = cur.find(a => a.id === id), y = next.find(a => a.id === id), name = (y || x).name;
     for (const [k, f] of [["bk_d_balance", "bal"], ["bk_d_credit", "credit"]]) {
@@ -194,9 +223,11 @@ function backupDiff(bk){
       row(k, x ? uzsRef(a) : "", y ? uzsRef(b) : "", name); areas.money = true; moneyMax = Math.max(moneyMax, Math.abs(b - a));
     }
     if (x && y && x.active !== y.active) { row("col_status", strRef(x.active ? "ag_active" : "agency_blocked"), strRef(y.active ? "ag_active" : "agency_blocked"), name); areas.ag = true; }
+    if (x && y && x.data !== y.data) { row("bk_d_ag_data", "", strRef("bk_d_replaced"), name); areas.agEdit = true; }
   }
   const nOrders = allOrders().length; if (nOrders !== bk.counts.orders) row("bk_d_orders", String(nOrders), String(bk.counts.orders));
   const om = bkOrdersDiff(d, row); if (om.money) { areas.money = true; moneyMax = Math.max(moneyMax, om.max); }
+  if (bkOrdersDataDiff(d, row)) areas.orders = true;
   const pr = configDiff(prices(), pricesClean(d[PRICES_KEY] || {})); out.push(...pr); areas.prices = pr.length > 0;
   const sc = sysCfg(), sn = sysClean(d[SYS_KEY] ?? null);
   for (const part of Object.keys(SYS_PARTS)) out.push(...sysDiff(part, sc[part], sn[part]));
@@ -212,5 +243,8 @@ function backupDiff(bk){
   }
   if (js(ca.blocked) !== js(cb.blocked)) { row("bk_d_blocks", String(ca.blocked.length), String(cb.blocked.length)); areas.blocks = true; }
   for (const k of Object.keys(areas)) if (!areas[k]) delete areas[k];
-  return { diff:out, areas, moneyMax, money:!!areas.money, prices:!!areas.prices, dh:seedFrom(JSON.stringify(out)) };
+  // Контрольная сумма — по строкам и по нынешним данным агентств и заказов: правка, сделанная, пока
+  // запрос ждал, меняет сумму, даже если строка «заменится» осталась той же, — и не откатится молча.
+  const sig = JSON.stringify([cur.map(a => a.data), allOrders().map(r => bkOrderData(r.o))]);
+  return { diff:out, areas, moneyMax, money:!!areas.money, prices:!!areas.prices, dh:seedFrom(JSON.stringify(out) + sig) };
 }

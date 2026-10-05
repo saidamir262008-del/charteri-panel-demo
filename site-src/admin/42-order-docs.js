@@ -48,22 +48,29 @@ function sendDoc(r){
 /* ---- контакты заказа ---- */
 function contactEdit(r){
   const o = r.o, d = M.ui.ocEdit;
-  if (d?.id !== o.id) return can("orders.edit") && editableOrder(o) ? `<button type="button" class="link" data-act="aocedit" data-src="${r.src}" data-v="${o.id}">${esc(t("oc_edit"))}</button>` : "";
-  return `<div class="stack oc-form"><label class="field"><span>${esc(t("phone_label"))}</span><input data-oc="phone" type="tel" value="${esc(d.phone)}"></label>
-    <label class="field"><span>${esc(t("agency_email"))}</span><input data-oc="email" type="email" value="${esc(d.email)}"></label><div class="err" id="ocerr" hidden></div>
+  // Заказ отменили или он прошёл, пока форма была открыта: форму закрываем — правка закрытого заказа не сохраняется.
+  if (d?.id === o.id && !editableOrder(o)) M.ui.ocEdit = null;
+  if (M.ui.ocEdit?.id !== o.id) return can("orders.edit") && editableOrder(o) ? `<button type="button" class="link" data-act="aocedit" data-src="${r.src}" data-v="${o.id}">${esc(t("oc_edit"))}</button>` : "";
+  return `<div class="stack oc-form"><label class="field"><span>${esc(t("phone_label"))}</span><input data-oc="phone" type="tel" maxlength="40" autocomplete="off" value="${esc(d.phone)}"></label>
+    <label class="field"><span>${esc(t("agency_email"))}</span><input data-oc="email" type="email" maxlength="${EMAIL_MAX}" autocomplete="off" value="${esc(d.email)}"></label><div class="err" id="ocerr" hidden></div>
     <div class="row"><button type="button" class="solid sm" data-act="aocsave" data-src="${r.src}" data-v="${o.id}">${esc(t("st_save"))}</button><button type="button" class="link" data-act="aocclose">${esc(t("cancel"))}</button></div></div>`;
 }
 function saveContact(r){
   if (denied("orders.edit")) return;
-  const d = M.ui.ocEdit, phone = d.phone.trim(), email = d.email.trim();
+  const d = M.ui.ocEdit; if (!d || d.id !== r.o.id) return;
+  if (!editableOrder(r.o)) { M.ui.ocEdit = null; rerender(); return toast(t("err_order_locked")); }
+  const phone = d.phone.trim(), email = d.email.trim();
   const bad = !validPhone(phone) ? "phone" : email && !validEmail(email) ? "email" : null;
   if (bad) { const f = $(`[data-oc="${bad}"]`); f?.setAttribute("aria-invalid", "true"); f?.setAttribute("aria-describedby", "ocerr"); showErr("#ocerr", t(bad === "phone" ? "err_phone" : "err_email")); f?.focus(); return; }
+  let locked = false;
   change(() => mutOrder(r, o => {
+    if (!editableOrder(o)) { locked = true; return; }
     const next = { phone:prettyPhone(phone), email }, diff = [["phone", "phone_label"], ["email", "agency_email"]].filter(([k]) => (o.contact?.[k] || "") !== next[k]).map(([k, label]) => ({ k:label, from:o.contact?.[k] || "", to:next[k] }));
     if (!diff.length) return;
     o.contact = { ...o.contact, ...next }; audit("order_edit", { no:o.no }, { module:"orders", diff });
   }));
-  M.ui.ocEdit = null; rerender(); toast(t("t_order_saved"));
+  M.ui.ocEdit = null; rerender(); toast(t(locked ? "err_order_locked" : "t_order_saved"));
+  $(`[data-act="aocedit"][data-v="${CSS.escape(r.o.id)}"]`)?.focus();
 }
 /* ---- путешественники: имя и паспорт в билете или ваучере ----
    Имена — латиницей, как в паспорте (как при оформлении на сайте); у заявки на
@@ -71,11 +78,13 @@ function saveContact(r){
 const editableOrder = o => !["CANCELLED", "REFUNDED"].includes(o.status) && effStatus(o) !== "COMPLETED";
 const PAX_LATIN = /^[A-Z][A-Z' -]{0,40}$/, PAX_PP = /^[A-Z0-9]{5,9}$/;
 const ppTail = v => v ? "•••" + String(v).slice(-3) : "";
+/* В списке пассажиров паспорт скрыт, как в карточке клиента: полностью — только в форме правки (право «Заказы: правка»). */
+const ppMask = v => v ? String(v).slice(0, 2) + "•••" + String(v).slice(-3) : "";
 function paxEdit(r){
   const o = r.o, d = M.ui.otEdit?.id === o.id ? M.ui.otEdit : null, on = can("orders.edit") && editableOrder(o);
   const name = x => `${x.given || ""} ${x.surname || ""}`.trim();
   if (!d) return `<div class="card-h"><span class="lbl">${esc(t("passengers"))}</span>${on ? `<button type="button" class="link" data-act="aotedit" data-src="${esc(r.src)}" data-v="${esc(o.id)}">${esc(t("edit"))}</button>` : ""}</div>
-    <ul class="pax-list">${o.travellers.map(x => `<li><b>${esc(name(x))}</b>${x.passport ? `<span class="mono small muted">${esc(x.passport)}</span>` : ""}</li>`).join("")}</ul>`;
+    <ul class="pax-list">${o.travellers.map(x => `<li><b>${esc(name(x))}</b>${x.passport ? `<span class="mono small muted">${esc(ppMask(x.passport))}</span>` : ""}</li>`).join("")}</ul>`;
   const f = (i, k, label, extra = "") => `<label class="field"><span>${esc(t(label))}</span><input data-ot="${i}.${k}" value="${esc(d.list[i][k])}" ${extra}></label>`;
   const up = 'class="upper" autocomplete="off" autocapitalize="characters" spellcheck="false"';
   return `<div class="stack ot-form" id="otform"><span class="lbl">${esc(t("passengers"))}</span>
@@ -115,11 +124,11 @@ Object.assign(ACT, {
   aotedit: el => { const r = rowOf(el); if (!r || denied("orders.edit")) return; if (!editableOrder(r.o)) return toast(t("err_order_locked"));
     M.ui.otEdit = { id:r.o.id, free:isCharter(r.o), list:r.o.travellers.map(x => ({ surname:x.surname || "", given:x.given || "", passport:x.passport || "", pp:!!x.passport })) };
     rerender(); $("#otform input")?.focus(); },
-  aotclose:() => { M.ui.otEdit = null; rerender(); },
+  aotclose:() => { const id = M.ui.otEdit?.id; M.ui.otEdit = null; rerender(); if (id) $(`[data-act="aotedit"][data-v="${CSS.escape(id)}"]`)?.focus(); },
   aotsave: el => { const r = rowOf(el); if (r) savePax(r); },
   adsend:  el => { const r = rowOf(el); if (r) sendDoc(r); },
-  aocedit: el => { const r = rowOf(el); if (!r || denied("orders.edit")) return; M.ui.ocEdit = { id:r.o.id, phone:r.o.contact?.phone || "", email:r.o.contact?.email || "" }; rerender(); $('[data-oc="phone"]')?.focus(); },
-  aocclose:() => { M.ui.ocEdit = null; rerender(); },
+  aocedit: el => { const r = rowOf(el); if (!r || denied("orders.edit")) return; if (!editableOrder(r.o)) { rerender(); return toast(t("err_order_locked")); } M.ui.ocEdit = { id:r.o.id, phone:r.o.contact?.phone || "", email:r.o.contact?.email || "" }; rerender(); $('[data-oc="phone"]')?.focus(); },
+  aocclose:() => { const id = M.ui.ocEdit?.id; M.ui.ocEdit = null; rerender(); if (id) $(`[data-act="aocedit"][data-v="${CSS.escape(id)}"]`)?.focus(); },
   aocsave: el => { const r = rowOf(el); if (r) saveContact(r); }
 });
 document.addEventListener("input", e => { const k = e.target.dataset?.oc; if (k && M.ui.ocEdit) M.ui.ocEdit[k] = e.target.value;

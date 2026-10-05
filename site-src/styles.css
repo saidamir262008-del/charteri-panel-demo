@@ -80,6 +80,11 @@ select{appearance:none;-webkit-appearance:none;padding-right:30px;text-overflow:
 textarea{min-height:92px;resize:vertical}
 input:focus,select:focus,textarea:focus{border-color:var(--blue);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 22%,transparent)}
 input:disabled,select:disabled{opacity:.6}
+/* Поле с ошибкой: красная рамка остаётся и без фокуса — ставит проверка формы (aria-invalid). */
+input[aria-invalid="true"],select[aria-invalid="true"],textarea[aria-invalid="true"]{border-color:var(--coral);box-shadow:0 0 0 3px color-mix(in srgb,var(--coral) 18%,transparent)}
+/* Поле только для чтения не похоже на редактируемое: утопленный фон, пунктирная рамка. */
+input[readonly]{background:var(--sunken);color:var(--muted);border-style:dashed;cursor:default}
+input[readonly]:focus{border-color:var(--faint);box-shadow:0 0 0 3px color-mix(in srgb,var(--faint) 22%,transparent)}
 .field.is-off{opacity:.5}
 .upper{text-transform:uppercase}
 .err{background:var(--coral-bg);color:var(--coral);border-radius:12px;padding:10px 12px;font-size:14px;font-weight:500}

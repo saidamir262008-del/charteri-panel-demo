@@ -18,7 +18,9 @@ const brandPreview = () => { const o = brandSample(); return o ? orderDocument(o
 
 PAGES.brand = {
   render(){
-    const b = S.brand, f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-br="${k}" value="${esc(b[k] || "")}" ${extra}></label>`;
+    // Счёт или МФО неправильного вида — ошибка у поля и после перерисовки (язык, переход): иначе документ молча печатался бы без них.
+    const rq = brandReqErr(S.brand), bad = k => rq?.[1] === k ? 'aria-invalid="true" aria-describedby="breqerr"' : "";
+    const b = S.brand, f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-br="${k}" value="${esc(b[k] || "")}" ${extra} ${bad(k)}></label>`;
     return `<div class="page">
       <div class="pagehead"><h1>${esc(t("nav_brand"))}</h1><p class="muted">${esc(t("brand_sub"))}</p></div>
       <div class="brandgrid"><div class="stack">
@@ -31,14 +33,14 @@ PAGES.brand = {
           <div class="err" id="berr" hidden></div></section>
         <section class="card stack"><h2>${esc(t("brand_details"))}</h2>
           ${f("name", t("brand_name"), 'maxlength="40" autocomplete="organization"')}
-          <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
+          <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", `type="email" maxlength="${EMAIL_MAX}"`)}</div>
           <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
           <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
         <section class="card stack" id="breq"><h2>${esc(t("brand_req_h"))}</h2>
           <p class="muted small">${esc(tf("brand_req_d", { legal:S.agency.legal || S.agency.name, inn:S.agency.inn || "—" }))}</p>
           ${f("bank", t("brand_bank"), 'maxlength="60" autocomplete="off"')}
           <div class="sgrid sgrid-2">${f("acc", t("brand_acc"), 'class="mono" inputmode="numeric" maxlength="24" autocomplete="off" placeholder="20208000…"')}${f("mfo", t("brand_mfo"), 'class="mono" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="00440"')}</div>
-          <div class="err" id="breqerr" hidden></div></section>
+          <div class="err" id="breqerr" aria-live="polite" ${rq ? "" : "hidden"}>${rq ? esc(t(rq[0])) : ""}</div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}
@@ -60,14 +62,20 @@ document.addEventListener("input", e => {
   const k = e.target.dataset?.br; if (!k) return;
   S.brand[k] = k === "name" ? e.target.value.slice(0, 40) : e.target.value;
   if (k === "color") e.target.parentElement.style.setProperty("--c", e.target.value);
-  // Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
-  if (k === "acc" || k === "mfo") {
-    const err = brandReqErr(S.brand);
-    for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
-    if (err) showErr("#breqerr", t(err[0])); else hideErr("#breqerr");
-  }
+  if (k === "acc" || k === "mfo") brandReqNote();
   save(); brandRefresh();
 });
+/* Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
+   Пока человек печатает, подсказка тихая (aria-live="polite", текст меняется, только когда меняется
+   ошибка): без role="alert", встряски и прокрутки на каждую цифру. */
+function brandReqNote(){
+  const err = brandReqErr(S.brand), box = $("#breqerr");
+  for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
+  if (!box) return;
+  const msg = err ? t(err[0]) : "";
+  if (box.textContent !== msg) box.textContent = msg;
+  box.hidden = !err;
+}
 document.addEventListener("change", e => {
   if (e.target.dataset?.br === "color") rerender();
   if (e.target.id === "blogo") readLogo(e.target.files?.[0]);

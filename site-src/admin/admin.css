@@ -157,6 +157,8 @@ a.arow:hover + .arow{box-shadow:none}
 .arow.ahead{padding-block:4px 8px;font-size:11px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--faint)}
 .arow.total{font-size:15px;color:var(--navy)}
 .arow.past{opacity:.7}
+/* Строка корзины: приглушён только текст (контраст не ниже 4,5:1), кнопка «Восстановить» — в полную силу. */
+.arow.pm-del .a-main b,.arow.pm-del .a-sub{color:var(--muted)}
 .a-main{display:flex;flex-direction:column;min-width:0}
 .a-main b{color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .a-main .mono{font-size:12px;color:var(--faint)}

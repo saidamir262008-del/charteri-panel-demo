@@ -24,7 +24,7 @@ function clientEditor(){
       ${f("dob", t("dob"), `type="date" max="${TODAY}"`)}
       ${f("expiry", t("expiry"), `type="date" min="${TODAY}"`)}
       ${f("phone", t("phone_label"), 'type="tel" autocomplete="off" placeholder="+998"')}
-      ${f("email", t("email_opt"), 'type="email" autocomplete="off"')}
+      ${f("email", t("email_opt"), `type="email" maxlength="${EMAIL_MAX}" autocomplete="off"`)}
     </div>
     <div class="err" id="clerr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="clsave">${esc(t("client_save"))}</button>

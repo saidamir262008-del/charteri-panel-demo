@@ -19,7 +19,7 @@ function destOf(o){
   const d = o.details || {};
   if (o.type === "FLIGHT") { const c = d.out ? (d.out.to === "TAS" && d.out.from ? d.out.from : d.out.to) : ""; return c ? { code:c } : null; }
   if (o.type === "TOUR" || o.type === "JET") return d.to ? { code:d.to } : null;
-  if (o.type === "HOTEL") { const c = hotelById(d.hotelId)?.city; return c ? { code:c } : null; }
+  if (o.type === "HOTEL") { const c = orderHotel(o)?.city; return c ? { code:c } : null; }
   if (o.type === "HELI") return d.to ? { code:d.to, heli:true } : null;
   return null;
 }

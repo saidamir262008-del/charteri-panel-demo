@@ -15,7 +15,7 @@ function baseSeed(from, to){
   return { carrier:c.name, flightNo:`${c.code}-${100+Math.floor(rnd()*899)}`, plane:PLANES[Math.floor(rnd()*PLANES.length)],
     depTime, arrTime:addMinutes(depTime, durationMin), ecoPrice:eco, busPrice:eco+220+Math.floor(rnd()*260), durationMin };
 }
-function generateOffers({ from, to, date, cabin }){
+function generateOffers({ from, to, date, cabin, ch = CHANNEL }){
   const seed = baseSeed(from, to), rnd = mulberry32(seedFrom(`${from}-${to}-${date}-${cabin}`));
   const count = 4+Math.floor(rnd()*4), offers = [];
   for (let i = 0; i < count; i++) {
@@ -30,7 +30,7 @@ function generateOffers({ from, to, date, cabin }){
     const jitter = isBase ? 0 : Math.floor((rnd()-0.35)*(cabin === "business" ? 160 : 90));
     const stopDiscount = stops === 1 ? -Math.floor(rawBase*0.08) : 0;
     // Наценка на авиабилеты и поправка канала и направления — из админки.
-    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to));   // наценка (10%, меняется в админке), как на сервере
+    const priceUSD = Math.round(withAdj(Math.max(90, rawBase+jitter+stopDiscount) * (1 + prices().flightMarkupBps / 10000), "FLIGHT", to === "TAS" ? from : to, ch));   // наценка (10%, меняется в админке), как на сервере
     const stopCities = ["DXB","IST","DME","SHJ","ALA"];
     offers.push({ id:`${from}${to}-${date}-${i}`, provider:PROVIDERS[Math.floor(rnd()*PROVIDERS.length)],
       carrier:carrier.name, carrierCode:carrier.code,
@@ -50,8 +50,8 @@ function makeRef(seed){
   return `CHR-${out}`;
 }
 /* Регулярный рейс маршрута из таблицы приложения, если он есть, иначе самый дешёвый. */
-function baseOffer(from, to, date, cabin = "economy"){
-  const list = generateOffers({ from, to, date, cabin }), r = ROUTES[`${from}-${to}`];
+function baseOffer(from, to, date, cabin = "economy", ch = CHANNEL){
+  const list = generateOffers({ from, to, date, cabin, ch }), r = ROUTES[`${from}-${to}`];
   return (r && list.find(o => o.flightNo === r.flightNo)) || list[0];
 }
 const seatFor = o => `${10 + (o.durationMin % 20)}${"ABCDEF"[o.priceUSD % 6]}`;

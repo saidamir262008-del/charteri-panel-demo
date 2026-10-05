@@ -46,7 +46,7 @@ PAGES.orders = {
     const counts = Object.fromEntries(Object.keys(ADM_GROUPS).map(k => [k, allOrders().filter(r => ADM_GROUPS[k](r.o)).length]));
     return `<div class="page">
       <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_orders"))}</h1><p class="muted">${esc(t("aorders_sub"))}</p></div>
-        <button type="button" class="solid" data-act="onnew" ${canOrderNew() ? "" : "disabled"}>${IC.plus}<span>${esc(t("on_new"))}</span></button></div>
+        <button type="button" class="solid" data-act="onnew" ${canOrderNew() ? "" : guardOff()}>${IC.plus}<span>${esc(t("on_new"))}</span></button></div>
       ${orderNewForm()}
       <div class="card stack">
         <div class="otools">
@@ -69,6 +69,9 @@ document.addEventListener("change", e => {
 });
 
 /* ---------------------------------------------------------- карточка заказа */
+/* Куда вернутся деньги: агентству — на баланс, клиенту сайта — на карту, а за
+   заказ, оплаченный в офисе наличными (43-order-new.js), — наличными в офисе. */
+const refundToKey = r => r.a ? "refund_to_balance" : r.o.method === "cash" ? "refund_to_cash" : "refund_to_card";
 function admActions(r){
   const o = r.o, st = effStatus(o), live = o.start >= TODAY, rows = [];
   if (isCharter(o) && st === "NEW") rows.push(`<div class="stack" style="gap:8px"><h3>${esc(t("set_price"))}</h3><p class="muted small">${esc(t("set_price_d"))}</p>${priceRow(r)}</div>`);
@@ -85,7 +88,7 @@ function admActions(r){
           <div><span class="k">${esc(t("service_cost"))}</span><span class="v mono">${fmtUZS(o.total.uzs)}</span></div>
           <div><span class="k">${esc(tf("penalty_rate", { p:Math.round(p.rate * 100) }))}</span><span class="v mono">−${fmtUZS(p.penalty)}</span></div>
           ${r.a ? `<div><span class="k">${esc(tf("service_fee", { p:pctText(orderFeeBps(o)) }))}</span><span class="v">${esc(t("fee_kept"))}</span></div>` : ""}
-          <div class="tot"><span class="k">${esc(t(r.a ? "refund_to_balance" : "refund_to_card"))}</span><span class="v">${fmtUZS(p.refund)}</span></div></div>
+          <div class="tot"><span class="k">${esc(t(refundToKey(r)))}</span><span class="v">${fmtUZS(p.refund)}</span></div></div>
           <p class="small muted">${esc(t(isCharter(o) ? "rule_CHARTER" : "rule_" + o.type))}</p>` : `<p class="muted">${esc(t("cancel_request_d"))}</p>`}
         <div class="row"><button type="button" class="solid danger-solid" data-act="acancelgo" data-src="${r.src}" data-v="${o.id}" ${guard("orders.cancel")}>${esc(paid ? tf("cancel_cta", { amount:fmtUZS(p.refund) }) : t("cancel_request_cta"))}</button>
           <button type="button" class="link" data-act="acancel" data-v="">${esc(t("keep_order"))}</button></div></div>`);
@@ -108,10 +111,12 @@ function orderTimeline(o){
 }
 function admRefund(r){
   const x = r.o.refund; if (!x) return "";
-  return `<div class="card stack"><span class="lbl">${esc(t(r.a ? (x.done ? "refund_done" : "refund_wait") : (x.done ? "site_refund_done" : "site_refund_wait")))}</span><div class="rows">
+  return `<div class="card stack"><span class="lbl">${esc(t(r.a ? (x.done ? "refund_done" : "refund_wait") : siteRefundKey(r.o)))}</span><div class="rows">
     <div><span class="k">${esc(tf("penalty_rate", { p:Math.round(x.rate * 100) }))}</span><span class="v mono">−${fmtUZS(x.penalty)}</span></div>
-    <div class="tot"><span class="k">${esc(t(r.a ? "refund_to_balance" : "refund_to_card"))}</span><span class="v">${fmtUZS(x.uzs)}</span></div></div></div>`;
+    <div class="tot"><span class="k">${esc(t(refundToKey(r)))}</span><span class="v">${fmtUZS(x.uzs)}</span></div></div></div>`;
 }
+/* Карточка без содержимого не рисуется: у заказа сайта, который уже не правится, в ней было бы пусто. */
+const cardIf = html => html.trim() ? `<div class="card stack">${html}</div>` : "";
 PAGES["orders/:src/:id"] = {
   render({ src, id }){
     const r = findOrder(src, id);
@@ -120,7 +125,7 @@ PAGES["orders/:src/:id"] = {
     const req = o.req ? `<div class="reqbanner no-print"><b>${esc(t("req_title"))}: ${esc(t("req_kind_" + o.req.kind))}</b>${o.req.note ? `<span>«${esc(o.req.note)}»</span>` : ""}
       ${o.req.status ? `<span class="small">${esc(t(o.req.status === "done" ? "req_status_done" : "req_status_declined"))}${o.req.reply ? ` — ${esc(o.req.reply)}` : ""} · ${esc(o.req.by || "")}</span>` : ""}</div>` : "";
     return `<div class="page">${backLink("orders", t("an_orders"))}
-      <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span> · ${esc(srcName(r))}</span>
+      <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span> · ${esc(srcName(r))}${o.channel === "office" ? ` · ${esc(t("src_walk_in"))}` : ""}</span>
         <h1>${esc(orderTitle(o))}</h1><p class="muted">${esc(orderSub(o))}</p></div>${pill(st)}</div>
       <div class="twocol"><div class="stack">${admActions(r)}${req}
           ${showDoc ? orderDocument(o, r.a ? brandDoc(r.a.st) : null) + docActions(r) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
@@ -131,7 +136,7 @@ PAGES["orders/:src/:id"] = {
               <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
               <span class="mono small muted">${esc(o.contact.phone)}</span>${o.contact.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}</div>${can("clients") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
-          <div class="card stack">${r.a ? `<span class="lbl">${esc(t("client_contact"))}</span><span class="mono small">${esc(o.contact?.phone || "—")}</span>${o.contact?.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}` : ""}${contactEdit(r)}</div>
+          ${cardIf(`${r.a ? `<span class="lbl">${esc(t("client_contact"))}</span><span class="mono small">${esc(o.contact?.phone || "—")}</span>${o.contact?.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}` : ""}${contactEdit(r)}`)}
           <div class="card stack">${paxEdit(r)}</div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
             <ol class="timeline">${orderTimeline(o).map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(h.text)}</b><span class="muted small">${esc(fdt(h.at))}${h.by ? " · " + esc(h.by) : ""}</span></li>`).join("")}</ol></div>
