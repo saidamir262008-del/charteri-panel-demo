@@ -233,6 +233,7 @@ a.orow:hover + .orow{box-shadow:none}
 .bd-top .v-kind{color:inherit;opacity:.78;white-space:nowrap}
 .bd-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
 .bd-foot b{color:var(--ink);font-size:13.5px}
+.bd-req{font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
 .bd-pw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);white-space:nowrap}
 .bd-pw .wordmark{font-size:10.5px}
 .bdoc{display:flex;flex-direction:column;gap:14px}
@@ -384,6 +385,8 @@ body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
   .tm-attr{top:188px;bottom:auto}
   .orow{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"ic main st" "ic client sum";row-gap:2px}
   .or-ic{grid-area:ic;align-self:start}.or-main{grid-area:main}.or-st{grid-area:st}.or-client{grid-area:client;font-size:13px;color:var(--muted)}.or-sum{grid-area:sum}
+  /* Вилка цены заявки — в две строки: иначе колонка суммы шире строки, и название с номером сжимаются в ноль. */
+  .or-sum{white-space:normal;min-width:0}.or-rng{display:block;white-space:nowrap}
   .ohead-row{display:none}
   .orow + .orow,.otable.has-head .orow:nth-child(2){box-shadow:0 -1px 0 var(--line)}
   .otable.has-head .orow:nth-child(2){box-shadow:none}

@@ -29,17 +29,17 @@ function clientEditor(){
     <div class="err" id="clerr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="clsave">${esc(t("client_save"))}</button>
       <button type="button" class="link" data-act="clclose">${esc(t("cancel"))}</button>
-      ${d.id ? `<button type="button" class="link danger push" data-act="cldel" data-v="${d.id}">${esc(t("client_delete"))}</button>` : ""}</div></section>`;
+      ${d.id ? `<button type="button" class="link danger push" data-act="cldel" data-v="${esc(d.id)}">${esc(t("client_delete"))}</button>` : ""}</div></section>`;
 }
 function clientRow(c, i){
   const os = clientOrders(c), spent = os.filter(o => o.paidAt).reduce((s, o) => s + dueOf(o).uzs, 0);
   return `<div class="crow" style="--i:${i}">
-    <a class="crow-main" href="#/clients/${c.id}"><span class="avatar sm">${esc(monogram(clientName(c)))}</span>
+    <a class="crow-main" href="#/clients/${esc(c.id)}"><span class="avatar sm">${esc(monogram(clientName(c)))}</span>
       <span class="stack" style="gap:1px;min-width:0"><b>${esc(clientName(c))}</b><span class="muted small"><span class="mono">${esc(maskPassport(c.passport))}</span> · ${esc(c.cit)}</span></span></a>
     <span class="c-phone mono small">${esc(c.phone || "—")}</span>
     <span class="c-stat small"><b>${esc(pl(os.length, "order"))}</b><span class="muted mono">${spent ? fmtUZS(spent) : ""}</span></span>
-    <span class="c-act"><button type="button" class="ghost sm" data-act="clbook" data-v="${c.id}">${esc(t("book_for"))}</button>
-      <button type="button" class="link" data-act="cledit" data-v="${c.id}">${esc(t("edit"))}</button></span></div>`;
+    <span class="c-act"><button type="button" class="ghost sm" data-act="clbook" data-v="${esc(c.id)}">${esc(t("book_for"))}</button>
+      <button type="button" class="link" data-act="cledit" data-v="${esc(c.id)}">${esc(t("edit"))}</button></span></div>`;
 }
 PAGES.clients = {
   render(){
@@ -69,13 +69,13 @@ PAGES["clients/:id"] = {
     return `<div class="page">${backLink("clients", t("nav_clients"))}
       <div class="ohead"><span class="avatar">${esc(monogram(clientName(c)))}</span><div><span class="lbl">${esc(t("client_card"))}</span><h1>${esc(clientName(c))}</h1>
         <p class="muted">${esc(pl(os.length, "order"))}</p></div>
-        <button type="button" class="solid" data-act="clbook" data-v="${c.id}">${IC.plus}<span>${esc(t("book_for"))}</span></button></div>
+        <button type="button" class="solid" data-act="clbook" data-v="${esc(c.id)}">${IC.plus}<span>${esc(t("book_for"))}</span></button></div>
       <div class="twocol"><section class="card stack"><div class="card-h"><h2>${esc(t("client_orders"))}</h2></div>
           ${os.length ? `<div class="otable">${os.map((o, i) => orderRow(o, i, rc)).join("")}</div>` : `<p class="muted">${esc(t("client_no_orders"))}</p>`}</section>
         <aside class="stack sticky">${M.ui.clDraft?.id === c.id ? clientEditor() : `<div class="card stack"><span class="lbl">${esc(t("passport_data"))}</span>
           <div class="rows">${row("passport_no", c.passport, true)}${row("citizenship", c.cit)}${row("gender", c.gender ? t(c.gender === "M" ? "gender_m" : "gender_f") : "")}
             ${row("dob", c.dob ? fdateY(c.dob) : "")}${row("expiry", c.expiry ? fdateY(c.expiry) : "")}${row("phone_label", c.phone, true)}${row("email_opt", c.email)}</div>
-          <button type="button" class="ghost sm" data-act="cledit" data-v="${c.id}">${esc(t("edit"))}</button></div>`}</aside></div></div>`;
+          <button type="button" class="ghost sm" data-act="cledit" data-v="${esc(c.id)}">${esc(t("edit"))}</button></div>`}</aside></div></div>`;
   }
 };
 

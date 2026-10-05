@@ -34,6 +34,11 @@ PAGES.brand = {
           <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
           <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
           <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
+        <section class="card stack" id="breq"><h2>${esc(t("brand_req_h"))}</h2>
+          <p class="muted small">${esc(tf("brand_req_d", { legal:S.agency.legal || S.agency.name, inn:S.agency.inn || "—" }))}</p>
+          ${f("bank", t("brand_bank"), 'maxlength="60" autocomplete="off"')}
+          <div class="sgrid sgrid-2">${f("acc", t("brand_acc"), 'class="mono" inputmode="numeric" maxlength="24" autocomplete="off" placeholder="20208000…"')}${f("mfo", t("brand_mfo"), 'class="mono" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="00440"')}</div>
+          <div class="err" id="breqerr" hidden></div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}
@@ -55,6 +60,12 @@ document.addEventListener("input", e => {
   const k = e.target.dataset?.br; if (!k) return;
   S.brand[k] = k === "name" ? e.target.value.slice(0, 40) : e.target.value;
   if (k === "color") e.target.parentElement.style.setProperty("--c", e.target.value);
+  // Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
+  if (k === "acc" || k === "mfo") {
+    const err = brandReqErr(S.brand);
+    for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
+    if (err) showErr("#breqerr", t(err[0])); else hideErr("#breqerr");
+  }
   save(); brandRefresh();
 });
 document.addEventListener("change", e => {

@@ -22,10 +22,7 @@ function startCheckout(spec){
 const B2C_CHECKOUT_AFTER = PAGES.checkout.after;      // проверка цены у поставщика — как на сайте
 function priceCheck(c){
   if (c.recheck && c.pstate === "checking") return `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-  if (c.pstate === "changed") return `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
-      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(withFee(c.total))}</span></div>
-        <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(withFee(c.pending.total))}</span></div></div>
-      <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+  if (c.pstate === "changed") return priceChangedBox(c, withFee(c.total), withFee(c.pending.total));
   return c.recheck ? `<div class="pcheck good">${IC.ok}${esc(t("price_confirmed"))}</div>` : "";
 }
 /* Сколько спишется и что останется — в сумах: баланс агентства в сумах. */

@@ -108,7 +108,7 @@ function pricesClean(saved){
   const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
   return { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
     svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
-    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
+    promos:Array.isArray(saved.promos) ? promoOrder(saved.promos.filter(validPromo).map(cleanPromo)).slice(0, PROMO_MAX) : [] };
 }
 /* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
    агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
@@ -143,13 +143,17 @@ function validPromo(x){
 /* Данные из хранилища — чужие: только известные поля в правильном виде. */
 const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
   return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
-    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends),
+    // Удалённый в админке — в корзине (время удаления): на сайте не действует, восстановить можно.
+    deleted:Number.isFinite(x.deleted) && x.deleted > 0 ? x.deleted : 0 }; };
+/* Сначала действующие, корзина — в конце: при пределе PROMO_MAX отрезается старая корзина, а не живые коды. */
+const promoOrder = list => [...list.filter(x => !x.deleted), ...list.filter(x => x.deleted).sort((a, b) => b.deleted - a.deleted)];
 /* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
 const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
 /* Почему промокод не подходит заказу (ключ строки) или null. */
 function promoProblem(x, type, total, orders){
   if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
-  if (!x.active) return "err_promo_expired";
+  if (!x.active || x.deleted) return "err_promo_expired";
   if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
   if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
   if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
@@ -438,10 +442,10 @@ function airportSelect(bind, value, exclude){
 function routeBlock(o, extra = ""){
   const nd = nextDay(o);
   return `<div class="route">
-    <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+    <div class="end"><span class="code">${esc(o.from)}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${esc(o.depTime)}</span></div>
     <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span>
       <span class="s ${o.stops ? "s-stop" : "s-direct"}">${o.stops ? esc(tf("via", { c: o.stopCity })) : esc(t("direct"))}</span>${extra}</div>
-    <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
+    <div class="end r"><span class="code">${esc(o.to)}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${esc(o.arrTime)}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
   </div>`;
 }
 const nextDay = o => { const [h, m] = o.depTime.split(":").map(Number); return Math.floor((h*60 + m + o.durationMin) / 1440); };
@@ -469,7 +473,7 @@ function hotelArt(h, big = false){
   const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${esc(h.id)}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
 }
 /* Галерея на странице отеля: главный снимок и два поменьше — номер
    под звёздность отеля и бассейн или ресторан. */

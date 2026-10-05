@@ -68,9 +68,9 @@ function requestApproval(kind, { key, payload, vars = {}, diff = [], amount = nu
 
 /* Почему текущий сотрудник не может решить запрос (ключ строки) или null.
    Свой запрос подтверждает другой; изменение своих прав — тоже другой. */
-/* Права, нужные для решения. Восстановление, которое меняет балансы или цены,
-   решает тот, кто вправе подтверждать и их (payload.money / prices, 79-system-ops.js). */
-const apPerms = a => [AP_KINDS[a.kind].perm, ...(a.kind === "restore" ? [a.payload?.money && "finance.approve", a.payload?.prices && "pricing.approve"].filter(Boolean) : [])];
+/* Права, нужные для решения. Восстановление, которое меняет балансы, цены или
+   удаляет направления, решает тот, кто вправе подтверждать и их (BK_AREAS, 78b-backup-check.js). */
+const apPerms = a => [AP_KINDS[a.kind].perm, ...(a.kind === "restore" ? bkApPerms(bkAreasOf(a.payload)) : [])];
 function apBlock(a){
   const u = me(); if (!u) return "no_rights";
   if (a.by === u.id) return "ap_err_self";
@@ -114,9 +114,11 @@ function requesterBlock(a){
   if (a.kind === "role_new" && grantsBeyond(u, {}, p.role.perms).length) return "ap_err_requester";
   if (a.kind === "staff_role") { const x = O.staff.find(s => s.id === p.staffId);
     if (p.staffId === u.id || (!founder && (TOP_ROLES.includes(p.to) || TOP_ROLES.includes(x?.role)))) return "ap_err_requester"; }
-  if (a.kind === "staff_add" && !founder && TOP_ROLES.includes(p.rec.role)) return "ap_err_requester";
-  // Копия с другими балансами или ценами — автору нужны и права на них, как при правке вручную.
-  if (a.kind === "restore" && !founder && ((p.money && !hasPerm(permsOf(u.role), "finance.manage")) || (p.prices && !hasPerm(permsOf(u.role), "pricing.edit")))) return "ap_err_requester";
+  // Роль сотрудника — не шире прав автора: дать можно только те права, что есть у тебя самого.
+  if (a.kind === "staff_add" && !founder && (TOP_ROLES.includes(p.rec.role) || grantsBeyond(u, {}, permsOf(p.rec.role)).length)) return "ap_err_requester";
+  if (a.kind === "staff_role" && !founder && grantsBeyond(u, {}, permsOf(p.to)).length) return "ap_err_requester";
+  // Копия меняет разделы — автору нужны права на каждый, как при правке вручную.
+  if (a.kind === "restore" && !founder && bkLack(bkAreasOf(p), x => hasPerm(permsOf(u.role), x))) return "ap_err_requester";
   return null;
 }
 /* Сотрудника отключили или сменили ему роль — его ждущие запросы снимаются. */

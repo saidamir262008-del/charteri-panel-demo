@@ -272,7 +272,9 @@ PAGES["flights/offer"] = {
 
 function flightDetailsOf(out, back, q){ return { out, back, q:{ adults:q.adults, children:q.children, infants:q.infants, cabin:q.cabin } }; }
 function startFlightCheckout(){
-  const f = M.flights, out = f.sel.out, back = f.sel.back;
+  // Пассажиры и класс — снимком: пересчёт цены не должен читать живую форму поиска.
+  const f = { adults:M.flights.adults, children:M.flights.children, infants:M.flights.infants, cabin:M.flights.cabin };
+  const out = M.flights.sel.out, back = M.flights.sel.back;
   const { lines, total } = flightLines(out, back, f);
   const types = [...Array(f.adults).fill("adult"), ...Array(f.children).fill("child"), ...Array(f.infants).fill("infant")];
   startCheckout({
@@ -307,7 +309,7 @@ function flightDocument(o){
   const pass = (leg, i) => `<article class="pass rise" style="--i:${i}">
     <div class="pass-top">${WORDMARKS[leg.carrierCode]
       ? `<span class="pass-wm"><img src="${WORDMARKS[leg.carrierCode]}" alt="${esc(leg.carrier)}"></span><span class="n"></span>`
-      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${leg.flightNo}</span></div>
+      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${esc(leg.flightNo)}</span></div>
     <div class="pass-body">${routeBlock(leg, `<span class="d">${esc(fdate(leg.date))}</span>`)}
       <div class="pgrid">
         <div class="wide"><span class="lbl">${esc(t("passenger"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}${pax.length > 1 ? ` +${pax.length-1}` : ""}</b></div>

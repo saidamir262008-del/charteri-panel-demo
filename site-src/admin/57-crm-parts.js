@@ -37,7 +37,7 @@ function defaultDue(){
 const canToggleTask = x => can("crm.edit") && (x.assignee === me()?.id || crmAll());
 function taskRow(x, withTarget){
   const over = taskOverdue(x);
-  return `<li class="crm-task ${x.done ? "done" : ""}"><label class="chk"><input type="checkbox" data-task="${x.id}" ${x.done ? "checked" : ""} ${canToggleTask(x) ? "" : "disabled"}>
+  return `<li class="crm-task ${x.done ? "done" : ""}"><label class="chk"><input type="checkbox" data-task="${esc(x.id)}" ${x.done ? "checked" : ""} ${canToggleTask(x) ? "" : "disabled"}>
       <span>${esc(loc(x.text))}</span></label>
     <span class="crm-task-meta"><span class="small ${over ? "warn-t" : "muted"}">${over ? esc(t("crm_overdue")) + " · " : ""}${esc(fdt(x.due))}</span>
       <span class="small">${staffChip(x.assignee)}</span>

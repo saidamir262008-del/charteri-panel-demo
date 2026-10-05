@@ -154,7 +154,10 @@ PAGES["tours/item/:id"] = {
 };
 
 function startTourCheckout(hid){
-  const q = M.tours, h = hotelById(hid), p = tourPackage(h, q);
+  /* Поиск — снимком: пока оформление открыто, форму поиска могли поменять
+     (Назад → другое число туристов → Вперёд), а пересчёт цены — по этому туру. */
+  const q = { to:M.tours.to, depart:M.tours.depart, nights:M.tours.nights, adults:M.tours.adults, children:M.tours.children };
+  const h = hotelById(hid), p = tourPackage(h, q);
   const types = [...Array(q.adults).fill("adult"), ...Array(q.children).fill("child")];
   startCheckout({
     type: "TOUR", title: `${h.name} · ${cityName(q.to)}`,
@@ -174,9 +177,9 @@ function tourVoucherBody(o){
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
-    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
-    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
-    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
+    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${esc(h.board)}</span> ${esc(t("board_" + h.board))}</b></div>
+    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${esc(d.out.flightNo)} · ${esc(d.out.depTime)}</b><span class="muted small">TAS → ${esc(d.out.to)} · ${esc(fdate(d.out.date))}</span></div>
+    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${esc(d.back.flightNo)} · ${esc(d.back.depTime)}</b><span class="muted small">${esc(d.back.from)} → TAS · ${esc(fdate(d.back.date))}</span></div>
     ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
     ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>

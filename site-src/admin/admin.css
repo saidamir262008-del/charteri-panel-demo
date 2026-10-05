@@ -544,3 +544,12 @@ a.arow:hover + .arow{box-shadow:none}
 }
 
 @media print{ .no-print{display:none!important} }
+/* Корзина промокодов */
+.pm-trash{border-top:1px solid var(--line);padding-top:10px}
+.pm-trash > summary{cursor:pointer;font-size:13.5px;font-weight:600;color:var(--muted);padding:6px 0;width:max-content;max-width:100%}
+.pm-trash[open] > summary{margin-bottom:6px}
+/* Путешественники заказа: список и правка */
+.pax-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.pax-list li{display:flex;flex-direction:column;gap:1px;min-width:0;overflow-wrap:anywhere}
+.ot-pax{border:0;margin:0;padding:0;min-width:0;display:flex;flex-direction:column;gap:8px}
+.ot-pax legend{padding:0;margin-bottom:4px}

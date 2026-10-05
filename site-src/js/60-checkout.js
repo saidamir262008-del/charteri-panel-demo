@@ -7,7 +7,8 @@
 "use strict";
 
 const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["uzum","Uzum","#7C3AED"],["humo","Uzcard / Humo","#12996A"],["card","Visa / Mastercard","#2F6FE0"]];
-const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? k;
+// cash — оплата в офисе: заказ оформил сотрудник в админке (admin/43-order-new.js).
+const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
 
@@ -28,7 +29,7 @@ function startCheckout(spec){
 function travellerForm(x, i, mode){
   const full = mode === "full";
   const chips = S.travellers.length ? `<div class="tchips"><span class="lbl">${esc(t("select_traveller"))}</span>${S.travellers.map(tr =>
-    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${tr.id}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
+    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${esc(tr.id)}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
   const f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-tv="${i}" data-f="${k}" value="${esc(x[k])}" ${extra}></label>`;
   return `<div class="tform" id="tv${i}">
     <div class="tform-h"><b>${esc(mode === "lead" ? t("lead_guest") : `${t("passenger")} ${i+1}`)}</b><span class="muted small">${esc(t("pax_" + x.type))}</span></div>
@@ -55,10 +56,7 @@ PAGES.checkout = {
     c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-    else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
-        <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(c.total)}</span></div>
-          <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(c.pending.total)}</span></div></div>
-        <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+    else if (c.pstate === "changed") check = priceChangedBox(c, c.total, c.pending.total);
     else if (c.recheck) check = `<div class="pcheck good">${IC.ok}${esc(t("price_confirmed"))}</div>`;
     return `<div class="container section"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
@@ -88,6 +86,17 @@ PAGES.checkout = {
     }, 1100);
   }
 };
+/* «Цена изменилась» — общий блок сайта и кабинета. Если сменился только курс
+   (byRate), в долларах суммы одинаковы: показываем сумы и называем причину —
+   курс, а не поставщика. */
+function priceChangedBox(c, was, now){
+  const rate = c.pending.byRate, f = rate ? a => grp(a.uzs) + NB + t("cur_uzs") : fmt;
+  return `<div class="changed settle" ${rate ? 'data-by="rate"' : ""}><h3>${esc(t(rate ? "rate_changed_title" : "price_changed_title"))}</h3>
+      <p class="small">${esc(rate ? tf("rate_changed_body", { rate:grp(c.rate) }) : t("price_changed_body"))}</p>
+      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${f(was)}</span></div>
+        <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${f(now)}</span></div></div>
+      <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+}
 /* Курс сменили в админке, пока оформление открыто: сумы на экране посчитаны по
    старому. Пересчитываем и показываем новую сумму, как при перепроверке цены, —
    старую не списываем. true — оплату надо остановить. */
@@ -98,7 +107,8 @@ function rateMoved(c){
   if (!c.priceChange) { M.checkout = null; toast(t("rate_moved_redo")); go(SEARCH_PATH); return true; }
   const fresh = c.priceChange(true);
   if (fresh.total.usd === c.total.usd && fresh.total.uzs === c.total.uzs) return false;
-  Object.assign(c, { pending:fresh, pstate:"changed", accepted:false });
+  // byRate — в долларах цена та же, иначе это обычная перепроверка у поставщика.
+  Object.assign(c, { pending:{ ...fresh, byRate:fresh.total.usd === c.total.usd }, pstate:"changed", accepted:false });
   rerender(); toast(t("rate_moved"));
   return true;
 }
@@ -191,7 +201,7 @@ function applyPromo(){
   hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
   const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
   if (!code) return bad(t("err_promo_empty"));
-  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const x = prices().promos.find(p => !p.auto && !p.deleted && p.code === code);
   const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
   if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
   c.promoCode = code; c.promoIn = ""; rerender();
@@ -255,8 +265,8 @@ function tickCharter(){
   const now = Date.now(); let changed = false;
   for (const o of S.orders) {
     if (o.type !== "JET" && o.type !== "HELI") continue;
-    // Пока открыта админка, цену ставит оператор, а не таймер.
-    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = o.details.quote; hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
+    // Пока открыта админка, цену ставит оператор, а не таймер; сумы — по текущему курсу, как у оператора.
+    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = amt(o.details.quote.usd); hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= 2500) { o.status = "CONFIRMED"; hist(o, "CONFIRMED"); changed = true; toast(tf("toast_confirmed", { no:o.no })); }
   }
   if (changed) { save(); if (currentParts()[0] === "orders") rerender(); }

@@ -101,23 +101,23 @@ PAGES["customers/:phone"] = {
       <div class="ohead"><span class="avatar">${esc(monogram(c.name || "?"))}</span><div><span class="lbl">${esc(t("customer"))} · B2C</span><h1>${esc(c.name || t("guest"))}</h1>
         <p class="muted mono">${esc(c.phone)}</p></div><span class="row" style="gap:8px">${segPill(c.segment)}${signedIn ? `<span class="pill st-CONFIRMED">${esc(t("signed_site"))}</span>` : ""}</span></div>
       <div class="twocol"><div class="stack">
-          <section class="card stack"><div class="card-h"><h2>${esc(t("crm_requests"))}</h2>${can("crm.create") ? `<button type="button" class="link" data-act="cleadnew" data-v="${c.key}">${esc(t("crm_lead_new"))}</button>` : ""}</div>
-            ${c.leads.length || reqs.length ? `<div class="atable" style="--cols:88px minmax(0,2fr) minmax(0,1fr) 130px">${c.leads.map(l => `<a class="arow" href="#/crm/${l.id}"><span class="a-cell mono small">${esc(l.no)}</span>
+          <section class="card stack"><div class="card-h"><h2>${esc(t("crm_requests"))}</h2>${can("crm.create") ? `<button type="button" class="link" data-act="cleadnew" data-v="${esc(c.key)}">${esc(t("crm_lead_new"))}</button>` : ""}</div>
+            ${c.leads.length || reqs.length ? `<div class="atable" style="--cols:88px minmax(0,2fr) minmax(0,1fr) 130px">${c.leads.map(l => `<a class="arow" href="#/crm/${esc(l.id)}"><span class="a-cell mono small">${esc(l.no)}</span>
                 <span class="a-main"><b>${esc(leadWhat(l) || t("crm_no_interest"))}</b><span class="small muted">${esc(t("src_" + l.source))} · ${esc(fdt(l.createdAt))}</span></span>
                 <span class="a-cell small">${l.manager ? esc(staffName(l.manager)) : ""}</span><span class="a-end">${stagePill(l.status)}</span></a>`).join("")}
-              ${reqs.map(o => `<a class="arow" href="#/orders/site/${o.id}"><span class="a-cell mono small">${esc(o.no)}</span><span class="a-main"><b>${esc(t("req_kind_" + o.req.kind))}</b><span class="small muted">${esc(o.req.note || "")}</span></span>
+              ${reqs.map(o => `<a class="arow" href="#/orders/site/${esc(o.id)}"><span class="a-cell mono small">${esc(o.no)}</span><span class="a-main"><b>${esc(t("req_kind_" + o.req.kind))}</b><span class="small muted">${esc(o.req.note || "")}</span></span>
                 <span class="a-cell small">${esc(fdt(o.req.at))}</span><span class="a-end"><span class="pill ${o.req.status ? "st-CONFIRMED" : "st-PENDING"}">${esc(t(o.req.status ? "req_status_" + o.req.status : "ap_wait"))}</span></span></a>`).join("")}</div>`
               : `<p class="muted">${esc(t("crm_requests_none"))}</p>`}</section>
           <section class="card stack"><div class="card-h"><h2>${esc(t("an_orders"))}</h2><span class="muted small">${esc(tf("crm_count", { n:c.orders.length }))}</span></div>
             ${c.orders.length ? `<div class="chipbar">${ORDER_TYPES.filter(x => x === "all" || c.orders.some(o => o.type === x)).map(x => `<button type="button" class="chip" data-act="cot" data-v="${x}" aria-pressed="${ot === x}">${esc(x === "all" ? t("crm_all") : t("type_" + x))}</button>`).join("")}</div>
               <div class="atable" style="--cols:${ORDER_COLS_COMPACT}">${orders.map((o, i) => admOrderRow({ o, a:null, src:"site" }, i, "", true)).join("")}</div>` : `<p class="muted">${esc(t("orders_empty"))}</p>`}</section>
-          <section class="card stack"><h2>${esc(t("crm_payments"))}</h2>${pays.length ? `<div class="atable" style="--cols:150px minmax(0,2fr) minmax(0,1fr)">${pays.map(p => `<a class="arow" href="#/orders/site/${p.o.id}">
+          <section class="card stack"><h2>${esc(t("crm_payments"))}</h2>${pays.length ? `<div class="atable" style="--cols:150px minmax(0,2fr) minmax(0,1fr)">${pays.map(p => `<a class="arow" href="#/orders/site/${esc(p.o.id)}">
               <span class="a-cell a-sub muted small">${esc(fdt(p.at))}</span><span class="a-main"><b>${esc(t(p.kind === "pay" ? "crm_pay" : "crm_refund"))}</b><span class="small muted">${esc(p.o.no)} · ${esc(t("type_" + p.o.type))}</span></span>
               <span class="a-num a-keep mono">${p.kind === "refund" ? "−" : ""}${fmtUZS(p.uzs)}</span></a>`).join("")}</div>` : `<p class="muted">${esc(t("crm_payments_none"))}</p>`}</section>
           ${can("crm.view") || can("b2c.edit") ? notesBlock(target, [target, ...(can("crm.view") ? leadTargets : [])]) : ""}
           <section class="card stack"><h2>${esc(t("crm_history"))}</h2>${clientHistory(c)}</section></div>
         <aside class="stack sticky">
-          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditClient() ? `<button type="button" class="link" data-act="cedit" data-v="${c.key}">${esc(t("edit"))}</button>` : ""}</div>
+          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditClient() ? `<button type="button" class="link" data-act="cedit" data-v="${esc(c.key)}">${esc(t("edit"))}</button>` : ""}</div>
             <div class="rows">${row("phone_label", c.phone, true)}${row("agency_email", c.email)}${row("crm_country", c.country)}${row("crm_source", t("src_" + c.source))}
               ${row("crm_since", c.first ? fdate(ymd(new Date(c.first))) : "")}${row("col_spent", fmtUZS(c.spent), true)}</div></div>
           <div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField(target, c.manager)}</div></div>
@@ -125,10 +125,10 @@ PAGES["customers/:phone"] = {
           ${signedIn && SITE.travellers?.length ? `<div class="card stack"><span class="lbl">${esc(t("saved_travellers"))}</span>${SITE.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b><span class="mono small muted">${esc(x.passport.slice(0, 2))}•••${esc(x.passport.slice(-2))}</span></div>`).join("")}
             <p class="muted small">${esc(t("pii_note"))}</p></div>` : ""}
           <div class="card stack"><span class="lbl">${esc(t("cust_access"))}</span><p class="muted small">${esc(t(c.blocked ? "cust_blocked_d" : "cust_active_d"))}</p>
-            ${c.blocked ? `<button type="button" class="solid sm" data-act="cunblock" data-v="${c.key}" ${guard("b2c.manage")}>${esc(t("unblock_cta"))}</button>`
+            ${c.blocked ? `<button type="button" class="solid sm" data-act="cunblock" data-v="${esc(c.key)}" ${guard("b2c.manage")}>${esc(t("unblock_cta"))}</button>`
               : !M.ui.ask?.[blockKey] ? `<button type="button" class="ghost sm danger-ghost" data-act="aask" data-k="${blockKey}" ${guard("b2c.manage")}>${esc(t("block_cta"))}</button>`
               : `<span class="why">${inpField("why:" + blockKey, { label:t("reason"), ph:t("cust_block_ph"), extra:'maxlength="120"' })}
-                <button type="button" class="solid sm danger-solid" data-act="cblock" data-v="${c.key}" ${guard("b2c.manage")}>${esc(t("block_cta"))}</button>
+                <button type="button" class="solid sm danger-solid" data-act="cblock" data-v="${esc(c.key)}" ${guard("b2c.manage")}>${esc(t("block_cta"))}</button>
                 <button type="button" class="link" data-act="aask" data-k="${blockKey}">${esc(t("cancel"))}</button></span>`}</div>
         </aside></div></div>`;
   },

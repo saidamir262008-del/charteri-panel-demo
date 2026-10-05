@@ -12,7 +12,8 @@ const ORDER_GROUPS = {
   cancelled: o => ["CANCELLED", "REFUNDED"].includes(o.status)
 };
 const orderMatches = (o, q) => !q || [o.no, orderTitle(o), clientOf(o), o.contact?.phone].join(" ").toLowerCase().includes(q.toLowerCase());
-const orderSum = o => { const d = dueOf(o); return d ? fmt(d) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`; };
+/* Вилка цены заявки — двумя частями: на телефоне каждая на своей строке и не распирает строку списка. */
+const orderSum = o => { const d = dueOf(o); return d ? fmt(d) : `<span class="or-rng">≈ ${fmt(o.details.low)}</span> <span class="or-rng">– ${fmt(o.details.high)}</span>`; };
 
 function orderRow(o, i, rc = ""){
   const st = effStatus(o);
@@ -120,7 +121,7 @@ PAGES["orders/:id"] = {
           <div class="card stack"><span class="lbl">${esc(t("col_client"))}</span>
             <div class="client-mini"><span class="avatar sm">${esc(monogram(clientOf(o)))}</span><div class="stack" style="gap:1px;min-width:0">
               <b>${esc(clientOf(o))}</b><span class="mono small muted">${esc(o.contact.phone)}</span></div>
-              ${cl ? `<a class="link" href="#/clients/${cl.id}">${esc(t("open_client"))}</a>` : ""}</div>
+              ${cl ? `<a class="link" href="#/clients/${esc(cl.id)}">${esc(t("open_client"))}</a>` : ""}</div>
             ${o.travellers.length > 1 ? `<p class="small muted">${esc(o.travellers.map(x => `${x.given} ${x.surname}`.trim()).join(", "))}</p>` : ""}
           </div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>

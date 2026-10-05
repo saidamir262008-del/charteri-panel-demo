@@ -4,6 +4,9 @@
    ядре). Правки промокодов идут в тот же черновик, что и остальные цены, и
    сохраняются общей кнопкой — с подтверждением, если оно нужно.
    Хранение: value — сотые процента (pct) или доллары (fixed).
+   Удаление — в корзину (deleted — время): на сайте код не действует, а
+   восстановить его можно и после сохранения цен. Корзина тоже сохраняется
+   общей кнопкой и проходит то же подтверждение.
    ========================================================================== */
 "use strict";
 
@@ -20,7 +23,7 @@ const promoValue = x => x.kind === "pct" ? `−${pctText(x.value)}%` : `−$${gr
 const promoDates = x => x.starts || x.ends ? `${x.starts ? fdate(x.starts) : "…"} — ${x.ends ? fdate(x.ends) : "…"}` : t("pm_always");
 
 function promoSection(f, dis){
-  const list = f.promos, ed = M.ui.promoEd;
+  const list = f.promos.filter(x => !x.deleted), trash = f.promos.filter(x => x.deleted), ed = M.ui.promoEd;
   return `<section class="card stack" id="promos"><div class="card-h"><div class="stack" style="gap:4px"><h2>${esc(t("pr_promos"))}</h2><p class="muted small">${esc(t("pr_promos_d"))}</p></div>
       ${dis ? "" : `<button type="button" class="ghost sm" data-act="pmnew">${IC.plus}<span>${esc(t("pm_new"))}</span></button>`}</div>
     ${ed ? promoForm(ed) : ""}
@@ -37,7 +40,18 @@ function promoSection(f, dis){
           <span class="a-end row" style="gap:10px;flex-wrap:nowrap">${dis ? "" : `<button type="button" class="link" data-act="pmedit" data-v="${esc(x.id)}">${esc(t("edit"))}</button>
             <button type="button" class="link" data-act="pmtoggle" data-v="${esc(x.id)}">${esc(t(x.active ? "pm_hide" : "pm_show"))}</button>
             <button type="button" class="link danger" data-act="pmdel" data-v="${esc(x.id)}" aria-label="${esc(t("delete_cta"))}: ${esc(x.code || x.name)}">${esc(t("delete_cta"))}</button>`}</span></div>`; }).join("")}</div>`
-      : `<p class="muted">${esc(t("pm_none"))}</p>`}</section>`;
+      : `<p class="muted">${esc(t("pm_none"))}</p>`}
+    ${trash.length ? promoTrash(trash, dis) : ""}</section>`;
+}
+/* Корзина: удалённые промокоды и акции — восстановить одним нажатием. */
+function promoTrash(trash, dis){
+  return `<details class="pm-trash" id="pmtrash" ${M.ui.pmTrash ? "open" : ""}><summary>${esc(tf("pm_trash_n", { n:trash.length }))}</summary>
+    <div class="atable" style="--cols:minmax(0,1.6fr) 90px minmax(0,1.3fr) auto">
+      ${trash.map(x => `<div class="arow past"><span class="a-main"><b class="${x.auto ? "" : "mono"}">${esc(x.auto ? t("pm_auto_short") : x.code)}</b><span class="small muted">${esc(x.name)}</span></span>
+        <span class="a-cell mono a-sub">${esc(promoValue(x))}</span>
+        <span class="a-cell small muted">${esc(tf("pm_deleted_at", { date:fdt(x.deleted) }))}</span>
+        <span class="a-end">${dis ? "" : `<button type="button" class="link" data-act="pmrestore" data-v="${esc(x.id)}" aria-label="${esc(t("pm_restore"))}: ${esc(x.code || x.name)}">${esc(t("pm_restore"))}</button>`}</span></div>`).join("")}</div>
+    <p class="muted small">${esc(t("pm_trash_d"))}</p></details>`;
 }
 function promoForm(d){
   const f = (k, label, attrs = "") => `<label class="field"><span>${esc(t(label))}</span><input data-pe="${k}" value="${esc(d[k])}" ${attrs}></label>`;
@@ -65,7 +79,7 @@ function promoRead(d, all){
   const n = v => numIn(v), int = v => String(v).trim() === "" ? 0 : /^\d{1,6}$/.test(String(v).trim()) ? Number(v) : NaN;
   const code = String(d.code || "").trim().toUpperCase(), value = d.kind === "pct" ? Math.round(n(d.value) * 100) : n(d.value);
   if (!d.auto && !/^[A-Z0-9][A-Z0-9_-]{2,19}$/.test(code)) return { err:["err_pm_code", "code"] };
-  if (!d.auto && all.some(x => x.id !== d.id && x.code === code)) return { err:["err_pm_dup", "code"] };
+  if (!d.auto && all.some(x => x.id !== d.id && !x.deleted && x.code === code)) return { err:["err_pm_dup", "code"] };
   if (d.name.trim().length < 2) return { err:["err_pm_name", "name"] };
   if (!Number.isInteger(value) || value <= 0 || value > (d.kind === "pct" ? 9000 : 100000)) return { err:["err_pm_value", "value"] };
   const minUsd = int(d.minUsd), limit = int(d.limit);
@@ -76,7 +90,7 @@ function promoRead(d, all){
     starts:d.starts || "", ends:d.ends || "", active:!!d.active, auto:!!d.auto } };
 }
 Object.assign(ACT, {
-  pmnew:    () => { if (denied("pricing.edit")) return; if (prDraft().promos.length >= PROMO_MAX) return toast(tf("err_pm_max", { n:PROMO_MAX })); M.ui.promoEd = blankPromo(); M.ui.peFocus = true; rerender(); },
+  pmnew:    () => { if (denied("pricing.edit")) return; if (prDraft().promos.filter(x => !x.deleted).length >= PROMO_MAX) return toast(tf("err_pm_max", { n:PROMO_MAX })); M.ui.promoEd = blankPromo(); M.ui.peFocus = true; rerender(); },
   pmedit:   el => { const x = prDraft().promos.find(p => p.id === el.dataset.v); if (!x) return;
     M.ui.promoEd = { ...x, value:x.kind === "pct" ? pctIn(x.value) : String(x.value), minUsd:x.minUsd ? String(x.minUsd) : "", limit:x.limit ? String(x.limit) : "", svc:[...(x.svc || [])], isNew:false }; M.ui.peFocus = true; rerender(); },
   pmclose:  () => { M.ui.promoEd = null; rerender(); $('[data-act="pmnew"]')?.focus(); },
@@ -85,13 +99,24 @@ Object.assign(ACT, {
     const { rec, err } = promoRead(d, f.promos);
     $$("#promoed [aria-invalid]").forEach(x => x.removeAttribute("aria-invalid"));
     if (err) { const fld = $(`#promoed [data-pe="${err[1]}"]`); fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "pmerr"); showErr("#pmerr", t(err[0])); fld?.focus({ preventScroll:true }); return; }
-    const i = f.promos.findIndex(x => x.id === rec.id); if (i >= 0) f.promos[i] = rec; else f.promos.unshift(rec);
+    const i = f.promos.findIndex(x => x.id === rec.id); if (i >= 0) f.promos[i] = { ...rec, deleted:f.promos[i].deleted || 0 }; else f.promos.unshift(rec);
     M.ui.promoEd = null; rerender(); $("#prbar .solid")?.focus();
   },
   pmtoggle: el => { const x = prDraft().promos.find(p => p.id === el.dataset.v); if (!x) return; x.active = !x.active; rerender(); $(`[data-act="pmtoggle"][data-v="${CSS.escape(x.id)}"]`)?.focus(); },
   pmdel:    el => { const f = prDraft(), x = f.promos.find(p => p.id === el.dataset.v); if (!x || !confirm(tf(x.auto ? "pm_del_q_auto" : "pm_del_q", { code:x.code || x.name }))) return;
-    f.promos = f.promos.filter(p => p.id !== x.id); rerender(); $('[data-act="pmnew"]')?.focus(); }
+    if (M.ui.promoEd?.id === x.id) M.ui.promoEd = null;
+    // Новый, ещё не сохранённый, — просто убираем; сохранённый — в корзину.
+    const saved = JSON.parse(f.base).promos.some(p => p.id === x.id);
+    f.promos = saved ? f.promos.map(p => p.id === x.id ? { ...p, deleted:Date.now() } : p) : f.promos.filter(p => p.id !== x.id);
+    rerender(); $('[data-act="pmnew"]')?.focus(); },
+  /* Из корзины: код не должен совпасть с действующим — иначе на сайте их было бы два. */
+  pmrestore: el => { const f = prDraft(), x = f.promos.find(p => p.id === el.dataset.v); if (!x) return;
+    if (!x.auto && f.promos.some(p => p.id !== x.id && !p.deleted && p.code === x.code)) return toast(t("err_pm_dup"));
+    if (f.promos.filter(p => !p.deleted).length >= PROMO_MAX) return toast(tf("err_pm_max", { n:PROMO_MAX }));
+    f.promos = f.promos.map(p => p.id === x.id ? { ...p, deleted:0 } : p); M.ui.pmTrash = true; rerender();
+    ($(`[data-act="pmrestore"]`) || $(`[data-act="pmedit"][data-v="${CSS.escape(x.id)}"]`))?.focus(); }
 });
+document.addEventListener("toggle", e => { if (e.target.id === "pmtrash") M.ui.pmTrash = e.target.open; }, true);
 document.addEventListener("input", e => { const k = e.target.dataset?.pe; if (k && M.ui.promoEd && e.target.type !== "checkbox") M.ui.promoEd[k] = e.target.value; });
 document.addEventListener("change", e => {
   const d = M.ui.promoEd; if (!d) return;

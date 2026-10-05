@@ -65,7 +65,8 @@ function configDiff(a, b){
 }
 const PROMO_DIFF = [["value", "pm_col_off", z => ({ promo:{ kind:z.kind, value:z.value, active:true } })], ["active", "col_status", z => strRef(z.active ? "pm_st_on" : "pm_st_off")],
   ["code", "pm_code", z => z.code || "—"], ["name", "pm_name", z => z.name], ["svc", "pm_svc", z => ({ svcs:z.svc || [] })], ["min", "pm_min", z => z.minUsd ? "$" + z.minUsd : "—"],
-  ["limit", "pm_limit", z => z.limit ? String(z.limit) : "—"], ["dates", "pm_col_dates", z => `${z.starts || "…"} — ${z.ends || "…"}`]];
+  ["limit", "pm_limit", z => z.limit ? String(z.limit) : "—"], ["dates", "pm_col_dates", z => `${z.starts || "…"} — ${z.ends || "…"}`],
+  ["deleted", "pm_col_trash", z => strRef(z.deleted ? "pm_in_trash" : "pm_in_list")]];
 const prChanges = f => { const { cfg, err } = prBuild(f); return err ? -1 : configDiff(JSON.parse(f.base), cfg).length; };
 
 /* ---- сохранение ---- */

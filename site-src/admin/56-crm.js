@@ -94,11 +94,11 @@ const nextStage = st => ({ new:"contacted", contacted:"progress", progress:"inte
 /* ---- воронка ---- */
 function leadCard(l){
   const over = tasksFor(["l:" + l.id]).some(taskOverdue), nx = nextStage(l.status);
-  return `<article class="lcard" aria-label="${esc(l.name)}"><a class="lcard-main" href="#/crm/${l.id}"><span class="mono small muted">${esc(l.no)}</span><b>${esc(l.name)}</b>
+  return `<article class="lcard" aria-label="${esc(l.name)}"><a class="lcard-main" href="#/crm/${esc(l.id)}"><span class="mono small muted">${esc(l.no)}</span><b>${esc(l.name)}</b>
       <span class="small muted">${esc(leadWhat(l) || t("crm_no_interest"))}</span></a>
     <div class="lcard-foot"><span class="mono small">${esc(usd(l.budget))}</span>${over ? `<span class="warn-t small" title="${esc(t("crm_overdue"))}">${IC.clock}<span class="sr-only">${esc(t("crm_overdue"))}</span></span>` : ""}
       <span class="small muted">${esc(ago(l.createdAt))}</span>${l.manager ? `<span class="avatar xs" title="${esc(staffName(l.manager))}" aria-label="${esc(staffName(l.manager))}">${esc(monogram(staffName(l.manager)))}</span>` : ""}</div>
-    ${nx && canEditLead(l) ? `<button type="button" class="link small" data-act="lednext" data-v="${l.id}" aria-label="${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}: ${esc(l.name)}">${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}</button>` : ""}</article>`;
+    ${nx && canEditLead(l) ? `<button type="button" class="link small" data-act="lednext" data-v="${esc(l.id)}" aria-label="${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}: ${esc(l.name)}">${esc(tf("crm_move_to", { stage:t("ls_" + nx) }))}</button>` : ""}</article>`;
 }
 function crmBoard(){
   const leads = visibleLeads();
@@ -122,7 +122,7 @@ function leadsList(){
   return `<div class="atable" style="--cols:88px minmax(0,1.6fr) minmax(0,1.4fr) minmax(0,1fr) minmax(0,1.1fr) 130px">
     <div class="arow ahead" aria-hidden="true"><span>№</span><span>${esc(t("crm_name"))}</span><span>${esc(t("crm_interest"))}</span>
       <span>${esc(t("crm_source"))}</span><span>${esc(t("crm_manager"))}</span><span class="a-end">${esc(t("crm_stage"))}</span></div>
-    ${rows.map(l => `<a class="arow" href="#/crm/${l.id}"><span class="a-cell mono small">${esc(l.no)}</span>
+    ${rows.map(l => `<a class="arow" href="#/crm/${esc(l.id)}"><span class="a-cell mono small">${esc(l.no)}</span>
       <span class="a-main"><b>${esc(l.name)}</b><span class="mono">${esc(l.phone || l.email)}</span></span>
       <span class="a-cell a-sub wrap">${esc(leadWhat(l) || "—")}${l.budget ? ` · <span class="mono">${esc(usd(l.budget))}</span>` : ""}</span>
       <span class="a-cell small">${esc(t("src_" + l.source))}</span><span class="a-cell small">${l.manager ? esc(staffName(l.manager)) : `<span class="muted">${esc(t("crm_nobody"))}</span>`}</span>
@@ -163,7 +163,7 @@ function clientTable(rows, label, showType = true){
   return `<div class="atable" style="--cols:minmax(0,2fr) ${showType ? "70px " : ""}minmax(0,1fr) minmax(0,1.2fr) 80px minmax(0,1.2fr) 120px">
     <div class="arow ahead" aria-hidden="true"><span>${esc(t("customer"))}</span>${showType ? `<span>${esc(t("crm_type"))}</span>` : ""}<span>${esc(t("crm_segment"))}</span>
       <span>${esc(t("crm_manager"))}</span><span class="a-num">${esc(t("an_orders"))}</span><span class="a-num">${esc(t("col_spent"))}</span><span class="a-end">${esc(t("crm_last_activity"))}</span></div>
-    ${rows.map(c => `<a class="arow" href="${c.b2b ? `#/agencies/${c.key}` : `#/customers/${c.key}`}"><span class="a-main a-with-mark"><span class="avatar sm" aria-hidden="true">${esc(monogram(c.name || "?"))}</span>
+    ${rows.map(c => `<a class="arow" href="${c.b2b ? `#/agencies/${esc(c.key)}` : `#/customers/${esc(c.key)}`}"><span class="a-main a-with-mark"><span class="avatar sm" aria-hidden="true">${esc(monogram(c.name || "?"))}</span>
         <span class="stack" style="gap:1px;min-width:0"><b>${esc(c.name || t("guest"))}</b><span class="mono small muted">${esc(c.phone)}</span></span></span>
       ${showType ? `<span class="a-cell small">${c.b2b ? "B2B" : "B2C"}</span>` : ""}<span class="a-sub">${segPill(c.segment)}</span>
       <span class="a-cell small">${c.manager ? esc(staffName(c.manager)) : `<span class="muted">${esc(t("crm_nobody"))}</span>`}</span>
@@ -221,10 +221,10 @@ function leadHistory(l){
 function stageStepper(l){
   const edit = canEditLead(l), i = LEAD_STAGES.indexOf(l.status);
   return `<div class="lstepper" role="group" aria-label="${esc(t("crm_stage"))}">${LEAD_STAGES.map((st, k) => `<button type="button" class="lstep ${k < i && l.status !== "lost" ? "past" : ""} ls-${st}"
-      data-act="${st === "lost" ? "aask" : "ledstage"}" ${st === "lost" ? `data-k="lost${l.id}"` : `data-s="${st}" data-v="${l.id}"`} aria-pressed="${l.status === st}" ${edit && !(st === "lost" && l.status === "lost") ? "" : "disabled"}>${esc(t("ls_" + st))}</button>`).join("")}</div>
+      data-act="${st === "lost" ? "aask" : "ledstage"}" ${st === "lost" ? `data-k="lost${esc(l.id)}"` : `data-s="${st}" data-v="${esc(l.id)}"`} aria-pressed="${l.status === st}" ${edit && !(st === "lost" && l.status === "lost") ? "" : "disabled"}>${esc(t("ls_" + st))}</button>`).join("")}</div>
     ${M.ui.ask?.["lost" + l.id] && edit ? `<span class="why">${inpField("why:lost" + l.id, { label:t("reason"), ph:t("crm_lost_ph"), extra:'maxlength="120"' })}
-      <button type="button" class="solid sm danger-solid" data-act="ledlost" data-v="${l.id}">${esc(t("crm_mark_lost"))}</button>
-      <button type="button" class="link" data-act="aask" data-k="lost${l.id}">${esc(t("cancel"))}</button></span>` : ""}
+      <button type="button" class="solid sm danger-solid" data-act="ledlost" data-v="${esc(l.id)}">${esc(t("crm_mark_lost"))}</button>
+      <button type="button" class="link" data-act="aask" data-k="lost${esc(l.id)}">${esc(t("cancel"))}</button></span>` : ""}
     ${l.status === "lost" && l.lostReason ? `<p class="small"><b>${esc(t("crm_lost_reason"))}:</b> ${esc(auditVal(l.lostReason))}</p>` : ""}`;
 }
 PAGES["crm/:id"] = {
@@ -243,14 +243,14 @@ PAGES["crm/:id"] = {
             : `<p class="muted">${esc(t("crm_orders_none"))}</p>`}</section>
           <section class="card stack"><h2>${esc(t("crm_history"))}</h2>${leadHistory(l)}</section></div>
         <aside class="stack sticky">
-          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditLead(l) ? `<button type="button" class="link" data-act="ledit" data-v="${l.id}">${esc(t("edit"))}</button>` : ""}</div>
+          <div class="card stack"><div class="card-h"><span class="lbl">${esc(t("crm_contact"))}</span>${canEditLead(l) ? `<button type="button" class="link" data-act="ledit" data-v="${esc(l.id)}">${esc(t("edit"))}</button>` : ""}</div>
             <div class="rows">${row("phone_label", l.phone, true)}${row("agency_email", l.email)}${row("crm_person", l.contact)}${row("crm_country", l.country)}${row("crm_source", t("src_" + l.source))}
               ${row("crm_created", fdt(l.createdAt))}</div>
             ${key && l.kind !== "b2b" ? `<a class="link" href="#/customers/${key}">${esc(t("crm_client_card"))}</a>` : ""}
             ${l.origin?.app && can("b2b.view") ? `<a class="link" href="#/agencies">${esc(t("an_agencies"))}</a>` : ""}</div>
           <div class="card stack"><span class="lbl">${esc(t("crm_manager"))}</span><div>${managerField("l:" + l.id, l.manager)}</div></div>
           ${tasksBlock("l:" + l.id)}
-          ${can("crm.delete") ? `<button type="button" class="link danger" data-act="leddel" data-v="${l.id}">${esc(t("crm_lead_delete"))}</button>` : ""}
+          ${can("crm.delete") ? `<button type="button" class="link danger" data-act="leddel" data-v="${esc(l.id)}">${esc(t("crm_lead_delete"))}</button>` : ""}
         </aside></div></div>`;
   },
   after(){ if (M.ui.leadDraft && M.ui.ldFocus) { $("#ledit [data-lf=name]")?.focus(); M.ui.ldFocus = false; } }

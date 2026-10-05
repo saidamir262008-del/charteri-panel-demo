@@ -46,12 +46,22 @@ const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram && "Telegra
 function brandTop(kind, b = S.brand){
   return `<div class="bd-top" style="${brandStyle(b)}">${brandMark("bd-mark", b)}<span class="bd-name">${esc(b.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
 }
-function brandFoot(b = S.brand){
-  return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}</div>
+/* Реквизиты на документе: юрлицо и ИНН — из данных агентства, банк, счёт и
+   МФО — из бренда. Счёт и МФО печатаются, только если они правильного вида. */
+const BRAND_ACC = /^\d{20}$/, BRAND_MFO = /^\d{5}$/;
+const brandReqErr = b => b.acc && !BRAND_ACC.test(digits(b.acc)) ? ["err_brand_acc", "acc"] : b.mfo && !BRAND_MFO.test(digits(b.mfo)) ? ["err_brand_mfo", "mfo"] : null;
+const brandDoc = (st = S) => ({ ...st.brand, legal:st.agency?.legal || "", inn:st.agency?.inn || "" });
+function brandReq(b){
+  const acc = digits(b.acc || ""), mfo = digits(b.mfo || "");
+  const parts = [b.legal, b.inn && `${t("req_inn")} ${b.inn}`, b.bank, BRAND_ACC.test(acc) && `${t("req_acc")} ${acc}`, BRAND_MFO.test(mfo) && `${t("req_mfo")} ${mfo}`].filter(Boolean);
+  return parts.length ? `<span class="bd-req">${parts.map(esc).join(" · ")}</span>` : "";
+}
+function brandFoot(b = brandDoc()){
+  return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}${brandReq(b)}</div>
     <span class="bd-pw">${esc(t("powered_by"))} <span class="wordmark dark">CHARTERI<b>.UZ</b></span></span></div>`;
 }
 /* b = бренд агентства; null — документ Charteri для пассажира сайта. */
-function orderDocument(o, b = S.brand){
+function orderDocument(o, b = brandDoc()){
   if (o.type === "FLIGHT") return b ? `<div class="bdoc">${brandTop(t("doc_FLIGHT"), b)}${flightDocument(o)}${brandFoot(b)}</div>` : flightDocument(o);
   const body = { TOUR:tourVoucherBody, HOTEL:hotelVoucherBody, JET:charterVoucherBody, HELI:charterVoucherBody }[o.type](o);
   const top = b ? brandTop(t("doc_" + o.type), b) : `<div class="v-top"><span class="wordmark">CHARTERI<b>.UZ</b></span><span class="v-kind">${esc(t("doc_" + o.type))}</span></div>`;

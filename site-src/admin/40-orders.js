@@ -45,7 +45,9 @@ PAGES.orders = {
     const g = M.ui.aog || "all", src = M.ui.aosrc || "all", ty = M.ui.aoty || "ALL";
     const counts = Object.fromEntries(Object.keys(ADM_GROUPS).map(k => [k, allOrders().filter(r => ADM_GROUPS[k](r.o)).length]));
     return `<div class="page">
-      <div class="pagehead"><h1>${esc(t("an_orders"))}</h1><p class="muted">${esc(t("aorders_sub"))}</p></div>
+      <div class="pagehead row-head"><div class="stack" style="gap:6px"><h1>${esc(t("an_orders"))}</h1><p class="muted">${esc(t("aorders_sub"))}</p></div>
+        <button type="button" class="solid" data-act="onnew" ${canOrderNew() ? "" : "disabled"}>${IC.plus}<span>${esc(t("on_new"))}</span></button></div>
+      ${orderNewForm()}
       <div class="card stack">
         <div class="otools">
           <div class="chipbar">${Object.keys(ADM_GROUPS).map(k => `<button type="button" class="chip" data-act="aog" data-v="${k}" aria-pressed="${g === k}">${esc(t("og_" + k))}${
@@ -101,7 +103,7 @@ function admPayment(r){
 /* История заказа: статусы, отправленные документы и правки из журнала. */
 function orderTimeline(o){
   const items = [...o.history.map(h => ({ at:h.at, s:h.s, text:t("st_" + h.s) })), ...(o.sent || []).map(x => ({ at:x.at, s:"CONFIRMED", text:tf("tl_doc_sent", { ch:t("doc_ch_" + x.ch), to:x.to }), by:x.by })),
-    ...O.audit.filter(e => e.vars?.no === o.no && ["order_edit"].includes(e.action)).map(e => ({ at:e.at, s:"NEW", text:auditText(e), by:staffName(e.staffId) }))];
+    ...O.audit.filter(e => e.vars?.no === o.no && ["order_edit", "order_pax", "order_new"].includes(e.action)).map(e => ({ at:e.at, s:"NEW", text:auditText(e), by:staffName(e.staffId) }))];
   return items.sort((a, b) => a.at - b.at);
 }
 function admRefund(r){
@@ -121,7 +123,7 @@ PAGES["orders/:src/:id"] = {
       <div class="ohead"><span class="oc-ic">${TYPE_ICON[o.type]}</span><div><span class="lbl">${esc(t("doc_" + o.type))} · <span class="mono">${o.no}</span> · ${esc(srcName(r))}</span>
         <h1>${esc(orderTitle(o))}</h1><p class="muted">${esc(orderSub(o))}</p></div>${pill(st)}</div>
       <div class="twocol"><div class="stack">${admActions(r)}${req}
-          ${showDoc ? orderDocument(o, r.a ? r.a.brand : null) + docActions(r) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
+          ${showDoc ? orderDocument(o, r.a ? brandDoc(r.a.st) : null) + docActions(r) : isCharter(o) ? `<div class="card stack"><h3>${esc(t("request_details"))}</h3>${charterVoucherBody(o)}</div>` : ""}</div>
         <aside class="stack sticky">
           <div class="card stack">${admPayment(r)}</div>${admRefund(r)}
           <div class="card stack"><span class="lbl">${esc(r.a ? t("col_source") : t("customer"))}</span>
@@ -129,7 +131,8 @@ PAGES["orders/:src/:id"] = {
               <span class="small muted">${esc(t("col_client"))}: ${esc(orderClient(r))}</span></div>${can("b2b.view") ? `<a class="link" href="#/agencies/${r.a.id}">${esc(t("open_client"))}</a>` : ""}</div>`
               : `<div class="client-mini"><span class="avatar sm">${esc(monogram(orderClient(r)))}</span><div class="stack" style="gap:1px;min-width:0"><b>${esc(orderClient(r))}</b>
               <span class="mono small muted">${esc(o.contact.phone)}</span>${o.contact.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}</div>${can("clients") ? `<a class="link" href="#/customers/${encodeURIComponent(digits(o.contact.phone))}">${esc(t("open_client"))}</a>` : ""}</div>`}</div>
-          ${r.a ? "" : `<div class="card stack">${contactEdit(r)}</div>`}
+          <div class="card stack">${r.a ? `<span class="lbl">${esc(t("client_contact"))}</span><span class="mono small">${esc(o.contact?.phone || "—")}</span>${o.contact?.email ? `<span class="small muted">${esc(o.contact.email)}</span>` : ""}` : ""}${contactEdit(r)}</div>
+          <div class="card stack">${paxEdit(r)}</div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
             <ol class="timeline">${orderTimeline(o).map(h => `<li><span class="tl-dot st-${h.s}"></span><b>${esc(h.text)}</b><span class="muted small">${esc(fdt(h.at))}${h.by ? " · " + esc(h.by) : ""}</span></li>`).join("")}</ol></div>
         </aside></div></div>`;

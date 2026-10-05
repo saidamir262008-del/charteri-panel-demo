@@ -53,8 +53,9 @@ function tickCharter(){
   const now = Date.now(), auto = !opsLive(); let changed = false;
   for (const o of S.orders) {
     const charter = o.type === "JET" || o.type === "HELI";
+    // Сумы — по текущему курсу, как у оператора в админке (priceOrder), а не по курсу дня заявки.
     if (auto && charter && o.status === "NEW" && now - o.createdAt >= PRICE_READY_MS) {
-      o.status = "PENDING"; o.total = o.details.quote; o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); hist(o, "PENDING"); changed = true;
+      o.status = "PENDING"; o.total = amt(o.details.quote.usd); o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); hist(o, "PENDING"); changed = true;
       note("price_ready", { orderId:o.id }); toast(tf("toast_priced", { no:o.no }));
     }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= PAID_TO_CONFIRMED_MS) {

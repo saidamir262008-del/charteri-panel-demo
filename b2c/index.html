@@ -1401,7 +1401,10 @@ const STR = {
   pay_off:["Этот способ оплаты сейчас отключён — выберите другой","Bu to‘lov usuli hozir o‘chirilgan — boshqasini tanlang","This payment method is switched off — choose another"],
   rate_moved:["Курс доллара изменился — проверьте новую сумму","Dollar kursi o‘zgardi — yangi summani tekshiring","The dollar rate has changed — check the new amount"],
   rate_moved_redo:["Курс доллара изменился — выберите предложение заново","Dollar kursi o‘zgardi — taklifni qaytadan tanlang","The dollar rate has changed — choose the offer again"],
-  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"]
+  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"],
+  pay_cash:["Наличными в офисе","Ofisda naqd pul bilan","Cash at the office"],
+  rate_changed_title:["Изменился курс доллара","Dollar kursi o‘zgardi","The dollar rate has changed"],
+  rate_changed_body:["Цена в долларах та же, но сумма в сумах пересчитана по новому курсу: $1 = {rate} сум. Подтвердите перед оплатой.","Dollardagi narx o‘sha, lekin so‘mdagi summa yangi kurs bo‘yicha qayta hisoblandi: $1 = {rate} so‘m. To‘lovdan oldin tasdiqlang.","The dollar price is the same, but the UZS amount has been recalculated at the new rate: $1 = {rate} UZS. Please confirm before paying."]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
@@ -1765,7 +1768,7 @@ function pricesClean(saved){
   const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
   return { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
     svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
-    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
+    promos:Array.isArray(saved.promos) ? promoOrder(saved.promos.filter(validPromo).map(cleanPromo)).slice(0, PROMO_MAX) : [] };
 }
 /* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
    агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
@@ -1800,13 +1803,17 @@ function validPromo(x){
 /* Данные из хранилища — чужие: только известные поля в правильном виде. */
 const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
   return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
-    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends),
+    // Удалённый в админке — в корзине (время удаления): на сайте не действует, восстановить можно.
+    deleted:Number.isFinite(x.deleted) && x.deleted > 0 ? x.deleted : 0 }; };
+/* Сначала действующие, корзина — в конце: при пределе PROMO_MAX отрезается старая корзина, а не живые коды. */
+const promoOrder = list => [...list.filter(x => !x.deleted), ...list.filter(x => x.deleted).sort((a, b) => b.deleted - a.deleted)];
 /* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
 const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
 /* Почему промокод не подходит заказу (ключ строки) или null. */
 function promoProblem(x, type, total, orders){
   if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
-  if (!x.active) return "err_promo_expired";
+  if (!x.active || x.deleted) return "err_promo_expired";
   if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
   if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
   if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
@@ -2095,10 +2102,10 @@ function airportSelect(bind, value, exclude){
 function routeBlock(o, extra = ""){
   const nd = nextDay(o);
   return `<div class="route">
-    <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+    <div class="end"><span class="code">${esc(o.from)}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${esc(o.depTime)}</span></div>
     <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span>
       <span class="s ${o.stops ? "s-stop" : "s-direct"}">${o.stops ? esc(tf("via", { c: o.stopCity })) : esc(t("direct"))}</span>${extra}</div>
-    <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
+    <div class="end r"><span class="code">${esc(o.to)}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${esc(o.arrTime)}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
   </div>`;
 }
 const nextDay = o => { const [h, m] = o.depTime.split(":").map(Number); return Math.floor((h*60 + m + o.durationMin) / 1440); };
@@ -2126,7 +2133,7 @@ function hotelArt(h, big = false){
   const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${esc(h.id)}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
 }
 /* Галерея на странице отеля: главный снимок и два поменьше — номер
    под звёздность отеля и бассейн или ресторан. */
@@ -3833,7 +3840,9 @@ PAGES["flights/offer"] = {
 
 function flightDetailsOf(out, back, q){ return { out, back, q:{ adults:q.adults, children:q.children, infants:q.infants, cabin:q.cabin } }; }
 function startFlightCheckout(){
-  const f = M.flights, out = f.sel.out, back = f.sel.back;
+  // Пассажиры и класс — снимком: пересчёт цены не должен читать живую форму поиска.
+  const f = { adults:M.flights.adults, children:M.flights.children, infants:M.flights.infants, cabin:M.flights.cabin };
+  const out = M.flights.sel.out, back = M.flights.sel.back;
   const { lines, total } = flightLines(out, back, f);
   const types = [...Array(f.adults).fill("adult"), ...Array(f.children).fill("child"), ...Array(f.infants).fill("infant")];
   startCheckout({
@@ -3868,7 +3877,7 @@ function flightDocument(o){
   const pass = (leg, i) => `<article class="pass rise" style="--i:${i}">
     <div class="pass-top">${WORDMARKS[leg.carrierCode]
       ? `<span class="pass-wm"><img src="${WORDMARKS[leg.carrierCode]}" alt="${esc(leg.carrier)}"></span><span class="n"></span>`
-      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${leg.flightNo}</span></div>
+      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${esc(leg.flightNo)}</span></div>
     <div class="pass-body">${routeBlock(leg, `<span class="d">${esc(fdate(leg.date))}</span>`)}
       <div class="pgrid">
         <div class="wide"><span class="lbl">${esc(t("passenger"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}${pax.length > 1 ? ` +${pax.length-1}` : ""}</b></div>
@@ -3904,7 +3913,7 @@ function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.
 const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
    заказа, а не падаем: один такой заказ не должен ломать список. */
-const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
+const missingHotel = o => ({ id:/^[\w-]{1,60}$/.test(o.details?.hotelId) ? o.details.hotelId : "x", name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
 /* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
@@ -4055,7 +4064,7 @@ function hotelVoucherBody(o){
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
-    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>
+    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${esc(d.rooms)}</b></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("guests"))}</span><b>${esc(pl(d.adults, "adult"))}${d.children ? ", " + esc(pl(d.children, "child")) : ""}</b></div>
     <div><span class="lbl">${esc(t("lead_guest"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}</b></div>
@@ -4219,7 +4228,10 @@ PAGES["tours/item/:id"] = {
 };
 
 function startTourCheckout(hid){
-  const q = M.tours, h = hotelById(hid), p = tourPackage(h, q);
+  /* Поиск — снимком: пока оформление открыто, форму поиска могли поменять
+     (Назад → другое число туристов → Вперёд), а пересчёт цены — по этому туру. */
+  const q = { to:M.tours.to, depart:M.tours.depart, nights:M.tours.nights, adults:M.tours.adults, children:M.tours.children };
+  const h = hotelById(hid), p = tourPackage(h, q);
   const types = [...Array(q.adults).fill("adult"), ...Array(q.children).fill("child")];
   startCheckout({
     type: "TOUR", title: `${h.name} · ${cityName(q.to)}`,
@@ -4239,9 +4251,9 @@ function tourVoucherBody(o){
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
-    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
-    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
-    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
+    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${esc(h.board)}</span> ${esc(t("board_" + h.board))}</b></div>
+    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${esc(d.out.flightNo)} · ${esc(d.out.depTime)}</b><span class="muted small">TAS → ${esc(d.out.to)} · ${esc(fdate(d.out.date))}</span></div>
+    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${esc(d.back.flightNo)} · ${esc(d.back.depTime)}</b><span class="muted small">${esc(d.back.from)} → TAS · ${esc(fdate(d.back.date))}</span></div>
     ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
     ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>
@@ -4417,11 +4429,11 @@ function sendCharterRequest(kind){
 function charterVoucherBody(o){
   const d = o.details, isJet = d.kind === "jet";
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${d.from}) → ${esc(cityName(d.to))} (${d.to})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
+    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${esc(d.from)}) → ${esc(cityName(d.to))} (${esc(d.to)})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
     <div><span class="lbl">${esc(t("date"))}</span><b>${esc(fdateY(d.date))}</b></div>
-    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${d.time}</b></div>
+    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${esc(d.time)}</b></div>
     <div><span class="lbl">${esc(t(isJet ? "aircraft" : "heli_type"))}</span><b>${esc(d.model)}</b></div>
-    <div><span class="lbl">${esc(t("passengers"))}</span><b>${d.pax}</b></div>
+    <div><span class="lbl">${esc(t("passengers"))}</span><b>${esc(d.pax)}</b></div>
     <div><span class="lbl">${esc(t("flight_time"))}</span><b>${esc(hoursText(d.hours))}</b></div>
     <div><span class="lbl">${esc(t("trip_kind"))}</span><b>${esc(t(d.trip === "roundtrip" ? (isJet ? "roundtrip" : "heli_rt") : "oneway"))}</b></div>
     <div class="wide"><span class="lbl">${esc(t("customer"))}</span><b>${esc(o.travellers[0].given)} · ${esc(o.contact.phone)}</b></div>
@@ -4439,7 +4451,8 @@ function charterVoucherBody(o){
 "use strict";
 
 const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["uzum","Uzum","#7C3AED"],["humo","Uzcard / Humo","#12996A"],["card","Visa / Mastercard","#2F6FE0"]];
-const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? k;
+// cash — оплата в офисе: заказ оформил сотрудник в админке (admin/43-order-new.js).
+const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
 
@@ -4460,7 +4473,7 @@ function startCheckout(spec){
 function travellerForm(x, i, mode){
   const full = mode === "full";
   const chips = S.travellers.length ? `<div class="tchips"><span class="lbl">${esc(t("select_traveller"))}</span>${S.travellers.map(tr =>
-    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${tr.id}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
+    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${esc(tr.id)}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
   const f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-tv="${i}" data-f="${k}" value="${esc(x[k])}" ${extra}></label>`;
   return `<div class="tform" id="tv${i}">
     <div class="tform-h"><b>${esc(mode === "lead" ? t("lead_guest") : `${t("passenger")} ${i+1}`)}</b><span class="muted small">${esc(t("pax_" + x.type))}</span></div>
@@ -4487,10 +4500,7 @@ PAGES.checkout = {
     c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-    else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
-        <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(c.total)}</span></div>
-          <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(c.pending.total)}</span></div></div>
-        <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+    else if (c.pstate === "changed") check = priceChangedBox(c, c.total, c.pending.total);
     else if (c.recheck) check = `<div class="pcheck good">${IC.ok}${esc(t("price_confirmed"))}</div>`;
     return `<div class="container section"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
@@ -4520,6 +4530,17 @@ PAGES.checkout = {
     }, 1100);
   }
 };
+/* «Цена изменилась» — общий блок сайта и кабинета. Если сменился только курс
+   (byRate), в долларах суммы одинаковы: показываем сумы и называем причину —
+   курс, а не поставщика. */
+function priceChangedBox(c, was, now){
+  const rate = c.pending.byRate, f = rate ? a => grp(a.uzs) + NB + t("cur_uzs") : fmt;
+  return `<div class="changed settle" ${rate ? 'data-by="rate"' : ""}><h3>${esc(t(rate ? "rate_changed_title" : "price_changed_title"))}</h3>
+      <p class="small">${esc(rate ? tf("rate_changed_body", { rate:grp(c.rate) }) : t("price_changed_body"))}</p>
+      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${f(was)}</span></div>
+        <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${f(now)}</span></div></div>
+      <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+}
 /* Курс сменили в админке, пока оформление открыто: сумы на экране посчитаны по
    старому. Пересчитываем и показываем новую сумму, как при перепроверке цены, —
    старую не списываем. true — оплату надо остановить. */
@@ -4530,7 +4551,8 @@ function rateMoved(c){
   if (!c.priceChange) { M.checkout = null; toast(t("rate_moved_redo")); go(SEARCH_PATH); return true; }
   const fresh = c.priceChange(true);
   if (fresh.total.usd === c.total.usd && fresh.total.uzs === c.total.uzs) return false;
-  Object.assign(c, { pending:fresh, pstate:"changed", accepted:false });
+  // byRate — в долларах цена та же, иначе это обычная перепроверка у поставщика.
+  Object.assign(c, { pending:{ ...fresh, byRate:fresh.total.usd === c.total.usd }, pstate:"changed", accepted:false });
   rerender(); toast(t("rate_moved"));
   return true;
 }
@@ -4623,7 +4645,7 @@ function applyPromo(){
   hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
   const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
   if (!code) return bad(t("err_promo_empty"));
-  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const x = prices().promos.find(p => !p.auto && !p.deleted && p.code === code);
   const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
   if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
   c.promoCode = code; c.promoIn = ""; rerender();
@@ -4687,8 +4709,8 @@ function tickCharter(){
   const now = Date.now(); let changed = false;
   for (const o of S.orders) {
     if (o.type !== "JET" && o.type !== "HELI") continue;
-    // Пока открыта админка, цену ставит оператор, а не таймер.
-    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = o.details.quote; hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
+    // Пока открыта админка, цену ставит оператор, а не таймер; сумы — по текущему курсу, как у оператора.
+    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = amt(o.details.quote.usd); hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= 2500) { o.status = "CONFIRMED"; hist(o, "CONFIRMED"); changed = true; toast(tf("toast_confirmed", { no:o.no })); }
   }
   if (changed) { save(); if (currentParts()[0] === "orders") rerender(); }

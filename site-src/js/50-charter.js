@@ -166,11 +166,11 @@ function sendCharterRequest(kind){
 function charterVoucherBody(o){
   const d = o.details, isJet = d.kind === "jet";
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${d.from}) → ${esc(cityName(d.to))} (${d.to})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
+    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${esc(d.from)}) → ${esc(cityName(d.to))} (${esc(d.to)})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
     <div><span class="lbl">${esc(t("date"))}</span><b>${esc(fdateY(d.date))}</b></div>
-    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${d.time}</b></div>
+    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${esc(d.time)}</b></div>
     <div><span class="lbl">${esc(t(isJet ? "aircraft" : "heli_type"))}</span><b>${esc(d.model)}</b></div>
-    <div><span class="lbl">${esc(t("passengers"))}</span><b>${d.pax}</b></div>
+    <div><span class="lbl">${esc(t("passengers"))}</span><b>${esc(d.pax)}</b></div>
     <div><span class="lbl">${esc(t("flight_time"))}</span><b>${esc(hoursText(d.hours))}</b></div>
     <div><span class="lbl">${esc(t("trip_kind"))}</span><b>${esc(t(d.trip === "roundtrip" ? (isJet ? "roundtrip" : "heli_rt") : "oneway"))}</b></div>
     <div class="wide"><span class="lbl">${esc(t("customer"))}</span><b>${esc(o.travellers[0].given)} · ${esc(o.contact.phone)}</b></div>

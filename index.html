@@ -1198,6 +1198,7 @@ a.orow:hover + .orow{box-shadow:none}
 .bd-top .v-kind{color:inherit;opacity:.78;white-space:nowrap}
 .bd-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap;padding:14px 18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted)}
 .bd-foot b{color:var(--ink);font-size:13.5px}
+.bd-req{font-size:11.5px;color:var(--faint);overflow-wrap:anywhere}
 .bd-pw{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--faint);white-space:nowrap}
 .bd-pw .wordmark{font-size:10.5px}
 .bdoc{display:flex;flex-direction:column;gap:14px}
@@ -1349,6 +1350,8 @@ body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
   .tm-attr{top:188px;bottom:auto}
   .orow{grid-template-columns:40px minmax(0,1fr) auto;grid-template-areas:"ic main st" "ic client sum";row-gap:2px}
   .or-ic{grid-area:ic;align-self:start}.or-main{grid-area:main}.or-st{grid-area:st}.or-client{grid-area:client;font-size:13px;color:var(--muted)}.or-sum{grid-area:sum}
+  /* Вилка цены заявки — в две строки: иначе колонка суммы шире строки, и название с номером сжимаются в ноль. */
+  .or-sum{white-space:normal;min-width:0}.or-rng{display:block;white-space:nowrap}
   .ohead-row{display:none}
   .orow + .orow,.otable.has-head .orow:nth-child(2){box-shadow:0 -1px 0 var(--line)}
   .otable.has-head .orow:nth-child(2){box-shadow:none}
@@ -1853,7 +1856,10 @@ const STR = {
   pay_off:["Этот способ оплаты сейчас отключён — выберите другой","Bu to‘lov usuli hozir o‘chirilgan — boshqasini tanlang","This payment method is switched off — choose another"],
   rate_moved:["Курс доллара изменился — проверьте новую сумму","Dollar kursi o‘zgardi — yangi summani tekshiring","The dollar rate has changed — check the new amount"],
   rate_moved_redo:["Курс доллара изменился — выберите предложение заново","Dollar kursi o‘zgardi — taklifni qaytadan tanlang","The dollar rate has changed — choose the offer again"],
-  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"]
+  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"],
+  pay_cash:["Наличными в офисе","Ofisda naqd pul bilan","Cash at the office"],
+  rate_changed_title:["Изменился курс доллара","Dollar kursi o‘zgardi","The dollar rate has changed"],
+  rate_changed_body:["Цена в долларах та же, но сумма в сумах пересчитана по новому курсу: $1 = {rate} сум. Подтвердите перед оплатой.","Dollardagi narx o‘sha, lekin so‘mdagi summa yangi kurs bo‘yicha qayta hisoblandi: $1 = {rate} so‘m. To‘lovdan oldin tasdiqlang.","The dollar price is the same, but the UZS amount has been recalculated at the new rate: $1 = {rate} UZS. Please confirm before paying."]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
@@ -2217,7 +2223,7 @@ function pricesClean(saved){
   const adjMap = (m, re) => Object.fromEntries(Object.entries(m && typeof m === "object" && !Array.isArray(m) ? m : {}).filter(([k, v]) => re.test(k) && ok(v, -ADJ_MAX, ADJ_MAX) && v !== 0));
   return { feeBps:ok(saved.feeBps, 0, 5000) ? saved.feeBps : PRICE_DEFAULTS.feeBps, flightMarkupBps:ok(saved.flightMarkupBps, 0, 5000) ? saved.flightMarkupBps : PRICE_DEFAULTS.flightMarkupBps,
     svc, dest:adjMap(saved.dest, /^([A-Z]{3}|[a-z]{3,20})$/), agents:adjMap(saved.agents, /^[\w-]{2,40}$/),
-    promos:Array.isArray(saved.promos) ? saved.promos.filter(validPromo).slice(0, PROMO_MAX).map(cleanPromo) : [] };
+    promos:Array.isArray(saved.promos) ? promoOrder(saved.promos.filter(validPromo).map(cleanPromo)).slice(0, PROMO_MAX) : [] };
 }
 /* Канал продаж: сайт — B2C, кабинет агентства (и админка, которая считает за
    агентства) — B2B. Поправка цены услуги в сотых процента: канал, направление,
@@ -2252,13 +2258,17 @@ function validPromo(x){
 /* Данные из хранилища — чужие: только известные поля в правильном виде. */
 const cleanPromo = x => { const n = v => Number.isInteger(v) && v >= 0 && v <= 10_000_000 ? v : 0, d = v => typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "";
   return { id:x.id, code:x.auto === true ? "" : x.code, name:x.name.trim(), kind:x.kind, value:x.value, auto:x.auto === true, active:x.active === true,
-    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends) }; };
+    svc:Array.isArray(x.svc) ? PROMO_TYPES.filter(k => x.svc.includes(k)) : [], minUsd:n(x.minUsd), limit:n(x.limit), starts:d(x.starts), ends:d(x.ends),
+    // Удалённый в админке — в корзине (время удаления): на сайте не действует, восстановить можно.
+    deleted:Number.isFinite(x.deleted) && x.deleted > 0 ? x.deleted : 0 }; };
+/* Сначала действующие, корзина — в конце: при пределе PROMO_MAX отрезается старая корзина, а не живые коды. */
+const promoOrder = list => [...list.filter(x => !x.deleted), ...list.filter(x => x.deleted).sort((a, b) => b.deleted - a.deleted)];
 /* Использования — по номеру промокода или акции в заказе (у старых заказов — по коду). */
 const promoUsed = (x, orders) => orders.filter(o => o.promo && (o.promo.id ? o.promo.id === x.id : !!x.code && o.promo.code === x.code) && !["CANCELLED", "REFUNDED"].includes(o.status)).length;
 /* Почему промокод не подходит заказу (ключ строки) или null. */
 function promoProblem(x, type, total, orders){
   if (!PROMO_TYPES.includes(type)) return "err_promo_svc";
-  if (!x.active) return "err_promo_expired";
+  if (!x.active || x.deleted) return "err_promo_expired";
   if ((x.starts && TODAY < x.starts) || (x.ends && TODAY > x.ends)) return "err_promo_expired";
   if (x.svc?.length && !x.svc.includes(type)) return "err_promo_svc";
   if (x.minUsd && total.usd < x.minUsd) return "err_promo_min";
@@ -2547,10 +2557,10 @@ function airportSelect(bind, value, exclude){
 function routeBlock(o, extra = ""){
   const nd = nextDay(o);
   return `<div class="route">
-    <div class="end"><span class="code">${o.from}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${o.depTime}</span></div>
+    <div class="end"><span class="code">${esc(o.from)}</span><span class="city">${esc(cityName(o.from))}</span><span class="time">${esc(o.depTime)}</span></div>
     <div class="track"><span class="d">${dur(o.durationMin)}</span><span class="ln">${PLANE}</span>
       <span class="s ${o.stops ? "s-stop" : "s-direct"}">${o.stops ? esc(tf("via", { c: o.stopCity })) : esc(t("direct"))}</span>${extra}</div>
-    <div class="end r"><span class="code">${o.to}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${o.arrTime}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
+    <div class="end r"><span class="code">${esc(o.to)}</span><span class="city">${esc(cityName(o.to))}</span><span class="time">${esc(o.arrTime)}${nd ? ` <sup class="nd">+${nd}</sup>` : ""}</span></div>
   </div>`;
 }
 const nextDay = o => { const [h, m] = o.depTime.split(":").map(Number); return Math.floor((h*60 + m + o.durationMin) / 1440); };
@@ -2578,7 +2588,7 @@ function hotelArt(h, big = false){
   const [a, b] = PALETTE[h.city] || ["#2F6FE0", "#16275C"];
   const ph = photo(h.id, big ? { w:960, sizes:"(max-width:900px) 100vw, 760px", eager:true } : { w:440, sizes:"(max-width:600px) 100vw, 230px" });
   const initials = h.name.split(/\s+/).map(w => w[0]).join("").slice(0, 2);
-  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${h.id}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
+  return `<div class="hart ${ph ? "has-ph" : ""}" style="--pa:${a};--pb:${b};view-transition-name:h-${esc(h.id)}">${ph || `<span class="hart-m">${esc(initials)}</span>`}<span class="hart-s">${IC.star.repeat(h.stars)}</span></div>`;
 }
 /* Галерея на странице отеля: главный снимок и два поменьше — номер
    под звёздность отеля и бассейн или ресторан. */
@@ -4285,7 +4295,9 @@ PAGES["flights/offer"] = {
 
 function flightDetailsOf(out, back, q){ return { out, back, q:{ adults:q.adults, children:q.children, infants:q.infants, cabin:q.cabin } }; }
 function startFlightCheckout(){
-  const f = M.flights, out = f.sel.out, back = f.sel.back;
+  // Пассажиры и класс — снимком: пересчёт цены не должен читать живую форму поиска.
+  const f = { adults:M.flights.adults, children:M.flights.children, infants:M.flights.infants, cabin:M.flights.cabin };
+  const out = M.flights.sel.out, back = M.flights.sel.back;
   const { lines, total } = flightLines(out, back, f);
   const types = [...Array(f.adults).fill("adult"), ...Array(f.children).fill("child"), ...Array(f.infants).fill("infant")];
   startCheckout({
@@ -4320,7 +4332,7 @@ function flightDocument(o){
   const pass = (leg, i) => `<article class="pass rise" style="--i:${i}">
     <div class="pass-top">${WORDMARKS[leg.carrierCode]
       ? `<span class="pass-wm"><img src="${WORDMARKS[leg.carrierCode]}" alt="${esc(leg.carrier)}"></span><span class="n"></span>`
-      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${leg.flightNo}</span></div>
+      : `${carrierBadge(leg.carrierCode)}<span class="n">${esc(leg.carrier)}</span>`}<span class="f">${esc(leg.flightNo)}</span></div>
     <div class="pass-body">${routeBlock(leg, `<span class="d">${esc(fdate(leg.date))}</span>`)}
       <div class="pgrid">
         <div class="wide"><span class="lbl">${esc(t("passenger"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}${pax.length > 1 ? ` +${pax.length-1}` : ""}</b></div>
@@ -4356,7 +4368,7 @@ function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.
 const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
    заказа, а не падаем: один такой заказ не должен ломать список. */
-const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
+const missingHotel = o => ({ id:/^[\w-]{1,60}$/.test(o.details?.hotelId) ? o.details.hotelId : "x", name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
 /* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
@@ -4507,7 +4519,7 @@ function hotelVoucherBody(o){
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
-    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>
+    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${esc(d.rooms)}</b></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("guests"))}</span><b>${esc(pl(d.adults, "adult"))}${d.children ? ", " + esc(pl(d.children, "child")) : ""}</b></div>
     <div><span class="lbl">${esc(t("lead_guest"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}</b></div>
@@ -4671,7 +4683,10 @@ PAGES["tours/item/:id"] = {
 };
 
 function startTourCheckout(hid){
-  const q = M.tours, h = hotelById(hid), p = tourPackage(h, q);
+  /* Поиск — снимком: пока оформление открыто, форму поиска могли поменять
+     (Назад → другое число туристов → Вперёд), а пересчёт цены — по этому туру. */
+  const q = { to:M.tours.to, depart:M.tours.depart, nights:M.tours.nights, adults:M.tours.adults, children:M.tours.children };
+  const h = hotelById(hid), p = tourPackage(h, q);
   const types = [...Array(q.adults).fill("adult"), ...Array(q.children).fill("child")];
   startCheckout({
     type: "TOUR", title: `${h.name} · ${cityName(q.to)}`,
@@ -4691,9 +4706,9 @@ function tourVoucherBody(o){
   return `<div class="vgrid">
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("dates"))}</span><b>${esc(fdate(d.depart))} — ${esc(fdate(addDays(d.depart, d.nights)))}</b><span class="muted small">${esc(pl(d.nights, "night"))}</span></div>
-    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
-    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${d.out.flightNo} · ${d.out.depTime}</b><span class="muted small">TAS → ${d.out.to} · ${esc(fdate(d.out.date))}</span></div>
-    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${d.back.flightNo} · ${d.back.depTime}</b><span class="muted small">${d.back.from} → TAS · ${esc(fdate(d.back.date))}</span></div>
+    <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${esc(h.board)}</span> ${esc(t("board_" + h.board))}</b></div>
+    <div><span class="lbl">${esc(t("leg_out"))}</span><b class="mono">${esc(d.out.flightNo)} · ${esc(d.out.depTime)}</b><span class="muted small">TAS → ${esc(d.out.to)} · ${esc(fdate(d.out.date))}</span></div>
+    <div><span class="lbl">${esc(t("leg_back"))}</span><b class="mono">${esc(d.back.flightNo)} · ${esc(d.back.depTime)}</b><span class="muted small">${esc(d.back.from)} → TAS · ${esc(fdate(d.back.date))}</span></div>
     ${(d.px || LEGACY_PX).transfer != null ? `<div><span class="lbl">${esc(t("transfer"))}</span><b>${esc(t("transfer_group"))}</b></div>` : ""}
     ${(d.px || LEGACY_PX).insurance != null ? `<div><span class="lbl">${esc(t("insurance"))}</span><b>${esc(t("insurance_basic"))}</b></div>` : ""}
     <div class="wide"><span class="lbl">${esc(t("tourists"))}</span><b>${o.travellers.map(x => esc(x.given + " " + x.surname)).join(", ")}</b></div>
@@ -4869,11 +4884,11 @@ function sendCharterRequest(kind){
 function charterVoucherBody(o){
   const d = o.details, isJet = d.kind === "jet";
   return `<div class="vgrid">
-    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${d.from}) → ${esc(cityName(d.to))} (${d.to})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
+    <div class="wide"><span class="lbl">${esc(t("route"))}</span><b>${isJet ? `${esc(cityName(d.from))} (${esc(d.from)}) → ${esc(cityName(d.to))} (${esc(d.to)})` : `${esc(t("heli_base"))} → ${esc(heliName(d.to))}`}</b></div>
     <div><span class="lbl">${esc(t("date"))}</span><b>${esc(fdateY(d.date))}</b></div>
-    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${d.time}</b></div>
+    <div><span class="lbl">${esc(t("time"))}</span><b class="mono">${esc(d.time)}</b></div>
     <div><span class="lbl">${esc(t(isJet ? "aircraft" : "heli_type"))}</span><b>${esc(d.model)}</b></div>
-    <div><span class="lbl">${esc(t("passengers"))}</span><b>${d.pax}</b></div>
+    <div><span class="lbl">${esc(t("passengers"))}</span><b>${esc(d.pax)}</b></div>
     <div><span class="lbl">${esc(t("flight_time"))}</span><b>${esc(hoursText(d.hours))}</b></div>
     <div><span class="lbl">${esc(t("trip_kind"))}</span><b>${esc(t(d.trip === "roundtrip" ? (isJet ? "roundtrip" : "heli_rt") : "oneway"))}</b></div>
     <div class="wide"><span class="lbl">${esc(t("customer"))}</span><b>${esc(o.travellers[0].given)} · ${esc(o.contact.phone)}</b></div>
@@ -4891,7 +4906,8 @@ function charterVoucherBody(o){
 "use strict";
 
 const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["uzum","Uzum","#7C3AED"],["humo","Uzcard / Humo","#12996A"],["card","Visa / Mastercard","#2F6FE0"]];
-const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? k;
+// cash — оплата в офисе: заказ оформил сотрудник в админке (admin/43-order-new.js).
+const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
 const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
 
@@ -4912,7 +4928,7 @@ function startCheckout(spec){
 function travellerForm(x, i, mode){
   const full = mode === "full";
   const chips = S.travellers.length ? `<div class="tchips"><span class="lbl">${esc(t("select_traveller"))}</span>${S.travellers.map(tr =>
-    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${tr.id}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
+    `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${esc(tr.id)}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
   const f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-tv="${i}" data-f="${k}" value="${esc(x[k])}" ${extra}></label>`;
   return `<div class="tform" id="tv${i}">
     <div class="tform-h"><b>${esc(mode === "lead" ? t("lead_guest") : `${t("passenger")} ${i+1}`)}</b><span class="muted small">${esc(t("pax_" + x.type))}</span></div>
@@ -4939,10 +4955,7 @@ PAGES.checkout = {
     c.shownOff = pr ? pr.off.usd : 0;                      // скидка, которую пассажир видит на кнопке
     let check = "";
     if (c.recheck && c.pstate === "checking") check = `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-    else if (c.pstate === "changed") check = `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
-        <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(c.total)}</span></div>
-          <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(c.pending.total)}</span></div></div>
-        <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+    else if (c.pstate === "changed") check = priceChangedBox(c, c.total, c.pending.total);
     else if (c.recheck) check = `<div class="pcheck good">${IC.ok}${esc(t("price_confirmed"))}</div>`;
     return `<div class="container section"><button type="button" class="backlink" data-act="hback">${IC.back}<span>${esc(t("back"))}</span></button>
       ${pageHead(t("checkout_title"), c.title)}
@@ -4972,6 +4985,17 @@ PAGES.checkout = {
     }, 1100);
   }
 };
+/* «Цена изменилась» — общий блок сайта и кабинета. Если сменился только курс
+   (byRate), в долларах суммы одинаковы: показываем сумы и называем причину —
+   курс, а не поставщика. */
+function priceChangedBox(c, was, now){
+  const rate = c.pending.byRate, f = rate ? a => grp(a.uzs) + NB + t("cur_uzs") : fmt;
+  return `<div class="changed settle" ${rate ? 'data-by="rate"' : ""}><h3>${esc(t(rate ? "rate_changed_title" : "price_changed_title"))}</h3>
+      <p class="small">${esc(rate ? tf("rate_changed_body", { rate:grp(c.rate) }) : t("price_changed_body"))}</p>
+      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${f(was)}</span></div>
+        <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${f(now)}</span></div></div>
+      <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+}
 /* Курс сменили в админке, пока оформление открыто: сумы на экране посчитаны по
    старому. Пересчитываем и показываем новую сумму, как при перепроверке цены, —
    старую не списываем. true — оплату надо остановить. */
@@ -4982,7 +5006,8 @@ function rateMoved(c){
   if (!c.priceChange) { M.checkout = null; toast(t("rate_moved_redo")); go(SEARCH_PATH); return true; }
   const fresh = c.priceChange(true);
   if (fresh.total.usd === c.total.usd && fresh.total.uzs === c.total.uzs) return false;
-  Object.assign(c, { pending:fresh, pstate:"changed", accepted:false });
+  // byRate — в долларах цена та же, иначе это обычная перепроверка у поставщика.
+  Object.assign(c, { pending:{ ...fresh, byRate:fresh.total.usd === c.total.usd }, pstate:"changed", accepted:false });
   rerender(); toast(t("rate_moved"));
   return true;
 }
@@ -5075,7 +5100,7 @@ function applyPromo(){
   hideErr("#perr"); const box = $("[data-pc]"); box?.removeAttribute("aria-invalid");
   const bad = key => { box?.setAttribute("aria-invalid", "true"); showErr("#perr", key); box?.focus(); };
   if (!code) return bad(t("err_promo_empty"));
-  const x = prices().promos.find(p => !p.auto && p.code === code);
+  const x = prices().promos.find(p => !p.auto && !p.deleted && p.code === code);
   const why = !x ? "err_promo_unknown" : promoProblem(x, c.type, total, S.orders);
   if (why) return bad(tf(why, { min:x?.minUsd ? "$" + grp(x.minUsd) : "" }));
   c.promoCode = code; c.promoIn = ""; rerender();
@@ -5139,8 +5164,8 @@ function tickCharter(){
   const now = Date.now(); let changed = false;
   for (const o of S.orders) {
     if (o.type !== "JET" && o.type !== "HELI") continue;
-    // Пока открыта админка, цену ставит оператор, а не таймер.
-    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = o.details.quote; hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
+    // Пока открыта админка, цену ставит оператор, а не таймер; сумы — по текущему курсу, как у оператора.
+    if (o.status === "NEW" && now - o.createdAt >= 5000 && !opsLive()) { o.status = "PENDING"; o.total = amt(o.details.quote.usd); hist(o, "PENDING"); changed = true; toast(tf("toast_priced", { no:o.no })); }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= 2500) { o.status = "CONFIRMED"; hist(o, "CONFIRMED"); changed = true; toast(tf("toast_confirmed", { no:o.no })); }
   }
   if (changed) { save(); if (currentParts()[0] === "orders") rerender(); }
@@ -5407,6 +5432,15 @@ Object.assign(STR, {
   brand_name:["Название на документах","Hujjatlardagi nom","Name on documents"],
   brand_website:["Сайт","Sayt","Website"],
   brand_address:["Адрес","Manzil","Address"],
+  brand_req_h:["Реквизиты","Rekvizitlar","Company details"],
+  brand_req_d:["Юрлицо и ИНН — из данных агентства: {legal}, ИНН {inn}. Банк, расчётный счёт и МФО печатаются на билетах и ваучерах вместе с ними.","Yuridik shaxs va STIR — agentlik ma’lumotlaridan: {legal}, STIR {inn}. Bank, hisob raqami va MFO ular bilan birga chipta va vaucherlarda chiqadi.","The legal name and TIN come from the agency record: {legal}, TIN {inn}. The bank, account number and MFO are printed with them on tickets and vouchers."],
+  brand_bank:["Банк","Bank","Bank"],
+  brand_acc:["Расчётный счёт","Hisob raqami","Account number"],
+  brand_mfo:["МФО банка","Bank MFO","Bank MFO"],
+  req_acc:["р/с","h/r","Acc."],
+  req_mfo:["МФО","MFO","MFO"],
+  err_brand_acc:["Расчётный счёт — 20 цифр","Hisob raqami — 20 ta raqam","The account number is 20 digits"],
+  err_brand_mfo:["МФО банка — 5 цифр","Bank MFO — 5 ta raqam","The bank MFO is 5 digits"],
   brand_color:["Фирменный цвет","Brend rangi","Brand colour"],
   brand_color_own:["Свой цвет","O‘z rangingiz","Custom colour"],
   brand_color_d:["Этим цветом окрашивается шапка документа, текст на ней подстраивается для читаемости.","Hujjat sarlavhasi shu rangga bo‘yaladi, undagi matn o‘qilishi uchun moslashadi.","The document header uses this colour; its text adjusts for legibility."],
@@ -5526,8 +5560,9 @@ function tickCharter(){
   const now = Date.now(), auto = !opsLive(); let changed = false;
   for (const o of S.orders) {
     const charter = o.type === "JET" || o.type === "HELI";
+    // Сумы — по текущему курсу, как у оператора в админке (priceOrder), а не по курсу дня заявки.
     if (auto && charter && o.status === "NEW" && now - o.createdAt >= PRICE_READY_MS) {
-      o.status = "PENDING"; o.total = o.details.quote; o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); hist(o, "PENDING"); changed = true;
+      o.status = "PENDING"; o.total = amt(o.details.quote.usd); o.feeBps = prices().feeBps; o.fee = feeOf(o.total, o.feeBps); hist(o, "PENDING"); changed = true;
       note("price_ready", { orderId:o.id }); toast(tf("toast_priced", { no:o.no }));
     }
     if (o.status === "PAID" && o.paidAt && now - o.paidAt >= PAID_TO_CONFIRMED_MS) {
@@ -5711,12 +5746,22 @@ const brandContacts = (b = S.brand) => [b.phone, b.email, b.telegram && "Telegra
 function brandTop(kind, b = S.brand){
   return `<div class="bd-top" style="${brandStyle(b)}">${brandMark("bd-mark", b)}<span class="bd-name">${esc(b.name)}</span><span class="v-kind">${esc(kind)}</span></div>`;
 }
-function brandFoot(b = S.brand){
-  return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}</div>
+/* Реквизиты на документе: юрлицо и ИНН — из данных агентства, банк, счёт и
+   МФО — из бренда. Счёт и МФО печатаются, только если они правильного вида. */
+const BRAND_ACC = /^\d{20}$/, BRAND_MFO = /^\d{5}$/;
+const brandReqErr = b => b.acc && !BRAND_ACC.test(digits(b.acc)) ? ["err_brand_acc", "acc"] : b.mfo && !BRAND_MFO.test(digits(b.mfo)) ? ["err_brand_mfo", "mfo"] : null;
+const brandDoc = (st = S) => ({ ...st.brand, legal:st.agency?.legal || "", inn:st.agency?.inn || "" });
+function brandReq(b){
+  const acc = digits(b.acc || ""), mfo = digits(b.mfo || "");
+  const parts = [b.legal, b.inn && `${t("req_inn")} ${b.inn}`, b.bank, BRAND_ACC.test(acc) && `${t("req_acc")} ${acc}`, BRAND_MFO.test(mfo) && `${t("req_mfo")} ${mfo}`].filter(Boolean);
+  return parts.length ? `<span class="bd-req">${parts.map(esc).join(" · ")}</span>` : "";
+}
+function brandFoot(b = brandDoc()){
+  return `<div class="bd-foot"><div class="stack" style="gap:2px"><b>${esc(b.name)}</b><span>${brandContacts(b)}</span>${b.address ? `<span>${esc(b.address)}</span>` : ""}${brandReq(b)}</div>
     <span class="bd-pw">${esc(t("powered_by"))} <span class="wordmark dark">CHARTERI<b>.UZ</b></span></span></div>`;
 }
 /* b = бренд агентства; null — документ Charteri для пассажира сайта. */
-function orderDocument(o, b = S.brand){
+function orderDocument(o, b = brandDoc()){
   if (o.type === "FLIGHT") return b ? `<div class="bdoc">${brandTop(t("doc_FLIGHT"), b)}${flightDocument(o)}${brandFoot(b)}</div>` : flightDocument(o);
   const body = { TOUR:tourVoucherBody, HOTEL:hotelVoucherBody, JET:charterVoucherBody, HELI:charterVoucherBody }[o.type](o);
   const top = b ? brandTop(t("doc_" + o.type), b) : `<div class="v-top"><span class="wordmark">CHARTERI<b>.UZ</b></span><span class="v-kind">${esc(t("doc_" + o.type))}</span></div>`;
@@ -5832,7 +5877,7 @@ function bellPanel(){
   const list = S.notes.slice(0, 8);
   return `<div class="bellpanel" id="bellpanel">
     <div class="bell-h"><b>${esc(t("notifications"))}</b>${unread() ? `<button type="button" class="link" data-act="bellread">${esc(t("mark_read"))}</button>` : ""}</div>
-    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + n.orderId : n.kind === "message" ? "" : "balance"}" data-act="bellgo">
+    ${list.length ? list.map(n => `<a class="bell-row ${n.read ? "" : "unread"}" href="#/${n.orderId ? "orders/" + esc(n.orderId) : n.kind === "message" ? "" : "balance"}" data-act="bellgo">
       <span class="bell-dot"></span><span class="stack" style="gap:2px;min-width:0"><span>${esc(noteText(n))}</span><span class="muted small">${esc(fdt(n.at))}</span></span></a>`).join("")
       : `<p class="muted small" style="padding:12px 16px">${esc(t("notes_empty"))}</p>`}
   </div>`;
@@ -6020,10 +6065,7 @@ function startCheckout(spec){
 const B2C_CHECKOUT_AFTER = PAGES.checkout.after;      // проверка цены у поставщика — как на сайте
 function priceCheck(c){
   if (c.recheck && c.pstate === "checking") return `<div class="pcheck wait"><span class="spin"></span>${esc(t("verifying_price"))}</div>`;
-  if (c.pstate === "changed") return `<div class="changed settle"><h3>${esc(t("price_changed_title"))}</h3><p class="small">${esc(t("price_changed_body"))}</p>
-      <div class="rows"><div><span class="k">${esc(t("old_price"))}</span><span class="v mono strike">${fmt(withFee(c.total))}</span></div>
-        <div><span class="k">${esc(t("new_price"))}</span><span class="v mono">${fmt(withFee(c.pending.total))}</span></div></div>
-      <button type="button" class="solid" data-act="caccept">${esc(t("accept_new_price"))}</button></div>`;
+  if (c.pstate === "changed") return priceChangedBox(c, withFee(c.total), withFee(c.pending.total));
   return c.recheck ? `<div class="pcheck good">${IC.ok}${esc(t("price_confirmed"))}</div>` : "";
 }
 /* Сколько спишется и что останется — в сумах: баланс агентства в сумах. */
@@ -6169,7 +6211,8 @@ const ORDER_GROUPS = {
   cancelled: o => ["CANCELLED", "REFUNDED"].includes(o.status)
 };
 const orderMatches = (o, q) => !q || [o.no, orderTitle(o), clientOf(o), o.contact?.phone].join(" ").toLowerCase().includes(q.toLowerCase());
-const orderSum = o => { const d = dueOf(o); return d ? fmt(d) : `≈ ${fmt(o.details.low)} – ${fmt(o.details.high)}`; };
+/* Вилка цены заявки — двумя частями: на телефоне каждая на своей строке и не распирает строку списка. */
+const orderSum = o => { const d = dueOf(o); return d ? fmt(d) : `<span class="or-rng">≈ ${fmt(o.details.low)}</span> <span class="or-rng">– ${fmt(o.details.high)}</span>`; };
 
 function orderRow(o, i, rc = ""){
   const st = effStatus(o);
@@ -6277,7 +6320,7 @@ PAGES["orders/:id"] = {
           <div class="card stack"><span class="lbl">${esc(t("col_client"))}</span>
             <div class="client-mini"><span class="avatar sm">${esc(monogram(clientOf(o)))}</span><div class="stack" style="gap:1px;min-width:0">
               <b>${esc(clientOf(o))}</b><span class="mono small muted">${esc(o.contact.phone)}</span></div>
-              ${cl ? `<a class="link" href="#/clients/${cl.id}">${esc(t("open_client"))}</a>` : ""}</div>
+              ${cl ? `<a class="link" href="#/clients/${esc(cl.id)}">${esc(t("open_client"))}</a>` : ""}</div>
             ${o.travellers.length > 1 ? `<p class="small muted">${esc(o.travellers.map(x => `${x.given} ${x.surname}`.trim()).join(", "))}</p>` : ""}
           </div>
           <div class="card stack"><span class="lbl">${esc(t("history"))}</span>
@@ -6484,17 +6527,17 @@ function clientEditor(){
     <div class="err" id="clerr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="clsave">${esc(t("client_save"))}</button>
       <button type="button" class="link" data-act="clclose">${esc(t("cancel"))}</button>
-      ${d.id ? `<button type="button" class="link danger push" data-act="cldel" data-v="${d.id}">${esc(t("client_delete"))}</button>` : ""}</div></section>`;
+      ${d.id ? `<button type="button" class="link danger push" data-act="cldel" data-v="${esc(d.id)}">${esc(t("client_delete"))}</button>` : ""}</div></section>`;
 }
 function clientRow(c, i){
   const os = clientOrders(c), spent = os.filter(o => o.paidAt).reduce((s, o) => s + dueOf(o).uzs, 0);
   return `<div class="crow" style="--i:${i}">
-    <a class="crow-main" href="#/clients/${c.id}"><span class="avatar sm">${esc(monogram(clientName(c)))}</span>
+    <a class="crow-main" href="#/clients/${esc(c.id)}"><span class="avatar sm">${esc(monogram(clientName(c)))}</span>
       <span class="stack" style="gap:1px;min-width:0"><b>${esc(clientName(c))}</b><span class="muted small"><span class="mono">${esc(maskPassport(c.passport))}</span> · ${esc(c.cit)}</span></span></a>
     <span class="c-phone mono small">${esc(c.phone || "—")}</span>
     <span class="c-stat small"><b>${esc(pl(os.length, "order"))}</b><span class="muted mono">${spent ? fmtUZS(spent) : ""}</span></span>
-    <span class="c-act"><button type="button" class="ghost sm" data-act="clbook" data-v="${c.id}">${esc(t("book_for"))}</button>
-      <button type="button" class="link" data-act="cledit" data-v="${c.id}">${esc(t("edit"))}</button></span></div>`;
+    <span class="c-act"><button type="button" class="ghost sm" data-act="clbook" data-v="${esc(c.id)}">${esc(t("book_for"))}</button>
+      <button type="button" class="link" data-act="cledit" data-v="${esc(c.id)}">${esc(t("edit"))}</button></span></div>`;
 }
 PAGES.clients = {
   render(){
@@ -6524,13 +6567,13 @@ PAGES["clients/:id"] = {
     return `<div class="page">${backLink("clients", t("nav_clients"))}
       <div class="ohead"><span class="avatar">${esc(monogram(clientName(c)))}</span><div><span class="lbl">${esc(t("client_card"))}</span><h1>${esc(clientName(c))}</h1>
         <p class="muted">${esc(pl(os.length, "order"))}</p></div>
-        <button type="button" class="solid" data-act="clbook" data-v="${c.id}">${IC.plus}<span>${esc(t("book_for"))}</span></button></div>
+        <button type="button" class="solid" data-act="clbook" data-v="${esc(c.id)}">${IC.plus}<span>${esc(t("book_for"))}</span></button></div>
       <div class="twocol"><section class="card stack"><div class="card-h"><h2>${esc(t("client_orders"))}</h2></div>
           ${os.length ? `<div class="otable">${os.map((o, i) => orderRow(o, i, rc)).join("")}</div>` : `<p class="muted">${esc(t("client_no_orders"))}</p>`}</section>
         <aside class="stack sticky">${M.ui.clDraft?.id === c.id ? clientEditor() : `<div class="card stack"><span class="lbl">${esc(t("passport_data"))}</span>
           <div class="rows">${row("passport_no", c.passport, true)}${row("citizenship", c.cit)}${row("gender", c.gender ? t(c.gender === "M" ? "gender_m" : "gender_f") : "")}
             ${row("dob", c.dob ? fdateY(c.dob) : "")}${row("expiry", c.expiry ? fdateY(c.expiry) : "")}${row("phone_label", c.phone, true)}${row("email_opt", c.email)}</div>
-          <button type="button" class="ghost sm" data-act="cledit" data-v="${c.id}">${esc(t("edit"))}</button></div>`}</aside></div></div>`;
+          <button type="button" class="ghost sm" data-act="cledit" data-v="${esc(c.id)}">${esc(t("edit"))}</button></div>`}</aside></div></div>`;
   }
 };
 
@@ -6626,6 +6669,11 @@ PAGES.brand = {
           <div class="sgrid sgrid-2">${f("phone", t("phone_label"), 'type="tel"')}${f("email", "Email", 'type="email"')}</div>
           <div class="sgrid sgrid-2">${f("telegram", "Telegram", 'placeholder="@agency"')}${f("instagram", "Instagram", 'placeholder="@agency"')}</div>
           <div class="sgrid sgrid-2">${f("website", t("brand_website"), 'placeholder="agency.uz"')}${f("address", t("brand_address"))}</div></section>
+        <section class="card stack" id="breq"><h2>${esc(t("brand_req_h"))}</h2>
+          <p class="muted small">${esc(tf("brand_req_d", { legal:S.agency.legal || S.agency.name, inn:S.agency.inn || "—" }))}</p>
+          ${f("bank", t("brand_bank"), 'maxlength="60" autocomplete="off"')}
+          <div class="sgrid sgrid-2">${f("acc", t("brand_acc"), 'class="mono" inputmode="numeric" maxlength="24" autocomplete="off" placeholder="20208000…"')}${f("mfo", t("brand_mfo"), 'class="mono" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="00440"')}</div>
+          <div class="err" id="breqerr" hidden></div></section>
         <section class="card stack"><h2>${esc(t("brand_color"))}</h2>
           <div class="swatches" role="group" aria-label="${esc(t("brand_color"))}">${BRAND_COLORS.map(c =>
             `<button type="button" class="swatch" style="--c:${c}" data-act="bcolor" data-v="${c}" aria-pressed="${(b.color || "").toLowerCase() === c.toLowerCase()}" aria-label="${c}"></button>`).join("")}
@@ -6647,6 +6695,12 @@ document.addEventListener("input", e => {
   const k = e.target.dataset?.br; if (!k) return;
   S.brand[k] = k === "name" ? e.target.value.slice(0, 40) : e.target.value;
   if (k === "color") e.target.parentElement.style.setProperty("--c", e.target.value);
+  // Счёт и МФО неправильного вида сохраняются как набраны, но в документ не попадают — подсказка у поля.
+  if (k === "acc" || k === "mfo") {
+    const err = brandReqErr(S.brand);
+    for (const x of ["acc", "mfo"]) { const el = $(`[data-br="${x}"]`); if (err?.[1] === x) { el?.setAttribute("aria-invalid", "true"); el?.setAttribute("aria-describedby", "breqerr"); } else el?.removeAttribute("aria-invalid"); }
+    if (err) showErr("#breqerr", t(err[0])); else hideErr("#breqerr");
+  }
   save(); brandRefresh();
 });
 document.addEventListener("change", e => {

@@ -19,7 +19,7 @@ function hotelStay(h, checkin, nights, rooms, mult = 1, bps = adjBps("HOTEL", h.
 const hotelById = id => HOTELS.find(h => h.id === id);
 /* Отеля нет в каталоге (направление удалили в админке) — рисуем по данным
    заказа, а не падаем: один такой заказ не должен ломать список. */
-const missingHotel = o => ({ id:o.details?.hotelId, name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
+const missingHotel = o => ({ id:/^[\w-]{1,60}$/.test(o.details?.hotelId) ? o.details.hotelId : "x", name:o.title || o.details?.hotelId || "—", stars:0, area:"", city:o.details?.to || "", board:"RO", am:[], beach:null, rating:null });
 const nightsOf = q => daysBetween(q.checkin, q.checkout);
 const beachText = h => h.beach == null ? t("beach_none") : h.beach <= 50 ? t("beach_first") : tf("beach_m", { m:h.beach });
 /* Строка места: пустые части (район у отеля из админки) не оставляют лишних «·». */
@@ -170,7 +170,7 @@ function hotelVoucherBody(o){
     <div class="wide"><span class="lbl">${esc(t("hotel"))}</span><b>${esc(h.name)} ${stars(h.stars)}</b><span class="muted small">${esc(joinPlace([h.area, cityName(h.city)], ", "))}</span></div>
     <div><span class="lbl">${esc(t("checkin"))}</span><b>${esc(fdateY(d.checkin))}</b><span class="muted small">${esc(t("checkin_from"))}</span></div>
     <div><span class="lbl">${esc(t("checkout"))}</span><b>${esc(fdateY(d.checkout))}</b><span class="muted small">${esc(t("checkout_until"))}</span></div>
-    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${d.rooms}</b></div>
+    <div><span class="lbl">${esc(t("room"))}</span><b>${esc(t("room_" + d.room))} × ${esc(d.rooms)}</b></div>
     <div><span class="lbl">${esc(t("board"))}</span><b><span class="mono">${h.board}</span> ${esc(t("board_" + h.board))}</b></div>
     <div><span class="lbl">${esc(t("guests"))}</span><b>${esc(pl(d.adults, "adult"))}${d.children ? ", " + esc(pl(d.children, "child")) : ""}</b></div>
     <div><span class="lbl">${esc(t("lead_guest"))}</span><b>${esc(lead.given)} ${esc(lead.surname)}</b></div>

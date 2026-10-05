@@ -7,9 +7,9 @@
 
 /* Раздел старых записей (без поля module) — по действию. */
 const AUDIT_MODULE = {
-  price:"orders", confirm:"orders", cancel:"orders", refund:"finance", req_done:"b2c", req_declined:"b2c", topup_ok:"finance", topup_rejected:"finance",
+  price:"orders", confirm:"orders", order_edit:"orders", order_pax:"orders", order_new:"orders", cancel:"orders", refund:"finance", req_done:"b2c", req_declined:"b2c", topup_ok:"finance", topup_rejected:"finance",
   app_ok:"b2b", app_rejected:"b2b", block:"b2b", unblock:"b2b", adjust:"finance", credit:"finance", ag_create:"b2b", ag_edit:"b2b", ag_message:"b2b",
-  fee:"pricing", markup:"pricing", pricing:"pricing", dir_add:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
+  fee:"pricing", markup:"pricing", pricing:"pricing", dir_add:"services", dir_edit:"services", dir_hide:"services", dir_show:"services", dir_delete:"services",
   staff_add:"staff", staff_off:"staff", staff_on:"staff", staff_role:"staff", staff_edit:"staff", role_new:"roles", role_edit:"roles", role_delete:"roles",
   rules:"settings", reset:"settings", export:"finance", switch:"session", signin:"session", signout:"session"
 };

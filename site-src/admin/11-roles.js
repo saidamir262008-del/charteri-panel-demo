@@ -104,7 +104,9 @@ const byRank = (a, b) => roleRank(a.role) - roleRank(b.role) || a.name.localeCom
    назначает и меняет только основатель; дать роли можно только те права,
    которые есть у тебя самого. */
 const canManageStaff = s => { const u = me(); return !!u && !!s && s.id !== u.id && (isFounder() || !TOP_ROLES.includes(s.role)); };
-const assignableRoles = () => liveRoles().filter(r => isFounder() || !TOP_ROLES.includes(r.id));
+/* Назначить можно роль, все права которой есть у тебя самого: иначе сотрудник
+   с новой ролью получил бы права, которых у автора нет (тот же запрет, что при правке роли). */
+const assignableRoles = () => liveRoles().filter(r => isFounder() || (!TOP_ROLES.includes(r.id) && !grantsBeyondMine({}, r.perms || {}).length));
 const canEditRole = r => !!r && !r.deleted && r.id !== "founder" && can("roles.edit") && (isFounder() || (r.id !== me().role && !TOP_ROLES.includes(r.id)));
 function grantsBeyond(who, from, to){
   if (!who) return ["*"];

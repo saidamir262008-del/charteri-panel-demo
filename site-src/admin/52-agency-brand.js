@@ -1,20 +1,23 @@
 /* ==========================================================================
-   Бренд агентства из админки: логотип, название, контакты, соцсети и цвет.
+   Бренд агентства из админки: логотип, название, контакты, соцсети, цвет и
+   банковские реквизиты (юрлицо и ИНН — из карточки агентства, 50-agencies.js).
    Билеты и ваучеры агентства собираются с этим брендом (orderDocument),
    поэтому правка сразу видна в документах — и в кабинете, и здесь.
    ========================================================================== */
 "use strict";
 
 const AB_FIELDS = [["name", "brand_name"], ["phone", "phone_label"], ["email", "agency_email"], ["address", "brand_address"],
-  ["telegram", "ab_telegram"], ["instagram", "ab_instagram"], ["website", "ab_website"]];
+  ["telegram", "ab_telegram"], ["instagram", "ab_instagram"], ["website", "ab_website"], ["bank", "brand_bank"], ["acc", "brand_acc"], ["mfo", "brand_mfo"]];
+const AB_NUM = { acc:24, mfo:6 };
 const AB_LOGO_MAX = 2 * 1024 * 1024, AB_LOGO_SIDE = 256, AB_LOGO_TYPES = ["image/png", "image/jpeg", "image/webp"];
-const abPreview = d => `<div class="bdoc ab-prev">${brandTop(t("doc_TOUR"), d)}${brandFoot(d)}</div>`;
+/* Образец с реквизитами: юрлицо и ИНН — из карточки агентства. */
+const abPreview = d => { const a = agencyById(d.id); return `<div class="bdoc ab-prev">${brandTop(t("doc_TOUR"), d)}${brandFoot({ ...d, legal:a?.legal || "", inn:a?.inn || "" })}</div>`; };
 function brandCard(a){
   const d = M.ui.abr?.id === a.id ? M.ui.abr : null, b = a.brand || {};
   if (!d) return `<div class="card stack"><div class="card-h"><span class="lbl">${esc(t("ab_h"))}</span>
       <button type="button" class="link" data-act="abedit" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("edit"))}</button></div>
-    ${abPreview({ ...b, name:b.name || a.name })}<p class="muted small">${esc(t("ab_d"))}</p></div>`;
-  const f = ([k, label]) => `<label class="field"><span>${esc(t(label))}</span><input data-abr="${k}" value="${esc(d[k] || "")}" maxlength="${k === "address" ? 120 : 60}" autocomplete="off"></label>`;
+    ${abPreview({ ...b, id:a.id, name:b.name || a.name })}<p class="muted small">${esc(t("ab_d"))}</p></div>`;
+  const f = ([k, label]) => `<label class="field"><span>${esc(t(label))}</span><input data-abr="${k}" value="${esc(d[k] || "")}" maxlength="${AB_NUM[k] || (k === "address" ? 120 : 60)}" ${AB_NUM[k] ? 'inputmode="numeric" class="mono"' : ""} autocomplete="off"></label>`;
   return `<div class="card stack ab-form" id="abform"><div class="card-h"><h3>${esc(t("ab_h"))}</h3>
       <button type="button" class="iconbtn" data-act="abclose" aria-label="${esc(t("cancel"))}">${IC.x}</button></div>
     <div id="abprev">${abPreview(d)}</div>
@@ -34,7 +37,7 @@ function abError(d){
   for (const k of ["telegram", "instagram"]) if (d[k] && !/^@?[A-Za-z0-9_.]{3,32}$/.test(d[k].trim())) return ["err_ab_social", k];
   if (d.website && !/^(https?:\/\/)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(d.website.trim())) return ["err_ab_site", "website"];
   if (!/^#[0-9a-f]{6}$/i.test(d.color || "#16275C")) return ["err_ab_name", "color"];
-  return null;
+  return brandReqErr({ acc:(d.acc || "").trim(), mfo:(d.mfo || "").trim() });
 }
 function saveAgencyBrand(id){
   if (denied("b2b.edit")) return;
@@ -44,6 +47,7 @@ function saveAgencyBrand(id){
   if (err) { const fld = $(`#abform [data-abr="${err[1]}"]`); fld?.setAttribute("aria-invalid", "true"); fld?.setAttribute("aria-describedby", "aberr"); showErr("#aberr", t(err[0])); fld?.focus(); return; }
   const rec = Object.fromEntries(AB_FIELDS.map(([k]) => [k, (d[k] || "").trim()])); rec.color = d.color || "#16275C"; rec.logo = d.logo || null;
   if (rec.phone) rec.phone = prettyPhone(rec.phone);
+  rec.acc = digits(rec.acc); rec.mfo = digits(rec.mfo);
   change(() => withAgency(id, st => {
     const b = st.brand || {}, diff = [...AB_FIELDS.filter(([k]) => (b[k] || "") !== rec[k]).map(([k, label]) => ({ k:label, from:b[k] || "", to:rec[k] })),
       ...(b.color !== rec.color ? [{ k:"ab_color", from:b.color || "", to:rec.color }] : []), ...((b.logo || null) !== rec.logo ? [{ k:"ab_logo_h", from:strRef(b.logo ? "ab_logo_yes" : "ab_logo_no"), to:strRef(rec.logo ? "ab_logo_new" : "ab_logo_no") }] : [])];

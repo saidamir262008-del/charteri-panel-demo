@@ -345,7 +345,10 @@ const STR = {
   pay_off:["Этот способ оплаты сейчас отключён — выберите другой","Bu to‘lov usuli hozir o‘chirilgan — boshqasini tanlang","This payment method is switched off — choose another"],
   rate_moved:["Курс доллара изменился — проверьте новую сумму","Dollar kursi o‘zgardi — yangi summani tekshiring","The dollar rate has changed — check the new amount"],
   rate_moved_redo:["Курс доллара изменился — выберите предложение заново","Dollar kursi o‘zgardi — taklifni qaytadan tanlang","The dollar rate has changed — choose the offer again"],
-  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"]
+  rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"],
+  pay_cash:["Наличными в офисе","Ofisda naqd pul bilan","Cash at the office"],
+  rate_changed_title:["Изменился курс доллара","Dollar kursi o‘zgardi","The dollar rate has changed"],
+  rate_changed_body:["Цена в долларах та же, но сумма в сумах пересчитана по новому курсу: $1 = {rate} сум. Подтвердите перед оплатой.","Dollardagi narx o‘sha, lekin so‘mdagi summa yangi kurs bo‘yicha qayta hisoblandi: $1 = {rate} so‘m. To‘lovdan oldin tasdiqlang.","The dollar price is the same, but the UZS amount has been recalculated at the new rate: $1 = {rate} UZS. Please confirm before paying."]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */
