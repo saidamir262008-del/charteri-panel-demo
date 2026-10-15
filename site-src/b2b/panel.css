@@ -450,3 +450,10 @@ body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
   .pass,.voucher,.bdoc > *{box-shadow:none;break-inside:avoid}
   .bd-top,.pass-top,.v-top{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Вход в кабинет: логотип и ссылка на сайт для пассажиров в одной строке. */
+.auth-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.auth-site{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.88);font-weight:600;font-size:14px}
+.auth-site:hover{background:rgba(255,255,255,.1);color:#fff}
+.auth-site:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.auth-site svg{width:18px;height:18px}

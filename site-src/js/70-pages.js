@@ -3,6 +3,9 @@
    ========================================================================== */
 "use strict";
 
+/* Значок кнопки «Для агентств» в шапке: двое — агентство и его клиент. */
+IC.partner = svg('<circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 19.5c1.2-3.2 3.6-4.8 6.5-4.8s5.3 1.6 6.5 4.8"/><path d="M15.5 5.2a3.5 3.5 0 0 1 0 6.6M17.5 14.9c1.9.6 3.3 2.1 4 4.6"/>');
+
 /* ------------------------------------------------------------------ главная */
 function destPrices(c){
   const d = addDays(TODAY, 14);
@@ -287,6 +290,7 @@ function renderNav(key){
     <div class="navright">
       ${langSelect()}
       ${sysCfg().cur.usd ? `<div class="cursw">${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
+      <a class="navlink nav-b2b" href="${esc(CONFIG.site.cabinetUrl)}" aria-label="${esc(t("nav_b2b_title"))}" title="${esc(t("nav_b2b_title"))}">${IC.partner}<span>${esc(t("nav_b2b"))}</span></a>
       <a class="navlink" href="#/orders" aria-current="${key.startsWith("orders")}">${IC.bag}<span>${esc(t("my_orders"))}</span>${live ? `<i class="badge">${live}</i>` : ""}</a>
       <a class="navlink" href="#/${S.user ? "account" : "login"}" aria-current="${key === "account" || key === "login"}">${IC.user}<span>${esc(S.user ? t("tab_profile") : t("sign_in"))}</span></a>
     </div>${cmsNav}</div>`;
@@ -294,9 +298,13 @@ function renderNav(key){
   cmsNavArm();
   // Колонки из админки (информация, контакты) — между услугами и оплатой.
   const extra = cmsFootCols();
-  $("#footer").innerHTML = `<div class="container foot-in" style="--fc:${2 + extra.length}">
+  // Турагентствам — вход в кабинет и заявка на подключение (вкладка «Заявка» откроется сразу).
+  const b2b = CONFIG.site.cabinetUrl;
+  const agents = `<div class="stack" style="gap:6px"><b>${esc(t("foot_b2b_h"))}</b><a class="footlink" href="${esc(b2b)}">${esc(t("foot_b2b_login"))}</a>
+    <a class="footlink" href="${esc(b2b)}#/auth?tab=reg">${esc(t("foot_b2b_join"))}</a></div>`;
+  $("#footer").innerHTML = `<div class="container foot-in" style="--fc:${3 + extra.length}">
     <div class="stack" style="gap:8px">${cmsFootLogo()}<p class="small">${esc(t("tagline"))}</p></div>
     <div class="stack" style="gap:6px"><b>${esc(t("all_services"))}</b>${MODULE_ORDER.map(k => `<button type="button" class="footlink" data-act="mod" data-v="${k}">${esc(t(MODULES[k].label))}</button>`).join("")}</div>
-    ${extra.join("")}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${payList().map(m => `<span>${m[1]}</span>`).join("")}</div></div>
+    ${extra.join("")}${agents}<div class="stack" style="gap:6px"><b>${esc(t("we_accept"))}</b><div class="paychips">${payList().map(m => `<span>${m[1]}</span>`).join("")}</div></div>
     <p class="foot-note small">${esc(t("demo_footer"))}<br>${esc(t("credits"))}</p></div>`;
 }

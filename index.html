@@ -163,6 +163,8 @@ input[readonly]:focus{border-color:var(--faint);box-shadow:0 0 0 3px color-mix(i
 .navlink{position:relative;display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;font-weight:600;font-size:14px;color:var(--muted);white-space:nowrap}
 .navlink:hover,.navlink[aria-current="true"]{background:var(--sunken);color:var(--ink)}
 .navlink svg{width:20px;height:20px}
+/* «Для агентств»: подпись, пока в шапке хватает места; дальше — только значок (имя — в aria-label). */
+@media (max-width:1280px){.nav-b2b span{display:none}}
 .badge{position:absolute;top:2px;left:22px;min-width:17px;height:17px;border-radius:9px;background:var(--coral);color:#fff;font-style:normal;font-size:10.5px;font-weight:700;display:grid;place-items:center;padding-inline:4px}
 
 /* ---- главная: герой и поиск ---- */
@@ -1421,6 +1423,13 @@ body.is-auth #nav,body.is-auth #top,body.is-auth #footer{display:none}
   .bd-top,.pass-top,.v-top{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 
+/* Вход в кабинет: логотип и ссылка на сайт для пассажиров в одной строке. */
+.auth-top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.auth-site{display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.28);color:rgba(255,255,255,.88);font-weight:600;font-size:14px}
+.auth-site:hover{background:rgba(255,255,255,.1);color:#fff}
+.auth-site:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.auth-site svg{width:18px;height:18px}
+
 </style>
 </head>
 <body class="b2b">
@@ -1454,6 +1463,12 @@ const CONFIG = {
   site: {
     /* Куда ведёт QR-код в билете и ваучере: страница проверки документа по номеру брони. */
     verifyUrl: "https://charteri.uz/v/",
+    /* Связь сайта и кабинета агентства: кнопка «Для агентств» на сайте и
+       «Сайт для пассажиров» на входе в кабинет. В демо — соседние папки на
+       GitHub Pages; на боевом — свои адреса, например https://agent.charteri.uz/
+       и https://charteri.uz/. */
+    cabinetUrl: "../",
+    passengerUrl: "b2c/",
   },
 
   /* Публичные адреса и ключи. В демо не используются — появятся в коде при интеграции. */
@@ -1840,6 +1855,12 @@ const STR = {
   board_price:["Цена","Narx","Fare"],
   map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"],
   /* содержимое из админки (13-cms.js, 71-cms-pages.js) */
+  nav_b2b:["Для агентств","Agentliklar uchun","For agencies"],
+  nav_b2b_title:["Кабинет турагентства: вход и заявка на подключение","Turagentlik kabineti: kirish va ulanish uchun ariza","Travel agency workspace: sign in or apply"],
+  foot_b2b_h:["Турагентствам","Turagentliklarga","For travel agencies"],
+  foot_b2b_login:["Вход в кабинет агентства","Agentlik kabinetiga kirish","Agency sign-in"],
+  foot_b2b_join:["Стать партнёром Charteri","Charteri hamkori bo‘lish","Become a Charteri partner"],
+  b2b_to_site:["Сайт для пассажиров","Yo‘lovchilar uchun sayt","Passenger website"],
   cms_faq:["Вопросы и ответы","Savol va javoblar","Questions and answers"],
   cms_faq_sub:["Коротко о том, как работают заказы, оплата и возврат","Buyurtma, to‘lov va qaytarish qanday ishlashi haqida qisqacha","How orders, payment and refunds work, in short"],
   cms_faq_empty:["Вопросов пока нет","Hozircha savollar yo‘q","No questions yet"],
@@ -6845,10 +6866,14 @@ function regForm(){
 }
 PAGES.auth = {
   render(){
+    // Ссылка «Стать партнёром» с сайта ведёт сюда с ?tab=reg — сразу открываем заявку.
+    const want = new URLSearchParams(location.hash.split("?")[1] || "").get("tab");
+    if (want === "reg" && !M.ui.authTabFromLink) { M.ui.authTab = "reg"; M.ui.authTabFromLink = true; }
     const tab = M.ui.authTab || "login";
     return `<div class="auth">
       <section class="auth-side">
-        <span class="wordmark" aria-hidden="true">CHARTERI<b>.UZ</b></span>
+        <div class="auth-top"><span class="wordmark" aria-hidden="true">CHARTERI<b>.UZ</b></span>
+          <a class="auth-site" href="${esc(CONFIG.site.passengerUrl)}">${IC.globe}<span>${esc(t("b2b_to_site"))}</span></a></div>
         <div class="auth-copy"><h1>${esc(t("auth_h"))}</h1><p>${esc(t("auth_p"))}</p></div>
         <ul class="auth-mods" aria-hidden="true">${MODULE_ORDER.map(k => `<li>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></li>`).join("")}</ul>
       </section>

@@ -322,6 +322,12 @@ const STR = {
   board_price:["Цена","Narx","Fare"],
   map_aria:["Карта маршрута: {a} — {b}","Yo‘nalish xaritasi: {a} — {b}","Route map: {a} to {b}"],
   /* содержимое из админки (13-cms.js, 71-cms-pages.js) */
+  nav_b2b:["Для агентств","Agentliklar uchun","For agencies"],
+  nav_b2b_title:["Кабинет турагентства: вход и заявка на подключение","Turagentlik kabineti: kirish va ulanish uchun ariza","Travel agency workspace: sign in or apply"],
+  foot_b2b_h:["Турагентствам","Turagentliklarga","For travel agencies"],
+  foot_b2b_login:["Вход в кабинет агентства","Agentlik kabinetiga kirish","Agency sign-in"],
+  foot_b2b_join:["Стать партнёром Charteri","Charteri hamkori bo‘lish","Become a Charteri partner"],
+  b2b_to_site:["Сайт для пассажиров","Yo‘lovchilar uchun sayt","Passenger website"],
   cms_faq:["Вопросы и ответы","Savol va javoblar","Questions and answers"],
   cms_faq_sub:["Коротко о том, как работают заказы, оплата и возврат","Buyurtma, to‘lov va qaytarish qanday ishlashi haqida qisqacha","How orders, payment and refunds work, in short"],
   cms_faq_empty:["Вопросов пока нет","Hozircha savollar yo‘q","No questions yet"],

@@ -32,10 +32,14 @@ function regForm(){
 }
 PAGES.auth = {
   render(){
+    // Ссылка «Стать партнёром» с сайта ведёт сюда с ?tab=reg — сразу открываем заявку.
+    const want = new URLSearchParams(location.hash.split("?")[1] || "").get("tab");
+    if (want === "reg" && !M.ui.authTabFromLink) { M.ui.authTab = "reg"; M.ui.authTabFromLink = true; }
     const tab = M.ui.authTab || "login";
     return `<div class="auth">
       <section class="auth-side">
-        <span class="wordmark" aria-hidden="true">CHARTERI<b>.UZ</b></span>
+        <div class="auth-top"><span class="wordmark" aria-hidden="true">CHARTERI<b>.UZ</b></span>
+          <a class="auth-site" href="${esc(CONFIG.site.passengerUrl)}">${IC.globe}<span>${esc(t("b2b_to_site"))}</span></a></div>
         <div class="auth-copy"><h1>${esc(t("auth_h"))}</h1><p>${esc(t("auth_p"))}</p></div>
         <ul class="auth-mods" aria-hidden="true">${MODULE_ORDER.map(k => `<li>${MODULES[k].icon}<span>${esc(t(MODULES[k].label))}</span></li>`).join("")}</ul>
       </section>
