@@ -132,6 +132,6 @@ Object.assign(ACT, {
   aocsave: el => { const r = rowOf(el); if (r) saveContact(r); }
 });
 document.addEventListener("input", e => { const k = e.target.dataset?.oc; if (k && M.ui.ocEdit) M.ui.ocEdit[k] = e.target.value;
-  const p = e.target.dataset?.ot; if (p && M.ui.otEdit) { const [i, f] = p.split("."); if (M.ui.otEdit.list[i]) M.ui.otEdit.list[i][f] = e.target.value; } });
+  const p = e.target.dataset?.ot; if (p && M.ui.otEdit) { const [i, f] = p.split("."); const x = M.ui.otEdit.list[i]; if (x) { x[f] = e.target.value; paxRowEdited(x, f); } } });
 /* Канал выбран — адрес по умолчанию меняется на почту или телефон. */
 document.addEventListener("change", e => { const k = e.target.dataset?.inp; if (k?.startsWith("dch:") && M.ui.inp) { delete M.ui.inp["dto:" + k.slice(4)]; rerender(); $(`[data-inp="${CSS.escape(k)}"]`)?.focus(); } });

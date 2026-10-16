@@ -359,6 +359,8 @@ input[readonly]:focus{border-color:var(--faint);box-shadow:0 0 0 3px color-mix(i
 .changed h3{color:var(--warn);font-size:16px}
 .strike{text-decoration:line-through;color:var(--muted)}
 .demo-note{font-size:12.5px;color:var(--faint);text-align:center}
+/* С сервером (js/06-api.js) пометок «демо» нет. */
+body.api .demo-note{display:none}
 
 /* ---- отели и туры ---- */
 .hotel{display:grid;grid-template-columns:230px 1fr 200px;gap:20px;align-items:stretch;background:var(--surface);border:1px solid var(--card-border);
@@ -945,3 +947,23 @@ body.is-maint #nav,body.is-maint #top,body.is-maint #footer{display:none}
 .maint-card p{margin:0;max-width:44ch}
 .maint-ic{width:56px;height:56px;border-radius:18px;display:grid;place-items:center;background:var(--sky);color:var(--blue)}
 .maint-ic svg{width:28px;height:28px}
+/* Помощники ИИ (только с сервером): «Сканировать паспорт», поля «проверьте», черновики */
+.ai-scan .ghost svg{width:17px;height:17px}
+.ai-scan .spin{width:15px;height:15px}
+.ai-check{color:var(--warn);background:var(--warn-bg);padding:8px 10px;border-radius:10px;margin:0}
+[data-ai-verify]{outline:2px solid var(--warn);outline-offset:1px;background:var(--warn-bg)}
+.seg:has([data-ai-verify]){outline:2px solid var(--warn);outline-offset:2px}
+.ai-out{background:var(--sunken);border-radius:12px;padding:12px 14px;white-space:pre-wrap}
+.ai-out textarea{width:100%;min-height:110px}
+
+/* ---- сохранённые пассажиры: «это я», истёкший паспорт, поиск клиента ---- */
+.trow .pill{vertical-align:middle;margin-left:6px;font-size:11px}
+.trow .bad{color:var(--coral)}
+.tsearch{display:flex;flex-direction:column;gap:6px}
+.tsearch input{max-width:420px}
+.tfound{display:flex;flex-wrap:wrap;gap:7px}
+.tfound:empty{display:none}
+/* Найденный клиент: имя над маской и телефоном; номер телефона не рвётся. */
+.tfound .tchip{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;max-width:100%;padding-block:6px;border-radius:14px;text-align:left;line-height:1.25}
+.tfound .tchip .mono{font-weight:500;opacity:.8}
+.tfound .tchip .nowrap{white-space:nowrap}

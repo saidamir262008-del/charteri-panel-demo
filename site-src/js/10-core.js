@@ -349,7 +349,9 @@ function onField(e){
   if (el.dataset.tv !== undefined && M.checkout) {             // поля путешественника в оформлении
     const f = el.dataset.f; let v = el.value;
     if (["surname","given","passport"].includes(f)) { v = v.toUpperCase(); if (f === "passport") v = v.replace(/\s/g, ""); }
-    M.checkout.travellers[Number(el.dataset.tv)][f] = v;
+    const x = M.checkout.travellers[Number(el.dataset.tv)];
+    x[f] = v;
+    if (typeof travellerEdited === "function") travellerEdited(x, f);
   }
   if (el.dataset.ct && M.checkout) M.checkout.contact[el.dataset.ct] = el.value;
 }

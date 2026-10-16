@@ -12,13 +12,81 @@ const PAY_METHODS = [["payme","Payme","#33CCCC"],["click","Click","#0088FF"],["u
 const siteRefundKey = o => o.method === "cash" ? (o.refund?.done ? "site_refund_cash_done" : "site_refund_cash_wait") : (o.refund?.done ? "site_refund_done" : "site_refund_wait");
 const methodName = k => PAY_METHODS.find(m => m[0] === k)?.[1] ?? (k === "cash" ? t("pay_cash") : k);
 const CITS = ["UZB","KAZ","KGZ","TJK","TKM","RUS","TUR"];
-const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:false, fromId:null });
+const blankTraveller = type => ({ type, surname:"", given:"", passport:"", gender:"", dob:"", expiry:"", cit:"UZB", save:true, fromId:null });
+const SAVED_MAX = 20;                   // сохранённых пассажиров сайта в демо (сервер: 40)
+
+/* ---- сохранённые пассажиры ----
+   Второй билет заполняется сам: пассажир «это я» (self) — в первую форму,
+   остальные — кнопками над формой. Сохраняются после оплаты те, у кого
+   галочка (по умолчанию стоит). С сервером список приходит в маске, полный
+   номер — только через revealSaved при заполнении (адаптеры заменяют её).
+   Паспорт, который истекает до конца поездки, не подставляется: имя, пол и
+   даты рождения — да, номер и срок — пустые, рядом просьба отсканировать или
+   ввести новый паспорт (x.renew). */
+/* Маска номера в списках: с сервером — его маска, в демо — из номера. */
+/* Как у сервера: 8–9 знаков — 2 + ••• + 3, короче — ••• + 2 (короткий номер целиком не показывается). */
+const savedMask = x => x.passportMask || (!x.passport ? "" : x.passport.length >= 8 ? `${x.passport.slice(0, 2)}•••${x.passport.slice(-3)}` : `•••${x.passport.slice(-2)}`);
+let revealSaved = async ids => ids.map(id => S.travellers.find(v => v.id === id)).filter(Boolean);
+const savedSelf = () => APP === "b2c" && S.user ? S.travellers.find(v => v.self) || null : null;
+/* Заполнить форму из сохранённого. Гость отеля (mode lead) — только имя:
+   паспорт, даты и пол форма не спрашивает и не отправляет. fromSnap — каким
+   был человек при заполнении (travellerEdited сверяет с ним). */
+function fillSaved(x, tr, end, mode = "full"){
+  if (mode !== "full") return Object.assign(x, { surname:tr.surname, given:tr.given, fromId:tr.id, fromSnap:{ surname:tr.surname, given:tr.given, passport:"" },
+    renew:false, aiv:[], aiw:[] });
+  const stale = !!tr.expiry && !!end && tr.expiry <= end, passport = stale ? "" : tr.passport || "";
+  return Object.assign(x, { surname:tr.surname, given:tr.given, passport, gender:tr.gender || "", dob:tr.dob || "",
+    expiry:stale ? "" : tr.expiry || "", cit:tr.cit || "UZB", fromId:tr.id, fromSnap:{ surname:tr.surname, given:tr.given, passport },
+    renew:stale, save:true, aiv:[], aiw:[] });
+}
+/* Правка поля руками (onField, js/10-core.js). Снимается «проверьте» с этого
+   поля (и предупреждения о сроке — при правке срока). Если фамилия или имя и
+   номер уже не те, что при заполнении, — это другой человек: ссылка на
+   сохранённого (fromId) снимается, иначе после оплаты его профиль
+   перезаписался бы. Тот же человек с новым паспортом ссылку сохраняет. */
+const EXPIRY_WARN = ["EXPIRED", "EXPIRES_BEFORE_TRIP", "VALIDITY_UNDER_6M"];
+function travellerEdited(x, f){
+  if (x.aiv?.length) x.aiv = x.aiv.filter(k => k !== f);
+  if (f === "expiry" && x.aiw?.length) x.aiw = x.aiw.filter(c => !EXPIRY_WARN.includes(c));
+  const src = x.fromSnap;
+  if (!x.fromId || !src || !["surname", "given", "passport"].includes(f)) return;
+  const sameName = x.surname === src.surname && x.given === src.given, samePass = !!src.passport && x.passport === src.passport;
+  if (!sameName && !samePass) Object.assign(x, { fromId:null, fromSnap:null, renew:false, aiMatch:"" });
+}
+/* Вторая покупка на сайте: «это я» — в первую форму, если она ещё пустая. */
+async function autoFillSelf(c){
+  const me = savedSelf(); if (!me || c.travellers[0]?.surname) return;
+  const [full] = await revealSaved([me.id], c.end).catch(() => []);
+  if (!full || M.checkout !== c || c.travellers[0].surname) return;
+  fillSaved(c.travellers[0], full, c.end, c.mode); c.selfFilled = true;
+  if (currentParts()[0] === "checkout") rerender();
+}
+/* Демо после оплаты: пассажиры с галочкой — в сохранённые. Тот, из кого
+   заполняли, тот же паспорт или тот же человек (имя и дата рождения, новый
+   паспорт) — обновляется; первый пассажир без «это я» становится «это я». */
+function keepTravellers(c, extra = () => ({})){
+  if (c.mode !== "full") return;
+  let first = null;
+  c.travellers.forEach((x, i) => {
+    if (!x.save) return;
+    const rec = { surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit, ...extra(x, i) };
+    let v = S.travellers.find(y => y.id === x.fromId) || S.travellers.find(y => y.passport && y.passport === x.passport)
+      || S.travellers.find(y => y.dob && y.dob === x.dob && y.surname === x.surname && y.given === x.given);
+    if (v) Object.assign(v, rec); else S.travellers.push(v = { id:uid(APP === "b2b" ? "cl" : "tr"), ...rec });
+    x.fromId = v.id; if (i === 0) first = v;
+  });
+  if (APP === "b2c" && S.user && first && !S.travellers.some(v => v.self)) first.self = true;
+}
 
 function checkLines(lines, total, countKey){
   return `<div class="rows">${lines.map(([l, a]) => `<div><span class="k">${esc(l)}</span><span class="v mono ${a && a.usd < 0 ? "neg" : ""}">${
       a == null ? esc(t("included")) : a.usd < 0 ? "−" + fmt({ usd:-a.usd, uzs:-a.uzs }) : fmt(a)}</span></div>`).join("")}
     <div class="tot"><span class="k">${esc(t("total"))}</span><span class="v" ${countKey ? countAttr(countKey, total) : ""}>${fmt(total)}</span></div></div>`;
 }
+
+/* Путешественник заказа: без служебных полей формы; гость отеля — только имя. */
+const orderTraveller = ({ type, save, fromId, fromSnap, renew, aiv, aiw, aiMatch, ...x }, mode) =>
+  mode === "full" ? x : { surname:x.surname, given:x.given };
 
 /* ---------------------------------------------------------------- оформление */
 function startCheckout(spec){
@@ -27,15 +95,21 @@ function startCheckout(spec){
     travellers: spec.travellers.types.map(blankTraveller), mode: spec.travellers.mode,
     contact: { phone: S.user?.phone || "", email: "" } };
   go("checkout");
+  autoFillSelf(M.checkout);
 }
+/* Кнопки сохранённых над формой: на сайте — все (до 40), в кабинете — только
+   первые CHIPS_B2B (с сервером — недавние): там ищут поиском, а база — сотни. */
+const CHIPS_B2B = 6;
 function travellerForm(x, i, mode){
-  const full = mode === "full";
-  const chips = S.travellers.length ? `<div class="tchips"><span class="lbl">${esc(t("select_traveller"))}</span>${S.travellers.map(tr =>
+  const full = mode === "full", saved = APP === "b2b" ? S.travellers.slice(0, CHIPS_B2B) : S.travellers;
+  const chips = saved.length ? `<div class="tchips"><span class="lbl">${esc(t("select_traveller"))}</span>${saved.map(tr =>
     `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${esc(tr.id)}" aria-pressed="${x.fromId === tr.id}">${esc(tr.given)} ${esc(tr.surname[0])}.</button>`).join("")}</div>` : "";
   const f = (k, label, extra = "") => `<label class="field"><span>${esc(label)}</span><input data-tv="${i}" data-f="${k}" value="${esc(x[k])}" ${extra}></label>`;
   return `<div class="tform" id="tv${i}">
     <div class="tform-h"><b>${esc(mode === "lead" ? t("lead_guest") : `${t("passenger")} ${i+1}`)}</b><span class="muted small">${esc(t("pax_" + x.type))}</span></div>
     ${chips}
+    ${i === 0 && M.checkout?.selfFilled && x.fromId ? `<p class="small muted">${esc(t("tr_from_profile"))}</p>` : ""}
+    ${x.renew ? `<p class="small ai-check" role="status">${esc(tf("tr_renew", { name:`${x.given} ${x.surname}`.trim() }))}</p>` : ""}
     <div class="sgrid sgrid-2">
       ${f("surname", t("surname"), 'class="upper" autocomplete="off" autocapitalize="characters" spellcheck="false"')}
       ${f("given", t("given_name"), 'class="upper" autocomplete="off" autocapitalize="characters" spellcheck="false"')}
@@ -46,6 +120,7 @@ function travellerForm(x, i, mode){
       ${full ? f("expiry", t("expiry"), `type="date" min="${TODAY}"`) : ""}
     </div>
     ${full ? `<label class="chk"><input type="checkbox" data-act="csave" data-i="${i}" ${x.save ? "checked" : ""}><span>${esc(t("save_traveller"))}</span></label>` : ""}
+    ${full && APP === "b2c" && i === 0 && x.save ? `<p class="muted small">${esc(t("tr_save_hint"))}</p>` : ""}
     <div class="err" id="terr${i}" hidden></div></div>`;
 }
 PAGES.checkout = {
@@ -141,12 +216,13 @@ function validateCheckout(){
 }
 Object.assign(ACT, {
   hback:   () => history.back(),
-  cgender: el => { M.checkout.travellers[Number(el.dataset.i)].gender = el.dataset.v; rerender(); },
+  cgender: el => { const x = M.checkout.travellers[Number(el.dataset.i)]; x.gender = el.dataset.v; travellerEdited(x, "gender"); rerender(); },
   csave:   el => { const x = M.checkout.travellers[Number(el.dataset.i)]; x.save = !x.save; rerender(); },
-  cfill:   el => {
-    const x = M.checkout.travellers[Number(el.dataset.i)], tr = S.travellers.find(v => v.id === el.dataset.v); if (!tr) return;
-    Object.assign(x, { surname:tr.surname, given:tr.given, passport:tr.passport, gender:tr.gender, dob:tr.dob, expiry:tr.expiry, cit:tr.cit, fromId:tr.id, save:false });
-    rerender();
+  cfill:   async el => {
+    const c = M.checkout, x = c?.travellers[Number(el.dataset.i)]; if (!x) return;
+    const [tr] = await revealSaved([el.dataset.v], c.end).catch(e => { toast(API.errText(e)); return []; });
+    if (!tr || M.checkout !== c) return;
+    fillSaved(x, tr, c.end, c.mode); rerender();
   },
   cmethod: el => { M.checkout.method = el.dataset.v; rerender(); },
   cpromo:  () => applyPromo(),
@@ -157,11 +233,8 @@ Object.assign(ACT, {
     if (rateMoved(c)) return;
     if (!payOn(c.method)) { c.method = firstPay(); rerender(); return toast(t("pay_off")); }
     if (!detailsShown(c.details)) { M.checkout = null; toast(t("dir_gone")); return go(SEARCH_PATH); }
-    c.travellers.forEach(x => {
-      if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
-      S.travellers.push({ id:uid("tr"), surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit });
-    });
-    S.travellers = S.travellers.slice(0, 10);
+    keepTravellers(c);
+    S.travellers = S.travellers.slice(0, SAVED_MAX);
     const no = cantBuy(c.type, c.total); if (no) { M.checkout = null; toast(t(no)); return go(SEARCH_PATH); }
     const pr = checkoutPromo(c, c.total);
     // Скидка изменилась, пока страница была открыта (акцию выключили) — показываем новую сумму, не списываем молча.
@@ -175,7 +248,7 @@ Object.assign(ACT, {
       if (rateMoved(c)) return;
       createOrder({ type:c.type, status:"CONFIRMED", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:pr ? subA(c.total, pr.off) : c.total,
         ...(pr ? { gross:c.total, promo:{ id:pr.id, code:pr.code, name:pr.name, auto:pr.auto, off:pr.off } } : {}),
-        travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
+        travellers:c.travellers.map(x => orderTraveller(x, c.mode)), contact:{ ...c.contact, phone:prettyPhone(c.contact.phone) },
         method:c.method, details:c.details }, id => { M.checkout = null; go(`done/${id}`); });
     }, 1400);
   }

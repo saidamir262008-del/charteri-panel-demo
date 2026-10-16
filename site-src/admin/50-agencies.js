@@ -8,7 +8,9 @@
 const AG_COLS = "minmax(0,2.2fr) 150px minmax(0,1.2fr) minmax(0,1fr) minmax(0,1.2fr) 130px";
 const turnover30 = a => { const since = Date.now() - 30 * DAY_MS; let n = 0, sum = 0;
   for (const o of a.st.orders) if (o.paidAt && o.paidAt >= since && o.total) { n++; sum += o.total.uzs; } return { n, sum }; };
-const agPill = a => agencyActiveOf(a) ? `<span class="pill st-CONFIRMED">${esc(t("ag_active"))}</span>` : `<span class="pill st-REFUNDED">${esc(t("agency_blocked"))}</span>`;
+/* pending — только с сервером: агентство сайта ещё не одобрено. */
+const agPill = a => a.status === "pending" ? `<span class="pill st-PENDING">${esc(t("ag_pending"))}</span>`
+  : agencyActiveOf(a) ? `<span class="pill st-CONFIRMED">${esc(t("ag_active"))}</span>` : `<span class="pill st-REFUNDED">${esc(t("agency_blocked"))}</span>`;
 
 PAGES.agencies = {
   render(){
@@ -105,6 +107,7 @@ PAGES["agencies/:id"] = {
       <div class="ohead"><span class="bmark-wrap big" style="${brandStyle(a.brand)}">${brandMark("", a.brand)}</span><div><span class="lbl">${esc(a.live ? t("ag_live") : t("col_agency"))}</span>
         <h1>${esc(a.name)}</h1><p class="muted">${esc(a.legal || "")}</p></div>${agPill(a)}</div>
       ${agencyActiveOf(a) ? "" : `<div class="blockbar inline">${IC.lock}<span>${esc(tf("ag_blocked_why", { reason:blockReasonOf(a) || "—" }))}</span></div>`}
+      ${a.status === "pending" ? `<div class="blockbar inline">${IC.lock}<span>${esc(t("ag_pending_d"))}</span></div>` : ""}
       <div class="twocol"><div class="stack">
         ${M.ui.agDraft?.id === a.id ? agForm(a) : `<section class="card stack"><div class="card-h"><h2>${esc(t("ag_details"))}</h2>
             <button type="button" class="link" data-act="agedit" data-v="${a.id}" ${guard("b2b.edit")}>${esc(t("edit"))}</button></div><div class="rows">

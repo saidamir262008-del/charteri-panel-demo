@@ -207,7 +207,7 @@ function segmentOf(c){
 }
 const clientByKey = key => b2cClients().find(c => c.key === key) || null;
 /* Номера, закрытые для бронирования, — сайт читает их из BLOCK_KEY. */
-const syncBlocked = () => writeJSON(BLOCK_KEY, Object.entries(O.crm.clients).filter(([k, v]) => k.startsWith("c:") && v.blocked).map(([k]) => k.slice(2)));
+function syncBlocked(){ writeJSON(BLOCK_KEY, Object.entries(O.crm.clients).filter(([k, v]) => k.startsWith("c:") && v.blocked).map(([k]) => k.slice(2))); }
 
 /* ---- комментарии и задачи ----
    target: "l:<лид>", "c:<телефон>", "a:<агентство>". */

@@ -254,10 +254,13 @@ PAGES.account = {
         ${sysCfg().cur.usd ? `<div class="setrow"><span>${esc(t("currency"))}</span>${seg("setcur", [["UZS","UZS"],["USD","USD"]], S.cur)}</div>` : ""}
         <div class="setrow"><span>${esc(t("appearance"))}</span>${seg("settheme", [["system", t("theme_system")],["light", t("theme_light")],["dark", t("theme_dark")]], S.theme)}</div></div>
       <div class="card stack"><h3>${esc(t("saved_travellers"))}</h3>
-        ${S.travellers.length ? S.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}</b>
-          <span class="mono small muted">${esc(x.passport.slice(0,2))}•••${esc(x.passport.slice(-3))}</span>
-          <button type="button" class="link danger" data-act="deltr" data-v="${x.id}">${esc(t("remove"))}</button></div>`).join("")
-          : `<p class="muted">${esc(t("travellers_empty_body"))}</p>`}</div>
+        ${S.travellers.length ? S.travellers.map(x => `<div class="trow"><b>${esc(x.given)} ${esc(x.surname)}${x.self ? ` <span class="pill st-CONFIRMED">${esc(t("tr_self"))}</span>` : ""}</b>
+          <span class="mono small muted">${esc(savedMask(x))}</span>
+          ${x.expiry && x.expiry <= TODAY ? `<span class="small bad">${esc(t("tr_expired"))}</span>` : ""}
+          ${S.user && !x.self ? `<button type="button" class="link" data-act="trself" data-v="${esc(x.id)}">${esc(t("tr_self"))}</button>` : ""}
+          <button type="button" class="link danger" data-act="deltr" data-v="${esc(x.id)}">${esc(t("remove"))}</button></div>`).join("")
+          : `<p class="muted">${esc(t("travellers_empty_body"))}</p>`}
+        ${S.travellers.length ? `<button type="button" class="link danger" data-act="eraseme">${esc(t("tr_erase"))}</button>` : ""}</div>
       <button type="button" class="ghost" data-act="reset">${esc(t("reset_demo"))}</button></div></div>`;
   }
 };
@@ -267,6 +270,9 @@ Object.assign(ACT, {
   settheme: el => { S.theme = el.dataset.v; save(); withTransition(rerender, "theme"); },
   signout:  () => { S.user = null; save(); toast(t("signed_out")); go(""); },
   deltr:    el => { if (!confirm(t("delete_traveller_title"))) return; S.travellers = S.travellers.filter(x => x.id !== el.dataset.v); save(); rerender(); },
+  trself:   el => { S.travellers.forEach(x => { x.self = x.id === el.dataset.v; }); save(); rerender(); toast(t("tr_self_set")); },
+  // erasedAt: книга офиса этого телефона тоже стирается (как на сервере) — офис не находит заказы до этой даты.
+  eraseme:  () => { if (!confirm(t("tr_erase_q"))) return; S.travellers = []; S.erasedAt = Date.now(); save(); rerender(); toast(t("tr_erased")); },
   reset:    () => { if (!confirm(t("reset_confirm"))) return; S = freshState(); save(); go(""); }
 });
 document.addEventListener("change", e => { if (e.target.id === "langSel") { S.lang = e.target.value; save(); rerender(); } });

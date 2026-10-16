@@ -17,7 +17,7 @@
 
 const ON_TYPES = ["FLIGHT", "HOTEL"], ON_PAX_MAX = 6, ON_NIGHTS_MAX = 30, ON_USD_MAX = 100_000, ON_GUESTS_MAX = 6, ON_ROOM_GUESTS = 3, ON_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const blankOrderNew = () => ({ type:"FLIGHT", from:"TAS", to:"IST", date:addDays(TODAY, 7), pax:1, hotelId:HOTELS[0]?.id || "", checkin:addDays(TODAY, 7),
-  nights:"7", room:"standard", guests:2, list:[{ surname:"", given:"", passport:"" }], phone:"", email:"", usd:"" });
+  nights:"7", room:"standard", guests:2, list:[{ surname:"", given:"", passport:"", save:true }], phone:"", email:"", usd:"" });
 const canOrderNew = () => can("orders.edit") && can("b2c.edit");
 const onRooms = d => Math.ceil(clamp(Number(d.guests) || 1, 1, ON_GUESTS_MAX) / ON_ROOM_GUESTS);
 /* Цена по каталогу сайта в долларах: за пассажира (билет) или за всё проживание (отель); null — посчитать нельзя. */
@@ -40,6 +40,83 @@ function onRefreshCat(){
   if (note) note.textContent = onCatNote(d, cat);
 }
 const onPaxCount = d => d.type === "FLIGHT" ? clamp(Number(d.pax) || 1, 1, ON_PAX_MAX) : 1;
+const onTripEnd = d => d.type === "FLIGHT" ? d.date : addDays(d.checkin, Number(d.nights) || 0);
+
+/* Клиент пришёл снова: «Найти клиента по телефону» — его сохранённые пассажиры,
+   как на сервере: книга аккаунта сайта с этим номером (сохранённые пассажиры
+   сайта, только с галочкой «Сохранить») и книга офиса (пассажиры прошлых
+   заказов в офисе на этот номер), одной кнопкой в строку пассажира или
+   «Заполнить всех». Заказы сайта сами по себе книгой не считаются; после
+   «Удалить мои данные» на сайте офисные заказы до этого момента не находятся.
+   Только по кнопке: поиск при уходе из поля сдвигал бы форму под курсором.
+   Демо ищет в данных сайта этого браузера; с сервером — POST
+   /admin/travellers/lookup и /reveal (admin/95-api.js). Пассажир с выключенной
+   галочкой «Сохранить» (nosave) не предлагается. */
+let officeLookup = async phone => {
+  const site = loadSite(), d = digits(phone), out = [], seen = new Set();
+  const add = (x, book) => {
+    const k = x.passport || `${x.surname}|${x.given}`; if (!x.surname || x.nosave || seen.has(k)) return;
+    seen.add(k); out.push({ id:`f${out.length}`, book, surname:x.surname, given:x.given, passport:x.passport || "", gender:x.gender || "", dob:x.dob || "", expiry:x.expiry || "", cit:x.cit || "", self:!!x.self });
+  };
+  if (site?.user && digits(site.user.phone || "") === d) [...(site.travellers || [])].sort((a, b) => Number(!!b.self) - Number(!!a.self)).forEach(x => add(x, "customer"));
+  const since = site?.user && digits(site.user.phone || "") === d ? site.erasedAt || 0 : 0;
+  for (const o of site?.orders || []) if (o.channel === "office" && digits(o.contact?.phone || "") === d && (o.createdAt || 0) > since)
+    (o.travellers || []).forEach(x => add(x, "office"));
+  return out;
+};
+let officeReveal = async ids => ids.map(id => M.ui.onFound?.items?.find(x => x.id === id)).filter(Boolean);
+function onFoundHtml(){
+  const f = M.ui.onFound; if (!f) return "";
+  if (f.busy) return `<span class="spin"></span>`;
+  if (!f.items.length) return `<span class="muted small">${esc(t("on_found_none"))}</span>`;
+  return `<span class="muted small">${esc(t("on_found_h"))}</span>${f.items.map(x => `<button type="button" class="tchip" data-act="onpick" data-v="${esc(x.id)}">
+      <span>${esc(x.given)} ${esc(x.surname)}</span><span class="mono small">${esc(savedMask(x))} · ${esc(t(x.book === "office" ? "on_book_office" : "on_book_customer"))}</span></button>`).join("")}
+    ${f.items.length > 1 ? `<button type="button" class="ghost sm" data-act="onfillall">${esc(t("on_fill_all"))}</button>` : ""}
+    ${f.note ? `<p class="small ai-check" role="status">${esc(f.note)}</p>` : ""}`;
+}
+const onPaintFound = () => { const el = $("#onfound"); if (el) el.innerHTML = onFoundHtml(); };
+async function onLookup(){
+  const d = M.ui.onew; if (!d || !validPhone(d.phone)) return;
+  const f = M.ui.onFound = { phone:d.phone, items:[], busy:true }; onPaintFound();
+  try { f.items = await officeLookup(d.phone, onTripEnd(d)); }
+  catch(e) { toast(API.errText(e)); f.items = []; }
+  finally { f.busy = false; if (M.ui.onFound === f) onPaintFound(); }
+}
+/* Найденные → строки пассажиров (первые пустые). Паспорт, истекающий до конца
+   поездки, не подставляется — имя да, рядом просьба взять новый паспорт. */
+/* Строка пассажира поправлена руками (заказ в офисе и правка пассажиров заказа).
+   Скан или поиск по телефону дали пол, даты и гражданство (row.scan): если
+   фамилия или имя и номер уже не те, что при заполнении (scanSnap), — это
+   другой человек, они сбрасываются вместе с отметками «проверьте»; иначе
+   снимается отметка только с этого поля. */
+function paxRowEdited(row, f){
+  if (row.aiv?.length) row.aiv = row.aiv.filter(k => k !== f);
+  const src = row.scanSnap; if (!row.scan || !src || !["surname", "given", "passport"].includes(f)) return;
+  const norm = v => String(v || "").trim().toUpperCase();
+  const sameName = norm(row.surname) === norm(src.surname) && norm(row.given) === norm(src.given);
+  const samePass = !!src.passport && norm(row.passport) === norm(src.passport);
+  if (!sameName && !samePass) { delete row.scan; delete row.scanSnap; row.aiv = []; row.aiw = []; }
+}
+async function onFill(ids){
+  const d = M.ui.onew, f = M.ui.onFound; if (!d || !f || !ids.length) return;
+  const full = await officeReveal(ids, f.phone, onTripEnd(d)).catch(e => { toast(API.errText(e)); return []; });
+  if (M.ui.onew !== d) return;
+  if (d.type === "FLIGHT" && full.length > 1) {
+    d.pax = String(clamp(Math.max(onPaxCount(d), d.list.filter(x => x.surname).length + full.length), 1, ON_PAX_MAX));
+    while (d.list.length < onPaxCount(d)) d.list.push({ surname:"", given:"", passport:"", save:true });
+  }
+  const end = onTripEnd(d), stale = [];
+  for (const x of full) {
+    const row = d.list.slice(0, onPaxCount(d)).find(r => !r.surname); if (!row) { toast(t("on_all_filled")); break; }
+    const old = !!x.expiry && x.expiry <= end;
+    Object.assign(row, { surname:x.surname, given:x.given, passport:d.type === "FLIGHT" && !old ? x.passport || "" : "", save:true,
+      scan:Object.fromEntries(["gender", "dob", "expiry", "cit"].filter(k => x[k] && !(old && k === "expiry")).map(k => [k, x[k]])), aiv:[], aiw:[] });
+    row.scanSnap = { surname:row.surname, given:row.given, passport:row.passport };
+    if (old) stale.push(`${x.given} ${x.surname}`);
+  }
+  f.note = stale.length ? tf("tr_renew", { name:stale.join(", ") }) : "";
+  rerender();
+}
 
 function orderNewForm(){
   const d = M.ui.onew; if (!d) return "";
@@ -59,16 +136,20 @@ function orderNewForm(){
     ${d.list.slice(0, onPaxCount(d)).map((x, i) => `<fieldset class="ot-pax"><legend class="small muted">${esc(d.type === "FLIGHT" ? `${t("passenger")} ${i + 1}` : t("lead_guest"))}</legend><div class="sgrid sgrid-3">
       <label class="field"><span>${esc(t("surname"))}</span><input data-onp="${i}.surname" value="${esc(x.surname)}" ${up}></label>
       <label class="field"><span>${esc(t("given_name"))}</span><input data-onp="${i}.given" value="${esc(x.given)}" ${up}></label>
-      ${d.type === "FLIGHT" ? `<label class="field"><span>${esc(t("passport_no"))}</span><input data-onp="${i}.passport" value="${esc(x.passport)}" ${up.replace('class="upper"', 'class="upper mono"')} maxlength="9"></label>` : ""}</div></fieldset>`).join("")}
+      ${d.type === "FLIGHT" ? `<label class="field"><span>${esc(t("passport_no"))}</span><input data-onp="${i}.passport" value="${esc(x.passport)}" ${up.replace('class="upper"', 'class="upper mono"')} maxlength="9"></label>` : ""}</div>
+      <label class="chk small"><input type="checkbox" data-onsave="${i}" ${x.save !== false ? "checked" : ""}><span>${esc(t("on_save_pax"))}</span></label></fieldset>`).join("")}
     <div class="sgrid sgrid-3">${f("phone", "contact_phone", 'type="tel" placeholder="+998" autocomplete="off"')}${f("email", "agency_email", 'type="email" maxlength="80" autocomplete="off"')}
       ${f("usd", d.type === "FLIGHT" ? "on_usd_pax" : "on_usd_stay", `inputmode="numeric" maxlength="6" placeholder="${cat == null ? "" : cat}"`)}</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap"><button type="button" class="ghost sm" data-act="onfind">${esc(t("on_find"))}</button></div>
+    <div class="tfound" id="onfound" aria-live="polite">${M.ui.onFound?.phone === d.phone ? onFoundHtml() : ""}</div>
     <p class="muted small" id="oncat" aria-live="polite">${esc(onCatNote(d, cat))}</p>
     <div class="err" id="onerr" hidden></div>
     <div class="row"><button type="button" class="solid" data-act="onsave">${esc(t("on_save"))}</button><button type="button" class="link" data-act="onclose">${esc(t("cancel"))}</button></div></section>`;
 }
 /* Черновик → заказ. Ошибка — [ключ строки, поле]. */
 function orderNewRead(d){
-  const n = onPaxCount(d), list = d.list.slice(0, n).map(x => ({ surname:x.surname.trim().toUpperCase(), given:x.given.trim().toUpperCase(), passport:x.passport.trim().toUpperCase() }));
+  const n = onPaxCount(d), list = d.list.slice(0, n).map(x => ({ surname:x.surname.trim().toUpperCase(), given:x.given.trim().toUpperCase(), passport:x.passport.trim().toUpperCase(),
+    ...(x.save === false ? { nosave:true } : {}) }));
   if (d.type === "FLIGHT") {
     if (d.from === d.to || !AIRPORTS.some(a => a.iata === d.from) || !AIRPORTS.some(a => a.iata === d.to)) return { err:["on_err_route", "to"] };
     if (!ON_DATE.test(d.date) || d.date < TODAY) return { err:["on_err_date", "date"] };
@@ -123,7 +204,10 @@ function saveOrderNew(){
   M.ui.onew = null; toast(tf("t_on_saved", { no:o.no })); go(`orders/site/${o.id}`);
 }
 Object.assign(ACT, {
-  onnew:   () => { if (!canOrderNew()) return toast(t("no_rights")); M.ui.onew = blankOrderNew(); rerender(); $('#onform [data-act="ontype"]')?.focus(); },
+  onnew:   () => { if (!canOrderNew()) return toast(t("no_rights")); M.ui.onew = blankOrderNew(); M.ui.onFound = null; rerender(); $('#onform [data-act="ontype"]')?.focus(); },
+  onfind:  () => onLookup(),
+  onpick:  el => onFill([el.dataset.v]),
+  onfillall: () => onFill((M.ui.onFound?.items || []).map(x => x.id)),
   onclose: () => { M.ui.onew = null; rerender(); $('[data-act="onnew"]')?.focus(); },
   ontype:  el => { const d = M.ui.onew; if (!d || !ON_TYPES.includes(el.dataset.v)) return; d.type = el.dataset.v; d.usd = ""; rerender(); $(`#onform [data-act="ontype"][data-v="${d.type}"]`)?.focus(); },
   onsave:  () => saveOrderNew()
@@ -135,11 +219,12 @@ document.addEventListener("input", e => {
   const d = M.ui.onew; if (!d) return;
   const k = e.target.dataset?.on, p = e.target.dataset?.onp;
   if (k && e.target.tagName !== "SELECT") { d[k] = e.target.value; if (ON_PRICED.includes(k)) onRefreshCat(); }
-  if (p) { const [i, f] = p.split("."); if (d.list[i]) d.list[i][f] = e.target.value; }
+  if (p) { const [i, f] = p.split("."); if (d.list[i]) { d.list[i][f] = e.target.value; paxRowEdited(d.list[i], f); } }
 });
 document.addEventListener("change", e => {
+  const s = e.target.dataset?.onsave; if (s !== undefined && M.ui.onew?.list[s]) M.ui.onew.list[s].save = e.target.checked;
   const d = M.ui.onew, k = e.target.dataset?.on; if (!d || !k) return;
   d[k] = e.target.value;
-  if (k === "pax") { while (d.list.length < onPaxCount(d)) d.list.push({ surname:"", given:"", passport:"" }); rerender(); $('#onform [data-on="pax"]')?.focus(); return; }
+  if (k === "pax") { while (d.list.length < onPaxCount(d)) d.list.push({ surname:"", given:"", passport:"", save:true }); rerender(); $('#onform [data-on="pax"]')?.focus(); return; }
   if (ON_PRICED.includes(k)) onRefreshCat();
 });

@@ -5,19 +5,55 @@
    ========================================================================== */
 "use strict";
 
-const clientFill = c => ({ surname:c.surname, given:c.given, passport:c.passport, gender:c.gender, dob:c.dob, expiry:c.expiry, cit:c.cit, fromId:c.id, save:false });
 const clientByPhone = phone => S.travellers.find(c => c.phone && digits(c.phone) === digits(phone));
 
 /* Бронь «для клиента» (из карточки клиента): первый путешественник и
-   контакты уже заполнены. */
+   контакты уже заполнены (паспорт — из базы, с сервером — по revealSaved). */
 function startCheckout(spec){
   const no = cantBuy(spec.type, spec.total); if (no) return toast(t(no));
   const cl = S.travellers.find(c => c.id === M.ui.forClient), travellers = spec.travellers.types.map(blankTraveller);
-  if (cl) Object.assign(travellers[0], clientFill(cl));
-  M.checkout = { ...spec, rate:sysRate(), method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
+  const c = M.checkout = { ...spec, rate:sysRate(), method:"balance", pstate: spec.recheck ? "checking" : "ok", pending:null, travellers, mode:spec.travellers.mode,
     contact:{ phone:cl?.phone || "", email:cl?.email || "" }, clientId:cl?.id || null };
+  M.ui.cq = {}; M.ui.cfound = {};
   go("checkout");
+  if (cl) revealSaved([cl.id], c.end).then(([full]) => {
+    if (!full || M.checkout !== c || c.travellers[0].surname) return;
+    fillSaved(c.travellers[0], full, c.end, c.mode); if (currentParts()[0] === "checkout") rerender();
+  }).catch(e => toast(API.errText(e)));
 }
+
+/* Поиск по базе клиентов в оформлении: имя (в любом порядке), телефон или
+   номер паспорта; найденный — одной кнопкой во все поля. С сервером поиск
+   идёт на сервер (адаптер заменяет searchClients). Результаты рисуются на
+   месте, без перерисовки формы, чтобы не сбивать ввод. */
+const CSEARCH_MS = 250, CSEARCH_MAX = 8;
+let searchClients = async q => {
+  const s = q.trim().toLowerCase(), d = digits(q), pp = q.replace(/\s/g, "").toUpperCase();
+  return S.travellers.filter(c => `${c.given} ${c.surname}|${c.surname} ${c.given}`.toLowerCase().includes(s)
+    || (pp.length >= 5 && c.passport === pp) || (d.length >= 4 && digits(c.phone || "").includes(d))).slice(0, CSEARCH_MAX);
+};
+function foundChips(i){
+  const r = M.ui.cfound?.[i]; if (!r) return "";
+  if (!r.items.length) return `<span class="muted small">${esc(t("tr_none"))}</span>`;
+  return r.items.map(cl => `<button type="button" class="tchip" data-act="cfill" data-i="${i}" data-v="${esc(cl.id)}"><span>${esc(cl.given)} ${esc(cl.surname)}</span>
+    <span class="mono small">${esc(savedMask(cl))}${cl.phone ? ` · <span class="nowrap">${esc(cl.phone)}</span>` : ""}</span></button>`).join("");
+}
+const clientSearchBox = i => `<div class="tsearch"><label class="field"><span>${esc(t("tr_search"))}</span>
+    <input type="search" data-cq="${i}" value="${esc(M.ui.cq?.[i] || "")}" placeholder="${esc(t("tr_search_ph"))}" autocomplete="off" spellcheck="false"></label>
+    <div class="tfound" id="tfound${i}" aria-live="polite">${foundChips(i)}</div></div>`;
+const B2C_TFORM = travellerForm;
+travellerForm = (x, i, mode) => B2C_TFORM(x, i, mode).replace('<div class="sgrid sgrid-2">', `${clientSearchBox(i)}<div class="sgrid sgrid-2">`);
+document.addEventListener("input", e => {
+  const i = e.target.dataset?.cq; if (i === undefined || !M.checkout) return;
+  const q = e.target.value; (M.ui.cq ||= {})[i] = q; M.ui.cfound ||= {};
+  clearTimeout(M.ui.cqTimer);
+  if (q.trim().length < 2) { M.ui.cfound[i] = null; const box = $("#tfound" + i); if (box) box.innerHTML = ""; return; }
+  M.ui.cqTimer = setTimeout(async () => {
+    const items = await searchClients(q).catch(err => { toast(API.errText(err)); return null; });
+    if (!items || M.ui.cq?.[i] !== q) return;
+    M.ui.cfound[i] = { q, items }; const box = $("#tfound" + i); if (box) box.innerHTML = foundChips(i);
+  }, CSEARCH_MS);
+});
 
 const B2C_CHECKOUT_AFTER = PAGES.checkout.after;      // проверка цены у поставщика — как на сайте
 function priceCheck(c){
@@ -68,10 +104,13 @@ PAGES.checkout = {
 
 Object.assign(ACT, {
   /* Клиент из базы: паспорт в путешественника, телефон — в контакты заказа. */
-  cfill: el => {
-    const i = Number(el.dataset.i), c = M.checkout, cl = S.travellers.find(v => v.id === el.dataset.v); if (!cl) return;
-    Object.assign(c.travellers[i], clientFill(cl));
+  cfill: async el => {
+    const i = Number(el.dataset.i), c = M.checkout; if (!c?.travellers[i]) return;
+    const [cl] = await revealSaved([el.dataset.v], c.end).catch(e => { toast(API.errText(e)); return []; });
+    if (!cl || M.checkout !== c) return;
+    fillSaved(c.travellers[i], cl, c.end, c.mode);
     if (i === 0) { c.clientId = cl.id; if (cl.phone) c.contact.phone = cl.phone; if (cl.email) c.contact.email = cl.email; }
+    if (M.ui.cq) M.ui.cq[i] = ""; if (M.ui.cfound) M.ui.cfound[i] = null;
     rerender();
   },
   cpay: () => {
@@ -84,28 +123,25 @@ Object.assign(ACT, {
     // Кредитный лимит: платить можно до баланса плюс лимит.
     if (due.uzs > available()) return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) }));
     const phone = prettyPhone(c.contact.phone);
-    c.travellers.forEach((x, i) => {
-      if (!x.save || S.travellers.some(v => v.passport === x.passport)) return;
-      const id = uid("cl");
-      S.travellers.push({ id, surname:x.surname, given:x.given, passport:x.passport, gender:x.gender, dob:x.dob, expiry:x.expiry, cit:x.cit, phone:i === 0 ? phone : "", email:i === 0 ? c.contact.email : "" });
-      x.fromId = id;
-    });
+    // Отмеченные пассажиры — в базу клиентов (тот же паспорт или человек — обновляется); первый — с контактами заказа.
+    keepTravellers(c, (x, i) => i === 0 ? { phone, ...(c.contact.email ? { email:c.contact.email } : {}) } : {});
+    for (const v of S.travellers) { v.phone ??= ""; v.email ??= ""; }
     const clientId = c.travellers[0].fromId || c.clientId || clientByPhone(phone)?.id || null;
-    const newClients = S.travellers.filter(v => c.travellers.some(x => x.fromId === v.id));
+    const newClients = S.travellers.filter(v => c.travellers.some(x => x.fromId === v.id)).map(v => ({ ...v }));
     // Ставка сбора — та, что была на экране при нажатии «Оплатить».
     const feeBps = prices().feeBps;
     overlay(t("processing_balance"));
     setTimeout(() => {
       overlay(""); refresh();
-      // Новые клиенты из оформления — в свежие данные, если их там ещё нет.
-      for (const v of newClients) if (!S.travellers.some(x => x.id === v.id)) S.travellers.push(v);
+      // Клиенты из оформления — в свежие данные: новые добавить, изменённые обновить.
+      for (const v of newClients) { const e = S.travellers.find(x => x.id === v.id); if (e) Object.assign(e, v); else S.travellers.push(v); }
       const due = addA(c.total, feeOf(c.total, feeBps));
       if (!agencyActive()) { rerender(); return showErr("#cerr", t("agency_blocked_d")); }
       if (cantBuy(c.type, c.total)) { M.checkout = null; toast(t(cantBuy(c.type, c.total))); return go(SEARCH_PATH); }
       if (due.uzs > available()) { rerender(); return showErr("#cerr", tf("err_short", { amount:fmtUZS(due.uzs - available()) })); }
       if (rateMoved(c)) return;
       createOrder({ type:c.type, status:"PAID", title:c.title, sub:c.sub, start:c.start, end:c.end, ref:c.ref, total:c.total, clientId, feeBps,
-        travellers:c.travellers.map(({ type, save, fromId, ...x }) => x), contact:{ ...c.contact, phone }, details:c.details },
+        travellers:c.travellers.map(x => orderTraveller(x, c.mode)), contact:{ ...c.contact, phone }, details:c.details },
         id => { M.checkout = null; M.ui.forClient = null; go(`done/${id}`); });
     }, 1100);
   }

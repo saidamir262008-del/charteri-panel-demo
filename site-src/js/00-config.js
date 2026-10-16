@@ -28,9 +28,18 @@ const CONFIG = {
     url: "",        // https://<project>.supabase.co — тот же проект, что у мобильного приложения
     anonKey: "",    // anon public key — безопасен в браузере только при включённом RLS на всех таблицах
   },
+  /* Сервер Charteri (пакет charteri-api). base — адрес /api/v1, например
+     https://charteri.uz/api/v1. Пусто — демо на тестовых данных в браузере
+     (так собирается GitHub Pages). С адресом сайт, кабинет и админка входят
+     кодом через сервер и работают с его данными (js/06-api.js).
+     domains: { cms:"local" } — содержимое сайта остаётся на демо-данных
+     браузера. otpLength — длина кода Supabase (6 по умолчанию).
+     Локальная копия с адресом — build.py --api-base … --out …. */
   api: {
-    base: "",       // серверные методы сайта: поиск, перепроверка цены, заказы (Edge Functions или charteri.uz/api)
-    pay: "",        // charteri-pay-server: создание платежа, адрес вида https://pay.charteri.uz
+    base: "",
+    domains: {},
+    otpLength: 6,
+    pay: "",        // не используется: платёж создаёт сам сервер (POST /payments)
   },
   captchaSiteKey: "", // Cloudflare Turnstile или hCaptcha — site key (публичный); secret — только на сервере
   support: { phone: "", telegram: "", email: "" },

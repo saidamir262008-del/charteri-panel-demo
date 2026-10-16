@@ -358,7 +358,21 @@ const STR = {
   rate_note:["Курс для пересчёта: $1 = {rate} сум","Hisob kursi: $1 = {rate} so‘m","Exchange rate: $1 = {rate} UZS"],
   pay_cash:["Наличными в офисе","Ofisda naqd pul bilan","Cash at the office"],
   rate_changed_title:["Изменился курс доллара","Dollar kursi o‘zgardi","The dollar rate has changed"],
-  rate_changed_body:["Цена в долларах та же, но сумма в сумах пересчитана по новому курсу: $1 = {rate} сум. Подтвердите перед оплатой.","Dollardagi narx o‘sha, lekin so‘mdagi summa yangi kurs bo‘yicha qayta hisoblandi: $1 = {rate} so‘m. To‘lovdan oldin tasdiqlang.","The dollar price is the same, but the UZS amount has been recalculated at the new rate: $1 = {rate} UZS. Please confirm before paying."]
+  rate_changed_body:["Цена в долларах та же, но сумма в сумах пересчитана по новому курсу: $1 = {rate} сум. Подтвердите перед оплатой.","Dollardagi narx o‘sha, lekin so‘mdagi summa yangi kurs bo‘yicha qayta hisoblandi: $1 = {rate} so‘m. To‘lovdan oldin tasdiqlang.","The dollar price is the same, but the UZS amount has been recalculated at the new rate: $1 = {rate} UZS. Please confirm before paying."],
+  // Сохранённые пассажиры: автозаполнение второй покупки, «это я», удаление данных.
+  tr_from_profile:["Заполнено из вашего профиля — проверьте перед оплатой","Profilingizdan to‘ldirildi — to‘lovdan oldin tekshiring","Filled in from your profile — check before paying"],
+  tr_renew:["Паспорт {name} истекает до поездки — отсканируйте или введите новый паспорт","{name} pasportining muddati safargacha tugaydi — yangi pasportni skanerlang yoki kiriting","{name}’s passport expires before the trip — scan or enter the new passport"],
+  tr_self:["Это я","Bu men","This is me"],
+  tr_save_hint:["Сохранённых пассажиров видите вы, а при заказе в офисе Charteri — и сотрудник, по вашему подтверждённому номеру телефона","Saqlangan yo‘lovchilarni siz, Charteri ofisida buyurtma berganda esa xodim ham tasdiqlangan telefon raqamingiz bo‘yicha ko‘radi","Saved travellers are visible to you, and to Charteri office staff when you order at the office, by your confirmed phone number"],
+  tr_self_set:["Теперь вы — первый пассажир при оформлении","Endi rasmiylashtirishda birinchi yo‘lovchi — siz","You are now traveller 1 at checkout"],
+  tr_expired:["Паспорт истёк","Pasport muddati o‘tgan","Passport expired"],
+  tr_erase:["Удалить мои данные","Ma’lumotlarimni o‘chirish","Delete my data"],
+  tr_erase_q:["Удалить всех сохранённых пассажиров и их паспортные данные? Заказы останутся.","Barcha saqlangan yo‘lovchilar va ularning pasport ma’lumotlari o‘chirilsinmi? Buyurtmalar qoladi.","Delete all saved travellers and their passport details? Your orders stay."],
+  tr_erased:["Сохранённые данные удалены","Saqlangan ma’lumotlar o‘chirildi","Your saved data was deleted"],
+  tr_search:["Найти клиента","Mijozni topish","Find a client"],
+  tr_search_ph:["Имя, телефон или номер паспорта","Ism, telefon yoki pasport raqami","Name, phone or passport number"],
+  tr_none:["Никого не нашли","Hech kim topilmadi","No one found"],
+  tr_matched:["Этот паспорт уже сохранён: {name}","Bu pasport saqlangan: {name}","This passport is already saved: {name}"]
 };
 
 /* Склонения. Русский: [1, 2–4, 5+]; английский: [1, много]; узбекский не склоняет. */

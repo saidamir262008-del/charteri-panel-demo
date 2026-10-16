@@ -37,7 +37,7 @@ function renderNav(key){
         ${k === "book" && sec === "book" ? `<div class="side-sub">${MODULE_ORDER.map(m => `<a class="side-sublink" href="#/book/${m}" ${mod === m ? 'aria-current="true"' : ""}>${esc(t(MODULES[m].label))}</a>`).join("")}</div>` : ""}`).join("")}
     </nav>
     <a class="side-agency" href="#/brand" style="${brandStyle()}">${brandMark()}<span class="stack" style="gap:1px;min-width:0"><b>${esc(S.agency.name)}</b>
-      ${agencyActive() ? `<span class="side-status">${IC.ok}${esc(t("agency_verified"))}</span>` : `<span class="side-status is-off">${IC.lock}${esc(t("agency_blocked"))}</span>`}</span></a>
+      ${agencyActive() ? `<span class="side-status">${IC.ok}${esc(t("agency_verified"))}</span>` : `<span class="side-status is-off">${IC.lock}${esc(t(S.agency.status === "pending" ? "agency_pending" : "agency_blocked"))}</span>`}</span></a>
   </div>`;
   const title = t(NAV.find(([k]) => k === sec)?.[1] || "nav_dash");
   $("#top").innerHTML = `<div class="top-in">
@@ -53,7 +53,7 @@ function renderNav(key){
         ${M.ui.bell ? bellPanel() : ""}
       </div>
     </div></div>
-    ${agencyActive() ? "" : `<div class="blockbar" role="status">${IC.lock}<span>${esc(t("agency_blocked_d"))}</span></div>`}`;
+    ${agencyActive() ? "" : `<div class="blockbar" role="status">${IC.lock}<span>${esc(t(S.agency.status === "pending" ? "agency_pending_d" : "agency_blocked_d"))}</span></div>`}`;
   $("#footer").innerHTML = `<div class="foot-in"><p class="small">${esc(t("panel_foot"))}</p><p class="small">${esc(t("credits"))}</p></div>`;
   syncDrawer();
 }

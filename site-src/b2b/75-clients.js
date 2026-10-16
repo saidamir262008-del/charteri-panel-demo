@@ -8,7 +8,6 @@ const CLIENT_FIELDS = ["surname", "given", "passport", "cit", "gender", "dob", "
 const blankClient = () => ({ id:null, surname:"", given:"", passport:"", cit:"UZB", gender:"", dob:"", expiry:"", phone:"", email:"" });
 const clientName = c => `${c.given} ${c.surname}`.trim();
 const clientOrders = c => S.orders.filter(o => o.clientId === c.id);
-const maskPassport = p => p ? `${p.slice(0, 2)}•••${p.slice(-3)}` : "";
 
 function clientEditor(){
   const d = M.ui.clDraft; if (!d) return "";
@@ -35,7 +34,7 @@ function clientRow(c, i){
   const os = clientOrders(c), spent = os.filter(o => o.paidAt).reduce((s, o) => s + dueOf(o).uzs, 0);
   return `<div class="crow" style="--i:${i}">
     <a class="crow-main" href="#/clients/${esc(c.id)}"><span class="avatar sm">${esc(monogram(clientName(c)))}</span>
-      <span class="stack" style="gap:1px;min-width:0"><b>${esc(clientName(c))}</b><span class="muted small"><span class="mono">${esc(maskPassport(c.passport))}</span> · ${esc(c.cit)}</span></span></a>
+      <span class="stack" style="gap:1px;min-width:0"><b>${esc(clientName(c))}</b><span class="muted small"><span class="mono">${esc(savedMask(c))}</span> · ${esc(c.cit)}</span></span></a>
     <span class="c-phone mono small">${esc(c.phone || "—")}</span>
     <span class="c-stat small"><b>${esc(pl(os.length, "order"))}</b><span class="muted mono">${spent ? fmtUZS(spent) : ""}</span></span>
     <span class="c-act"><button type="button" class="ghost sm" data-act="clbook" data-v="${esc(c.id)}">${esc(t("book_for"))}</button>
@@ -73,7 +72,7 @@ PAGES["clients/:id"] = {
       <div class="twocol"><section class="card stack"><div class="card-h"><h2>${esc(t("client_orders"))}</h2></div>
           ${os.length ? `<div class="otable">${os.map((o, i) => orderRow(o, i, rc)).join("")}</div>` : `<p class="muted">${esc(t("client_no_orders"))}</p>`}</section>
         <aside class="stack sticky">${M.ui.clDraft?.id === c.id ? clientEditor() : `<div class="card stack"><span class="lbl">${esc(t("passport_data"))}</span>
-          <div class="rows">${row("passport_no", c.passport, true)}${row("citizenship", c.cit)}${row("gender", c.gender ? t(c.gender === "M" ? "gender_m" : "gender_f") : "")}
+          <div class="rows">${row("passport_no", c.passport || c.passportMask, true)}${row("citizenship", c.cit)}${row("gender", c.gender ? t(c.gender === "M" ? "gender_m" : "gender_f") : "")}
             ${row("dob", c.dob ? fdateY(c.dob) : "")}${row("expiry", c.expiry ? fdateY(c.expiry) : "")}${row("phone_label", c.phone, true)}${row("email_opt", c.email)}</div>
           <button type="button" class="ghost sm" data-act="cledit" data-v="${esc(c.id)}">${esc(t("edit"))}</button></div>`}</aside></div></div>`;
   }

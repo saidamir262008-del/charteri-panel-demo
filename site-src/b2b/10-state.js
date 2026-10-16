@@ -37,8 +37,9 @@ function note(kind, extra = {}, st = S){
   st.notes.unshift({ id:uid("n"), at:Date.now(), kind, read:false, ...extra });
   st.notes = st.notes.slice(0, 40);
 }
-/* Заблокированное агентство не платит и не пополняет баланс: решение Charteri в админке. */
-const agencyActive = () => S.agency.status !== "blocked";
+/* Заблокированное агентство не платит и не пополняет баланс: решение Charteri в админке.
+   pending (только с сервером) — агентство сайта ещё на проверке: тоже не платит. */
+const agencyActive = () => S.agency.status !== "blocked" && S.agency.status !== "pending";
 const unread = () => S.notes.filter(n => !n.read).length;
 function noteText(n){
   const o = n.orderId && S.orders.find(x => x.id === n.orderId);

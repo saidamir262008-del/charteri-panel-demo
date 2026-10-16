@@ -8,6 +8,10 @@
 
   python3 build.py              все три
   python3 build.py b2b admin    только перечисленные
+  python3 build.py --api-base http://127.0.0.1:3101/api/v1 --out /tmp/charteri-api-demo
+                                локальная копия, которая ходит на сервер charteri-api
+                                (CONFIG.api.base в копии; в репозитории base остаётся
+                                пустым, и без --out флаг не принимается)
 
 Общие модули лежат в js/ (данные, поиск, отели, туры, чартеры, оформление,
 карта, табло, фото, содержимое сайта и системные настройки из админки —
@@ -27,12 +31,12 @@ js/71-cms-pages.js и js/99-boot.js (SITE_ONLY), в кабинет и админ
 приложения, есть в словаре мобильного приложения (00-data.js) или в строках
 сайта и кабинета. Иначе посетитель увидел бы сырой ключ вместо текста.
 """
-import base64, json, pathlib, re, sys
+import base64, hashlib, json, pathlib, re, sys
 
 here = pathlib.Path(__file__).parent
 MIME = {".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp"}
 
-SITE_ONLY = ("70-pages.js", "71-cms-pages.js", "99-boot.js")
+SITE_ONLY = ("70-pages.js", "71-cms-pages.js", "97-api-site.js", "99-boot.js")
 APPS = {
     "b2c": {"files": sorted((here / "js").glob("*.js")),
             "css": ["styles.css"], "shell": "shell.html", "out": here.parent / "b2c" / "index.html"},
@@ -63,7 +67,7 @@ def calls(src, name):
         out.append(src[m.end():j - 1]); i = j
     return out
 
-STRING_FILES = ("00-data.js", "01-strings.js", "01-strings-b2b.js", "01-strings-admin.js")
+STRING_FILES = ("00-data.js", "01-strings.js", "05-api-strings.js", "01-strings-b2b.js", "01-strings-admin.js")
 
 def check_strings(files, known):
     code = "\n".join(p.read_text() for p in files if p.name not in STRING_FILES)
@@ -103,6 +107,64 @@ def site_snapshot():
             f"const SITE_KEYS = {json.dumps(sorted(keys))};\n"
             "const SITE_STR = Object.fromEntries(SITE_KEYS.map(k => [k, I18N[k] ? [I18N[k].ru, I18N[k].uz ?? I18N[k].ru, I18N[k].en ?? I18N[k].ru] : [...STR[k]]]));\n")
 
+# ---- адрес сервера для локальной копии (--api-base … --out …) -----------------------
+args = sys.argv[1:]
+def take(flag):
+    if flag not in args: return None
+    i = args.index(flag)
+    if i + 1 >= len(args): print(f"{flag}: нужно значение"); sys.exit(1)
+    v = args[i + 1]; del args[i:i + 2]; return v
+API_BASE, OUT_DIR = take("--api-base"), take("--out")
+if API_BASE and not OUT_DIR:
+    print("--api-base пишет только в отдельную папку (--out): собранные файлы репозитория остаются на тестовых данных"); sys.exit(1)
+if OUT_DIR and here.parent.resolve() in [pathlib.Path(OUT_DIR).resolve(), *pathlib.Path(OUT_DIR).resolve().parents]:
+    print("--out: нужна папка вне репозитория"); sys.exit(1)
+if API_BASE and not re.fullmatch(r"(https://[\w.-]+|http://(127\.0\.0\.1|localhost))(:\d+)?(/[\w./-]*)?", API_BASE):
+    print("--api-base: https-адрес или http://127.0.0.1"); sys.exit(1)
+
+def with_api(js):
+    """CONFIG.api.base в копии: ровно одна замена пустой строки в блоке api."""
+    pat = re.compile(r'(\n  api: \{\n    base: )""')
+    if len(pat.findall(js)) != 1: print("00-config.js: не найден CONFIG.api.base"); sys.exit(1)
+    return pat.sub(lambda m: m.group(1) + json.dumps(API_BASE), js)
+
+# ---- политика безопасности страницы (CSP) для сборки с сервером --------------------
+# Когда в сборке задан CONFIG.api.base (рабочая версия или --api-base), в <head>
+# ставится Content-Security-Policy: скрипты — только встроенный (по хешу) и два
+# файла CDN по точному адресу (qrcode-generator и maplibre из CONFIG.map.lib),
+# запросы — только к серверу API и тайлам карты. Демо без сервера (GitHub Pages)
+# собирается как раньше.
+def cfg_str(js, block, key):
+    m = re.search(r"\n  " + block + r": \{\n(?:    .*\n)*?    " + key + r': ("(?:[^"\\]|\\.)*")', js)
+    return json.loads(m.group(1)) if m else ""
+
+def sha(text):
+    return "'sha256-" + base64.b64encode(hashlib.sha256(text.encode()).digest()).decode() + "'"
+
+def origin(url):
+    m = re.match(r"(https?://[^/]+)", url or ""); return m.group(1) if m else ""
+
+def with_csp(html, js):
+    base = cfg_str(js, "api", "base")
+    if not base: return html
+    lib = cfg_str(js, "map", "lib")
+    inline = [m for m in re.findall(r"<script>(.*?)</script>", html, re.S)]
+    handlers = sorted(set(re.findall(r'\son(?:load|error)="([^"$`{}]+)"', html)))
+    cdn = re.findall(r'<script src="(https://[^"]+)"', html)
+    script = " ".join([*map(sha, inline), *(["'unsafe-hashes'", *map(sha, handlers)] if handlers else []), *cdn,
+                       *([lib + "maplibre-gl.js"] if lib else [])])
+    policy = "; ".join([
+        "default-src 'self'",
+        "script-src " + script,
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com" + (" " + lib + "maplibre-gl.css" if lib else ""),
+        "font-src https://fonts.gstatic.com data:",
+        "img-src 'self' data: blob: https:",
+        "connect-src 'self' " + " ".join(sorted({origin(base), "https://tiles.openfreemap.org"} - {""})),
+        "worker-src blob:", "child-src blob:", "frame-src https://www.youtube-nocookie.com",
+        "object-src 'none'", "base-uri 'none'", "form-action 'self'"])
+    meta = f'<meta http-equiv="Content-Security-Policy" content="{policy}">'
+    return html.replace('<meta charset="utf-8">', '<meta charset="utf-8">\n' + meta, 1)
+
 # ---- сборка ------------------------------------------------------------------------
 def build(name):
     app = APPS[name]
@@ -114,11 +176,16 @@ def build(name):
         names = [p.name for p in app["files"]]
         after = f"/* ---- {names[names.index('01-strings.js') + 1]} ---- */"
         js = js.replace(after, site_snapshot() + after, 1)
+    if API_BASE: js = with_api(js)
     css = "\n".join((here / c).read_text() for c in app["css"])
     out = (here / app["shell"]).read_text().replace("/*__CSS__*/", css).replace("/*__JS__*/", js)
-    app["out"].parent.mkdir(exist_ok=True)
-    app["out"].write_text(out)
-    print(f"{app['out'].relative_to(here.parent)}: {len(out)//1024} КБ · модулей JS: {len(app['files'])} · ключей проверено: {n_used} · префиксов: {n_pref}")
+    out = with_csp(out, js)
+    dest = pathlib.Path(OUT_DIR) / app["out"].relative_to(here.parent) if OUT_DIR else app["out"]
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(out)
+    shown = dest if OUT_DIR else dest.relative_to(here.parent)
+    print(f"{shown}: {len(out)//1024} КБ · модулей JS: {len(app['files'])} · ключей проверено: {n_used} · префиксов: {n_pref}" + (f" · API {API_BASE}" if API_BASE else "")
+          + (" · CSP" if "Content-Security-Policy" in out else ""))
 
-for name in (sys.argv[1:] or APPS):
+for name in (args or APPS):
     build(name)

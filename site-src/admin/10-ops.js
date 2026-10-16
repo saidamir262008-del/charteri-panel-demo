@@ -38,7 +38,7 @@ function loadSite(){ const r = readJSON(SITE_KEY, null); return r && r.v === 1 &
    иначе обзор показал бы продажи сайта нулём, а клиентов сайта — уже с заказами. */
 function seedSite(){ const r = siteFresh({ lang:sysCfg().langs.def, cur:sysCfg().cur.def, theme:"system" }); r.rev = 1; writeJSON(SITE_KEY, r); return loadSite(); }
 /* Заявки пишет форма кабинета, а копия может вернуть что угодно: без объекта с id строку не берём. */
-const loadApps = () => { const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a.filter(x => x && typeof x === "object" && typeof x.id === "string") : []; };
+function loadApps(){ const a = readJSON(APPS_KEY, []); return Array.isArray(a) ? a.filter(x => x && typeof x === "object" && typeof x.id === "string") : []; }
 
 /* ---- журнал ----
    Запись: кто (и в какой роли на тот момент), что, когда, откуда (IP,
